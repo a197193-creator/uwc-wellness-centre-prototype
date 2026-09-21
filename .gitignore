@@ -1,0 +1,15 @@
+# Local hosting metadata
+.netlify/
+.vercel/
+
+# Environment files and credentials
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Operating-system files
+.DS_Store
+Thumbs.db
