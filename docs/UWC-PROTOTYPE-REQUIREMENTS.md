@@ -69,45 +69,32 @@ The phrase **“within its accredited scope”** must be retained.
 
 Telephone, WhatsApp, email and external web links should be actionable where the browser supports them.
 
-## 4. Confirmed screening catalogue
+## 4. Proposed precision-screening catalogue
 
-### Standard Health-Screening Package — RM150
+The RM150 Standard Health-Screening Package was removed from the prototype on 22 September at the student's request. The catalogue now presents the four supplied precision packages and their proposed à la carte comparisons.
 
-- Full Blood Count
-- Renal Function
-- Lipid Profile
-- Fasting Blood Glucose
-- Urine Analysis
-- Body Composition Analysis
-- Blood Pressure and BMI
-- Anthropometric Measurement
-- Electrocardiogram
-- Spirometry
-- Vascular Screening
+| Package | Current range | Supplied à la carte total | Proposed package price | Supplied saving / difference |
+| --- | ---: | ---: | ---: | ---: |
+| 1. Precision Baseline Health Screening | RM350–RM500 | RM590 | RM450 | RM140 |
+| 2. Precision Expanded Health Screening | RM1,500–RM2,500 | RM1,660 | RM1,800 | -RM140 |
+| 3. Precision Wellness and Health Status | RM3,500–RM5,500 | RM4,958 | RM4,200 | RM758 |
+| 4. Precision Longevity | RM6,000–RM12,000+ | RM17,796 | From RM7,500 | RM10,296 |
 
-### Add-on screenings
+Package 1 lists InBody/body composition, ECG, spirometry, the basic blood package, HbA1c and UACR/ACR. Package 2 carries Package 1 forward and adds whole-body DEXA, vitamin D, retinal/AI fundus screening, SENS wearable assessment, skin-age analysis and an integrated annual health report. Package 3 carries Packages 1–2 forward and adds BNP, troponin, extended lipids, cystatin C, fasting insulin/HOMA-IR, DEXA BMD, MoCA, 25 trace elements and combined vitamin A & E. Vitamin D and retinal screening must not be charged twice.
 
-| Add-on | Price |
-| --- | ---: |
-| Urine Albumin | RM20 |
-| HbA1c / Diabetic Control | RM30 |
-| Bone Density Measurement (DEXA) | RM120 |
-| Blood Grouping | RM15 |
-| Uric Acid Level | RM20 |
-| Vitamin D | RM100 |
-| Thyroid Function Test | RM50 |
-| Liver Function Test | RM50 |
-| Colorectal Cancer Screening (iFOBT) | RM20 |
+Package 4 carries Packages 1–3 forward and presents targeted DNA, WES, WGS, gut microbiome, pharmacogenomics, genomic interpretation and repeat-monitoring pathways. RM7,500 is a proposed starting price based on the targeted-panel pathway; WES, WGS and pharmacogenomics can materially change the final quotation.
+
+Prices marked with an asterisk are working/prototype prices pending a specific quotation or final service definition. The Package 2 comparison is negative: RM1,800 is RM140 above its RM1,660 supplied component total. The supplied Package 3 and 4 totals must also be validated against the final component definitions and UWC costing before commercial use.
 
 Display this notice near catalogue pricing:
 
-> Packages, services and prices are subject to confirmation or revision by UWC.
+> Packages, pathways, services and prices are proposed prototype figures and remain subject to UWC costing, clinical review and confirmation.
 
-First-time customers are not required to choose a particular standard package. They may freely select from the available packages, individual services or add-on screenings according to their preferences and screening needs.
+First-time customers are not required to choose a particular package. They may select a package or build a custom selection according to their preferences and screening needs.
 
 ### Completed catalogue migration
 
-On 22 September, the earlier four “Precision” packages were removed from the visible prototype and replaced with the approved RM150 standard package and nine add-ons. Users may now build a custom selection, and the website identifies when the same 11 package components have been selected. Because UWC has not supplied standalone prices for those 11 components, the exact individual total and saving remain clearly marked as pending rather than being invented.
+The website now opens each package to show its cumulative components, à la carte total, proposed package price, difference and rationale. The Build Your Own catalogue uses the same proposed component prices and identifies when a custom selection matches one of the four packages.
 
 ## 5. Customer details
 
@@ -182,8 +169,8 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 | About UWC navigation/content | Completed 22 September | Review wording/layout with UWC |
 | Official contacts | Completed 22 September | Confirm links during final testing |
 | Accreditation statement | Completed 22 September | Retain exact approved wording |
-| RM150 package and add-ons | Completed 22 September | Standalone component prices still require UWC input |
-| Custom selection/package comparison | Completed 22 September | Exact saving appears automatically when all standalone prices are later supplied |
+| Four precision packages | Updated 22 September | Validate proposed component totals, working prices and pathways with UWC |
+| Custom selection/package comparison | Updated 22 September | Uses the supplied à la carte totals and flags the negative Package 2 difference |
 | Review plan | Adapted to confirmed catalogue | Extend into the new staged journey |
 | Customer details | Missing | Build form and validation |
 | Privacy notice/consent | Missing | Add exact notice and mandatory checkbox |
@@ -210,7 +197,7 @@ These items do not block the 7 October prototype, but they must be confirmed bef
 The review build is feature-complete when a user can:
 
 1. open About UWC and read the approved information;
-2. select the confirmed standard package and/or add-ons;
+2. select one of the four proposed precision packages and/or individual components;
 3. review the selection and indicative total;
 4. enter and validate the approved customer fields;
 5. choose an eligible preferred appointment date and time;

@@ -221,14 +221,7 @@
 }
 
 @media screen and (min-width: 641px) and (max-width: 900px) {
-  .package-sidebar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
-  .package-sidebar > .eyebrow { grid-column: 1; grid-row: 1; }
-  .package-sidebar > .package-price { grid-column: 1; grid-row: 2; }
-  .package-sidebar > .price-caption { grid-column: 1; grid-row: 3; }
-  .package-sidebar > .package-highlights { grid-column: 2; grid-row: 1 / 5; }
-  .package-sidebar > .button { grid-column: 1; grid-row: 4; align-self: start; }
-  .package-sidebar > .quick-plan-summary { grid-column: 1; grid-row: 5; }
-  .package-sidebar > .sidebar-note { grid-column: 2; grid-row: 5; }
+  .package-sidebar { display: flex; gap: 0; }
 }
 
 @media screen and (max-width: 640px) {

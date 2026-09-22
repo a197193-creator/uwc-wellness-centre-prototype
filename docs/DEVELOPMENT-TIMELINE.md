@@ -9,7 +9,7 @@
 | Date | Planned work | Deliverable / status |
 | --- | --- | --- |
 | 21–22 September | Confirm requirements, customer fields, About UWC information and appointment rules | **Completed 22 September.** Requirements and current-site gap check recorded in `docs/UWC-PROTOTYPE-REQUIREMENTS.md`. |
-| 23 September | Develop About UWC navigation and information section | **Completed early on 22 September.** Added the responsive About section, accreditation wording, contacts and links. Replaced the outdated four-package catalogue with the confirmed RM150 package and nine add-ons, and added custom-selection/package-offer comparison logic. |
+| 23 September | Develop About UWC navigation and information section | **Completed early on 22 September.** Added the responsive About section, accreditation wording, contacts and links. Updated the catalogue again with the four supplied precision packages, cumulative inclusions, proposed component pricing and package-comparison logic. |
 | 24–25 September | Develop customer-details form, validation and privacy notice | Validated fields, accessible errors, approved consent text and session-only prototype handling. Complete confirmed catalogue reconciliation if required. |
 | 26–27 September | Contingency / self-review | No formal UWC review required; use only if earlier development needs correction or extra testing. |
 | 28–29 September | Develop appointment date and time-selection interface | Weekday/date rules, demonstration time slots, duration and cancellation notices. |
@@ -28,7 +28,7 @@ The main feature work is targeted for completion on 2 October, leaving 3–6 Oct
 ## Known dependency checkpoints
 
 - **23 September:** Use the supervisor-approved About UWC wording and contact details.
-- **Catalogue integration:** Completed 22 September with the confirmed RM150 package, nine add-ons and package-match offer.
+- **Catalogue integration:** Updated 22 September with four proposed precision packages and package-match comparisons. UWC still needs to validate working prices, Package 2's negative saving and the Package 3–4 totals/pathways.
 - **Before appointment development:** Treat 30-minute slots as a clearly labelled prototype assumption.
 - **Before adding preparation advice:** Obtain exact approved instructions from UWC; do not invent medical preparation guidance.
 - **Before 2 October deployment:** Confirm that the public URL loads without sign-in and that the Vercel production build is successful.

@@ -1,47 +1,105 @@
-/* UWC prototype catalogue confirmed on 22 September 2026.
-   Standalone prices for standard-package components remain unconfirmed. */
+/* UWC precision-package prototype catalogue updated on 22 September 2026.
+   Prices are proposed comparison figures and remain subject to UWC validation. */
 (function (root) {
   'use strict';
 
   const packages = [
     {
-      id: 'standard',
+      id: 'baseline',
       number: 1,
-      short: 'Standard',
-      name: 'Standard Health-Screening Package',
-      price: 150,
-      tagline: 'A practical starting point.',
-      description: 'A combined health-screening package covering routine laboratory investigations and key physical, cardiovascular and respiratory assessments.',
-      highlights: ['11 listed screening components', 'Laboratory and physical assessments', 'Cardiovascular and respiratory screening'],
-      note: 'Packages, services and prices are subject to confirmation or revision by UWC.'
+      short: 'Baseline',
+      name: 'Precision Baseline Health Screening',
+      price: 450,
+      priceRange: 'RM350–RM500',
+      aLaCarteTotal: 590,
+      saving: 140,
+      tagline: 'FOUNDATIONAL HEALTH INSIGHT',
+      description: 'A baseline combination of body composition, cardiovascular and respiratory checks with core laboratory screening.',
+      highlights: ['6 listed components', 'À la carte total RM590', 'RM140 below the listed component total'],
+      rationale: 'À la carte prices are positioned around the lower-to-average market benchmark. The listed components total approximately RM590; the RM450 package provides RM140 in bundling value.',
+      note: 'Proposed prototype pricing. Final scope, suitability and commercial pricing require UWC confirmation.'
+    },
+    {
+      id: 'expanded',
+      number: 2,
+      short: 'Expanded',
+      name: 'Precision Expanded Health Screening',
+      price: 1800,
+      priceRange: 'RM1,500–RM2,500',
+      aLaCarteTotal: 1660,
+      saving: -140,
+      tagline: 'A BROADER ANNUAL VIEW',
+      description: 'Everything in Package 1, expanded with DEXA, vitamin D, retinal, activity, skin-age and integrated reporting services.',
+      highlights: ['Everything in Package 1', '12 cumulative components', 'RM140 above the listed component total'],
+      rationale: 'DEXA, retinal and skin-age pricing is positioned around the lower-to-average market. Vitamin D uses a competitive market benchmark. Wearable assessment and reporting are working prices because specific market quotations are still required.',
+      note: 'The supplied comparison shows RM1,660 à la carte versus RM1,800 as the package price, producing a negative RM140 saving. This requires UWC review.'
+    },
+    {
+      id: 'wellness-status',
+      number: 3,
+      short: 'Wellness Status',
+      name: 'Precision Wellness and Health Status',
+      price: 4200,
+      priceRange: 'RM3,500–RM5,500',
+      aLaCarteTotal: 4958,
+      saving: 758,
+      tagline: 'ADVANCED WELLNESS PROFILING',
+      description: 'Everything in Packages 1 and 2, plus advanced cardiac, metabolic, renal, cognitive, trace-element and vitamin assessments.',
+      highlights: ['Everything in Packages 1–2', '21 cumulative components', 'RM758 below the supplied à la carte total'],
+      rationale: 'Trace elements (RM675) and Vitamin A & E (RM833) are retained from the UWC 2026/UMBI Market Survey. Other prices are positioned around the lower-to-average market. The extended lipid price remains provisional until the exact panel is confirmed.',
+      note: 'Vitamin D and retinal screening carry forward from Package 2 and should not be charged twice.'
+    },
+    {
+      id: 'longevity',
+      number: 4,
+      short: 'Longevity',
+      name: 'Precision Longevity',
+      price: 7500,
+      pricePrefix: 'From',
+      priceRange: 'RM6,000–RM12,000+',
+      aLaCarteTotal: 17796,
+      saving: 10296,
+      tagline: 'GENOMIC AND LONGEVITY OPTIONS',
+      description: 'Everything in Packages 1–3, with targeted genomic, sequencing, microbiome, pharmacogenomics, interpretation and monitoring options.',
+      highlights: ['Everything in Packages 1–3', 'Genomic and microbiome pathways', 'RM10,296 difference using the supplied comparison total'],
+      rationale: 'RM7,500 is the proposed starting price based on the targeted-panel pathway. WES, WGS and pharmacogenomics should be treated as upgrades or add-ons because they materially change the final price.',
+      note: 'Starting price only. The final quotation depends on the selected genomic pathway, laboratory workflow, interpretation and monitoring scope.'
     }
   ];
 
   const tests = [
-    { id: 'full-blood-count', name: 'Full Blood Count', includedInStandard: true, category: 'Laboratory screening', description: 'A routine full blood count investigation included in the Standard Health-Screening Package.' },
-    { id: 'renal-function', name: 'Renal Function', includedInStandard: true, category: 'Laboratory screening', description: 'A kidney-function laboratory assessment included in the Standard Health-Screening Package.' },
-    { id: 'lipid-profile', name: 'Lipid Profile', includedInStandard: true, category: 'Laboratory screening', description: 'A blood-lipid assessment included in the Standard Health-Screening Package.' },
-    { id: 'fasting-glucose', name: 'Fasting Blood Glucose', includedInStandard: true, category: 'Laboratory screening', description: 'A fasting blood-glucose measurement included in the Standard Health-Screening Package.' },
-    { id: 'urine-analysis', name: 'Urine Analysis', includedInStandard: true, category: 'Laboratory screening', description: 'A routine urine assessment included in the Standard Health-Screening Package.' },
-    { id: 'inbody', name: 'Body Composition Analysis', includedInStandard: true, category: 'Physical measurements', description: 'A body-composition assessment included in the Standard Health-Screening Package.' },
-    { id: 'blood-pressure-bmi', name: 'Blood Pressure and BMI', includedInStandard: true, category: 'Physical measurements', description: 'Blood-pressure and body-mass-index measurements included in the Standard Health-Screening Package.' },
-    { id: 'anthropometric', name: 'Anthropometric Measurement', includedInStandard: true, category: 'Physical measurements', description: 'Body measurements included in the Standard Health-Screening Package.' },
-    { id: 'ecg', name: 'Electrocardiogram', includedInStandard: true, category: 'Cardiovascular screening', description: 'A recording of the heart’s electrical activity included in the Standard Health-Screening Package.' },
-    { id: 'spirometry', name: 'Spirometry', includedInStandard: true, category: 'Respiratory screening', description: 'A breathing and lung-function assessment included in the Standard Health-Screening Package.' },
-    { id: 'vascular-screening', name: 'Vascular Screening', includedInStandard: true, category: 'Cardiovascular screening', description: 'A vascular assessment included in the Standard Health-Screening Package.' },
+    { id: 'inbody', name: 'InBody / Body Composition', price: 60, introducedIn: 1, category: 'Physical assessment', description: 'Body-composition assessment using InBody analysis.' },
+    { id: 'ecg', name: 'Electrocardiogram (ECG)', price: 80, introducedIn: 1, category: 'Cardiovascular screening', description: 'A recording of the heart’s electrical activity.' },
+    { id: 'spirometry', name: 'Spirometry / Lung Function', price: 100, introducedIn: 1, category: 'Respiratory screening', description: 'A breathing assessment used to measure lung function.' },
+    { id: 'basic-blood-package', name: 'Basic Blood Package', price: 220, introducedIn: 1, category: 'Laboratory screening', description: 'Includes full blood count, fasting glucose, renal profile, lipid profile, liver function and urine analysis.' },
+    { id: 'hba1c', name: 'HbA1c', price: 50, introducedIn: 1, category: 'Metabolic screening', description: 'A laboratory assessment of longer-term blood-glucose control.' },
+    { id: 'uacr', name: 'Urine Albumin-Creatinine Ratio (UACR / ACR)', price: 80, introducedIn: 1, category: 'Renal screening', description: 'A urine assessment used in renal-risk screening.' },
 
-    { id: 'urine-albumin', name: 'Urine Albumin', price: 20, category: 'Add-on screening', description: 'An optional urine albumin screening available as an add-on.' },
-    { id: 'hba1c', name: 'HbA1c / Diabetic Control', price: 30, category: 'Add-on screening', description: 'An optional HbA1c assessment for diabetic control available as an add-on.' },
-    { id: 'dexa-bmd', name: 'Bone Density Measurement (DEXA)', price: 120, category: 'Add-on screening', description: 'An optional DEXA bone-density measurement available as an add-on.' },
-    { id: 'blood-grouping', name: 'Blood Grouping', price: 15, category: 'Add-on screening', description: 'An optional ABO blood-grouping assessment available as an add-on.' },
-    { id: 'uric-acid', name: 'Uric Acid Level', price: 20, category: 'Add-on screening', description: 'An optional uric-acid laboratory assessment available as an add-on.' },
-    { id: 'vitamin-d', name: 'Vitamin D', price: 100, category: 'Add-on screening', description: 'An optional vitamin D laboratory assessment available as an add-on.' },
-    { id: 'thyroid-function', name: 'Thyroid Function Test', price: 50, category: 'Add-on screening', description: 'An optional thyroid-function laboratory assessment available as an add-on.' },
-    { id: 'liver-function', name: 'Liver Function Test', price: 50, category: 'Add-on screening', description: 'An optional liver-function laboratory assessment available as an add-on.' },
-    { id: 'ifobt', name: 'Colorectal Cancer Screening (iFOBT)', price: 20, category: 'Add-on screening', description: 'An optional immunochemical faecal occult blood test available as an add-on.' }
-  ].map(function (test) {
-    return Object.freeze(Object.assign({ price: null, includedInStandard: false }, test));
-  });
+    { id: 'dexa-whole-body', name: 'DEXA Whole-Body Assessment', price: 300, introducedIn: 2, category: 'Body and bone assessment', description: 'Whole-body DEXA for body-composition and bone assessment.' },
+    { id: 'vitamin-d', name: 'Vitamin D', price: 140, introducedIn: 2, category: 'Vitamin assessment', description: 'A laboratory assessment of vitamin D status.' },
+    { id: 'retinal-ai', name: 'Retinal / AI Fundus Screening', price: 80, introducedIn: 2, category: 'Eye screening', description: 'Retinal imaging with the proposed AI-supported fundus-screening pathway.' },
+    { id: 'sens-wearable', name: 'SENS Wearable Activity Assessment', price: 250, introducedIn: 2, provisional: true, category: 'Activity assessment', description: 'A proposed wearable-supported activity assessment; duration and reporting scope require confirmation.' },
+    { id: 'skin-age', name: 'Skin-Age / AI Skin Analysis', price: 150, introducedIn: 2, category: 'Skin assessment', description: 'A proposed technology-supported skin-age assessment.' },
+    { id: 'integrated-report', name: 'Integrated Annual Health Report', price: 150, introducedIn: 2, provisional: true, category: 'Professional reporting', description: 'An integrated annual report bringing the selected screening findings together.' },
+
+    { id: 'bnp', name: 'BNP', price: 200, introducedIn: 3, category: 'Cardiac biomarkers', description: 'A proposed cardiac biomarker assessment; the exact BNP or NT-proBNP platform requires confirmation.' },
+    { id: 'troponin', name: 'Troponin T / I', price: 80, introducedIn: 3, category: 'Cardiac biomarkers', description: 'A proposed cardiac biomarker assessment; assay type requires confirmation.' },
+    { id: 'extended-lipid', name: 'Extended Lipid Assessment', price: 100, introducedIn: 3, provisional: true, category: 'Metabolic screening', description: 'An advanced lipid assessment whose final panel must be confirmed.' },
+    { id: 'cystatin-c', name: 'Cystatin C', price: 120, introducedIn: 3, category: 'Renal screening', description: 'An advanced renal-function biomarker assessment.' },
+    { id: 'fasting-insulin-homa', name: 'Fasting Insulin / HOMA-IR', price: 120, introducedIn: 3, category: 'Metabolic screening', description: 'Fasting insulin testing with a calculated HOMA-IR index.' },
+    { id: 'dexa-bmd', name: 'DEXA Bone-Density (BMD)', price: 200, introducedIn: 3, category: 'Body and bone assessment', description: 'A DEXA bone-density assessment; overlapping DEXA scope should be reviewed before final charging.' },
+    { id: 'moca', name: 'MoCA Cognition Assessment', price: 180, introducedIn: 3, category: 'Cognitive screening', description: 'A proposed professionally administered cognitive screening assessment.' },
+    { id: 'trace-elements-25', name: '25 Trace Elements', price: 675, introducedIn: 3, category: 'Micronutrient assessment', description: 'A 25 trace-element assessment using the UWC 2026/UMBI market-survey figure.' },
+    { id: 'vitamin-a-e', name: 'Vitamin A & E (Combined)', price: 833, introducedIn: 3, category: 'Vitamin assessment', description: 'Combined vitamin A and E assessment using the UWC 2026/UMBI market-survey figure.' },
+
+    { id: 'targeted-dna', name: 'Targeted Wellness / DNA Panel', price: 1500, introducedIn: 4, category: 'Genomic assessment', description: 'The proposed entry genomic pathway; the final gene panel and interpretation scope require confirmation.' },
+    { id: 'wes', name: 'Whole Exome Sequencing (WES)', price: 3000, introducedIn: 4, provisional: true, category: 'Genomic assessment', description: 'A proposed sequencing upgrade whose coverage, workflow and interpretation require confirmation.' },
+    { id: 'wgs', name: 'Whole Genome Sequencing (WGS)', price: 6999, introducedIn: 4, optional: true, category: 'Genomic assessment', description: 'A proposed whole-genome sequencing upgrade that materially changes the final quotation.' },
+    { id: 'gut-microbiome', name: 'Gut Microbiome Sequencing', price: 2288, introducedIn: 4, optional: true, category: 'Microbiome assessment', description: 'A proposed microbiome sequencing option; depth, report scope and consultation require confirmation.' },
+    { id: 'pharmacogenomics', name: 'Pharmacogenomics', price: 2500, introducedIn: 4, optional: true, category: 'Genomic assessment', description: 'An optional pharmacogenomics upgrade rather than an automatic inclusion in every longevity pathway.' },
+    { id: 'genomic-report', name: 'Genomic Interpretation Report', price: 800, introducedIn: 4, provisional: true, category: 'Professional reporting', description: 'A proposed professional interpretation report; price depends on panel complexity and expertise.' },
+    { id: 'monitoring-plan', name: 'Long-Term Repeat Monitoring Plan', price: 500, introducedIn: 4, provisional: true, category: 'Monitoring service', description: 'A proposed monitoring service whose duration, review frequency and professional input require confirmation.' }
+  ].map(function (test) { return Object.freeze(Object.assign({ provisional: false, optional: false }, test)); });
 
   packages.forEach(function (pkg) { Object.freeze(pkg.highlights); Object.freeze(pkg); });
   Object.freeze(packages);
@@ -56,12 +114,23 @@
   }
 
   function getTests(packageId) {
-    requirePackage(packageId);
-    return tests.filter(function (test) { return test.includedInStandard; });
+    const pkg = requirePackage(packageId);
+    return tests.filter(function (test) { return test.introducedIn <= pkg.number; });
+  }
+
+  function getDirectTests(packageId) {
+    const pkg = requirePackage(packageId);
+    return tests.filter(function (test) { return test.introducedIn === pkg.number; });
   }
 
   function coveredIds(packageId) {
     return getTests(packageId).map(function (test) { return test.id; });
+  }
+
+  function packageNumbersForTest(testId) {
+    const test = testMap.get(testId);
+    if (!test) return [];
+    return packages.filter(function (pkg) { return pkg.number >= test.introducedIn; }).map(function (pkg) { return pkg.number; });
   }
 
   function createPlan() { return []; }
@@ -108,23 +177,25 @@
   }
 
   function comparePackage(plan, packageId) {
-    const pkg = requirePackage(packageId || 'standard');
+    const pkg = requirePackage(packageId || 'baseline');
     const clean = cleanPlan(plan);
     const covered = coveredIds(pkg.id);
     const selectedIds = new Set(clean.filter(function (entry) { return entry.kind === 'test'; }).map(function (entry) { return entry.id; }));
     const matched = covered.filter(function (id) { return selectedIds.has(id); });
-    const selectedTests = matched.map(function (id) { return testMap.get(id); });
-    const pricesComplete = selectedTests.length === covered.length && selectedTests.every(function (test) { return Number.isFinite(test.price); });
-    const individualTotal = pricesComplete ? selectedTests.reduce(function (total, test) { return total + test.price; }, 0) : null;
+    const fullMatch = matched.length === covered.length;
 
     return {
       packageSelected: clean.some(function (entry) { return entry.kind === 'package' && entry.id === pkg.id; }),
+      packageId: pkg.id,
+      packageNumber: pkg.number,
+      packageName: pkg.name,
+      pricePrefix: pkg.pricePrefix || '',
       matchedCount: matched.length,
       componentCount: covered.length,
-      fullMatch: matched.length === covered.length,
+      fullMatch: fullMatch,
       packagePrice: pkg.price,
-      individualTotal: individualTotal,
-      saving: individualTotal === null ? null : individualTotal - pkg.price
+      individualTotal: fullMatch ? pkg.aLaCarteTotal : null,
+      saving: fullMatch ? pkg.saving : null
     };
   }
 
@@ -132,30 +203,35 @@
     const clean = cleanPlan(plan);
     const items = clean.map(function (entry) {
       const source = entry.kind === 'package' ? packageMap.get(entry.id) : testMap.get(entry.id);
+      const packageNumbers = entry.kind === 'test' ? packageNumbersForTest(entry.id) : [];
       return {
         key: entry.kind + ':' + entry.id,
         kind: entry.kind,
         id: entry.id,
         name: source.name,
         price: source.price,
-        referencePrice: null,
+        provisional: Boolean(source.provisional),
         note: entry.kind === 'package'
-          ? 'Package price; subject to UWC confirmation or revision.'
-          : source.includedInStandard
-            ? 'Also included in the RM150 standard package. Standalone price requires UWC confirmation.'
-            : 'Add-on screening; subject to UWC confirmation or revision.'
+          ? (source.pricePrefix ? 'Starting package price. ' : 'Proposed package price. ') + 'Listed à la carte comparison: RM' + source.aLaCarteTotal.toLocaleString('en-MY') + '.'
+          : 'Listed in Package' + (packageNumbers.length > 1 ? 's ' : ' ') + packageNumbers.join(', ') + (source.provisional ? '. Working price pending quotation.' : '.')
       };
     });
-    const needsQuote = items.some(function (item) { return item.price === null; });
+    const hasProvisional = items.some(function (item) {
+      if (item.provisional) return true;
+      if (item.kind !== 'package') return false;
+      return getTests(item.id).some(function (test) { return test.provisional; });
+    });
     const warnings = [];
-    if (needsQuote) warnings.push('Standalone prices for standard-package components have not been confirmed by UWC and are excluded from the subtotal.');
-    if (items.length) warnings.push('Packages, services and prices are subject to confirmation or revision by UWC.');
+    if (hasProvisional) warnings.push('This selection contains working prices that still require UWC costing or a supplier quotation.');
+    if (items.some(function (item) { return item.kind === 'package' && item.id === 'expanded'; })) warnings.push('Package 2 is RM140 above its supplied à la carte comparison total and should be reviewed before commercial use.');
+    if (items.some(function (item) { return item.kind === 'package' && item.id === 'longevity'; })) warnings.push('The RM7,500 longevity price is a starting price; genomic and microbiome upgrades can materially change the final quotation.');
+    if (items.length) warnings.push('Packages, services and prices are proposed prototype figures and remain subject to UWC confirmation.');
 
     return {
       items: items,
       count: items.length,
-      subtotal: items.reduce(function (total, item) { return total + (Number.isFinite(item.price) ? item.price : 0); }, 0),
-      needsQuote: needsQuote,
+      subtotal: items.reduce(function (total, item) { return total + item.price; }, 0),
+      needsQuote: hasProvisional,
       warnings: warnings
     };
   }
@@ -164,7 +240,9 @@
     packages: packages,
     tests: tests,
     getTests: getTests,
+    getDirectTests: getDirectTests,
     coveredIds: coveredIds,
+    packageNumbersForTest: packageNumbersForTest,
     createPlan: createPlan,
     addPackage: addPackage,
     addTest: addTest,

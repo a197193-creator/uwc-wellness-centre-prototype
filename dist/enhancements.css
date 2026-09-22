@@ -179,8 +179,72 @@
 .drawer-footer > .button + .button { margin-top: 9px; }
 .pay-button .plan-total-live { font: inherit; font-weight: 800; }
 
-.package-tabs { grid-template-columns: minmax(280px, 420px); }
-.package-tab:only-child { min-height: 164px; }
+.package-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.tab-price small {
+  color: inherit;
+  display: inline;
+  font-size: inherit;
+}
+
+.working-price-note {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.65;
+  margin-top: 18px;
+}
+
+.package-comparison-summary {
+  border-bottom: 1px solid #ccd8ca;
+  border-top: 1px solid #ccd8ca;
+  display: grid;
+  gap: 0;
+  margin-top: 20px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.package-comparison-summary span {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 7px 0;
+}
+
+.package-comparison-summary small {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.package-comparison-summary strong {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.package-comparison-summary.comparison-negative {
+  background: #fff4dc;
+  border-color: #d5ae61;
+  margin-inline: -10px;
+  padding-inline: 10px;
+  width: calc(100% + 20px);
+}
+
+.package-comparison-summary.comparison-negative span:last-child strong {
+  color: #8a4d00;
+}
+
+.package-rationale {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.65;
+  margin-top: 13px;
+}
+
+.package-sidebar .package-highlights {
+  padding-top: 18px;
+}
 
 .package-match {
   border: 1px solid var(--line);
@@ -519,6 +583,7 @@
 
 @media (max-width: 900px) {
   .header-plan-total { display: none; }
+  .package-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .about-layout { grid-template-columns: 1fr; }
   .about-information { grid-template-columns: 1fr 1fr; }
   .about-contact { grid-template-columns: 1fr; }
