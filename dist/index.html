@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#124f46">
   <title>UWC — A clearer picture of your wellbeing</title>
   <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260923-5">
-  <link rel="stylesheet" href="enhancements.css?v=20260923-5">
-  <link rel="stylesheet" href="readability.css?v=20260923-5">
-  <script src="catalogue.js?v=20260923-5" defer></script>
-  <script src="icons.js?v=20260923-5" defer></script>
-  <script src="pdf.js?v=20260923-5" defer></script>
-  <script src="app.js?v=20260923-5" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20260923-6">
+  <link rel="stylesheet" href="enhancements.css?v=20260923-6">
+  <link rel="stylesheet" href="readability.css?v=20260923-6">
+  <script src="catalogue.js?v=20260923-6" defer></script>
+  <script src="icons.js?v=20260923-6" defer></script>
+  <script src="pdf.js?v=20260923-6" defer></script>
+  <script src="app.js?v=20260923-6" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -44,47 +44,60 @@
     <div class="feature-strip"><div class="container"><div><b>04</b><span>Precision package options</span></div><div><b>RM450</b><span>Entry proposed package price</span></div><div><b>28</b><span>Listed services and pathways</span></div><div><span class="strip-icon" aria-hidden="true">↗</span><span>Package or custom selection</span></div></div></div>
 
     <section class="about-section" id="about" aria-labelledby="about-title">
-      <div class="container section">
-        <div class="about-layout">
-          <div class="about-intro">
-            <p class="eyebrow">ABOUT UMBI WELLNESS CENTRE</p>
-            <h2 id="about-title">Accessible screening, guided by UMBI.</h2>
-            <p class="about-lead">UMBI Wellness Centre (UWC), also known as Pusat Saringan Kesihatan UMBI, is a health-screening centre operated by the UKM Medical Molecular Biology Institute (UMBI), Universiti Kebangsaan Malaysia.</p>
-            <p>UWC provides accessible and affordable health-screening services to support the early detection of health risks and help individuals better understand and monitor their health. Its services include laboratory investigations, physical and body-composition measurements, cardiovascular and respiratory assessments, and optional health-screening tests.</p>
-            <p>Guided by the principle <strong>“Detect Early, Stay Healthy,”</strong> UWC encourages regular health screening as a step towards early intervention, informed health decisions and improved quality of life.</p>
-            <div class="about-audience" aria-label="Who UWC serves"><span>UKM staff</span><span>Students</span><span>Members of the public</span></div>
+      <div class="container">
+        <details class="about-disclosure">
+          <summary class="about-summary">
+            <span class="about-summary-copy">
+              <span class="eyebrow">ABOUT UMBI WELLNESS CENTRE</span>
+              <span class="about-summary-title" id="about-title" role="heading" aria-level="2">Discover UWC.</span>
+              <span class="about-summary-description">Background, screening services, laboratory quality and contact information.</span>
+            </span>
+            <span class="about-toggle" aria-hidden="true"><span class="about-toggle-closed">Open section</span><span class="about-toggle-open">Close section</span><span class="about-toggle-icon">+</span></span>
+          </summary>
+
+          <div class="section about-expanded-content">
+            <div class="about-layout">
+              <div class="about-intro">
+                <p class="eyebrow">UMBI WELLNESS CENTRE</p>
+                <h2>Accessible screening, guided by UMBI.</h2>
+                <p class="about-lead">UMBI Wellness Centre (UWC), also known as Pusat Saringan Kesihatan UMBI, is a health-screening centre operated by the UKM Medical Molecular Biology Institute (UMBI), Universiti Kebangsaan Malaysia.</p>
+                <p>UWC provides accessible and affordable health-screening services to support the early detection of health risks and help individuals better understand and monitor their health. Its services include laboratory investigations, physical and body-composition measurements, cardiovascular and respiratory assessments, and optional health-screening tests.</p>
+                <p>Guided by the principle <strong>“Detect Early, Stay Healthy,”</strong> UWC encourages regular health screening as a step towards early intervention, informed health decisions and improved quality of life.</p>
+                <div class="about-audience" aria-label="Who UWC serves"><span>UKM staff</span><span>Students</span><span>Members of the public</span></div>
+              </div>
+
+              <div class="about-information">
+                <article class="about-service-card">
+                  <p class="eyebrow">SCREENING AT UWC</p>
+                  <h3>One centre, several views of your health.</h3>
+                  <ul>
+                    <li>Laboratory investigations</li>
+                    <li>Body-composition and physical measurements</li>
+                    <li>Cardiovascular and respiratory assessments</li>
+                    <li>Optional health-screening tests</li>
+                  </ul>
+                  <p class="appointment-note">Services are available by prior appointment and subject to the applicable service arrangements.</p>
+                </article>
+
+                <aside class="accreditation-note" aria-labelledby="accreditation-title">
+                  <span class="accreditation-mark" aria-hidden="true">✓</span>
+                  <div><p class="eyebrow">LABORATORY QUALITY</p><h3 id="accreditation-title">MS ISO 15189-accredited quality system</h3><p>Laboratory analyses associated with UWC health-screening services are performed using the laboratory facilities supporting The Malaysian Cohort project at UMBI, UKM. The laboratory operates under an MS ISO 15189-accredited medical laboratory quality system, supporting the quality, reliability and competency of the laboratory testing processes <strong>within its accredited scope</strong>.</p></div>
+                </aside>
+              </div>
+            </div>
+
+            <div class="about-contact" aria-labelledby="contact-title">
+              <div class="about-contact-heading"><p class="eyebrow">CONTACT &amp; LOCATION</p><h3 id="contact-title">Reach UWC directly.</h3></div>
+              <address>
+                <a href="tel:1800882007"><span>Appointment hotline</span><strong>1-800-88-2007</strong></a>
+                <a href="https://wa.me/60103156405" target="_blank" rel="noopener noreferrer"><span>Mobile / WhatsApp</span><strong>010-315 6405</strong></a>
+                <a href="mailto:umbiwellness@gmail.com"><span>Email</span><strong>umbiwellness@gmail.com</strong></a>
+                <p><span>Visit UWC</span><strong>UMBI, UKM, Jalan Yaacob Latiff, Bandar Tun Razak, 56000 Cheras, Kuala Lumpur</strong></p>
+              </address>
+              <div class="about-socials" aria-label="Official UWC links"><a href="https://www.ukm.my/umbi/wellness/" target="_blank" rel="noopener noreferrer">Official website ↗</a><a href="https://www.facebook.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Facebook ↗</a><a href="https://www.instagram.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></div>
+            </div>
           </div>
-
-          <div class="about-information">
-            <article class="about-service-card">
-              <p class="eyebrow">SCREENING AT UWC</p>
-              <h3>One centre, several views of your health.</h3>
-              <ul>
-                <li>Laboratory investigations</li>
-                <li>Body-composition and physical measurements</li>
-                <li>Cardiovascular and respiratory assessments</li>
-                <li>Optional health-screening tests</li>
-              </ul>
-              <p class="appointment-note">Services are available by prior appointment and subject to the applicable service arrangements.</p>
-            </article>
-
-            <aside class="accreditation-note" aria-labelledby="accreditation-title">
-              <span class="accreditation-mark" aria-hidden="true">✓</span>
-              <div><p class="eyebrow">LABORATORY QUALITY</p><h3 id="accreditation-title">MS ISO 15189-accredited quality system</h3><p>Laboratory analyses associated with UWC health-screening services are performed using the laboratory facilities supporting The Malaysian Cohort project at UMBI, UKM. The laboratory operates under an MS ISO 15189-accredited medical laboratory quality system, supporting the quality, reliability and competency of the laboratory testing processes <strong>within its accredited scope</strong>.</p></div>
-            </aside>
-          </div>
-        </div>
-
-        <div class="about-contact" aria-labelledby="contact-title">
-          <div class="about-contact-heading"><p class="eyebrow">CONTACT &amp; LOCATION</p><h3 id="contact-title">Reach UWC directly.</h3></div>
-          <address>
-            <a href="tel:1800882007"><span>Appointment hotline</span><strong>1-800-88-2007</strong></a>
-            <a href="https://wa.me/60103156405" target="_blank" rel="noopener noreferrer"><span>Mobile / WhatsApp</span><strong>010-315 6405</strong></a>
-            <a href="mailto:umbiwellness@gmail.com"><span>Email</span><strong>umbiwellness@gmail.com</strong></a>
-            <p><span>Visit UWC</span><strong>UMBI, UKM, Jalan Yaacob Latiff, Bandar Tun Razak, 56000 Cheras, Kuala Lumpur</strong></p>
-          </address>
-          <div class="about-socials" aria-label="Official UWC links"><a href="https://www.ukm.my/umbi/wellness/" target="_blank" rel="noopener noreferrer">Official website ↗</a><a href="https://www.facebook.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Facebook ↗</a><a href="https://www.instagram.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></div>
-        </div>
+        </details>
       </div>
     </section>
 

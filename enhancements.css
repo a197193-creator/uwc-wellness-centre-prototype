@@ -284,6 +284,73 @@
 
 .about-section .eyebrow { color: var(--lime); }
 
+.about-disclosure > summary {
+  align-items: center;
+  display: grid;
+  gap: 30px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 36px 0;
+}
+
+.about-summary-copy { display: grid; gap: 8px; }
+.about-summary-copy .eyebrow { margin: 0; }
+
+.about-summary-title {
+  color: #fff;
+  display: block;
+  font-size: clamp(30px, 3.2vw, 43px);
+  font-weight: 600;
+  letter-spacing: -1.2px;
+  line-height: 1.12;
+}
+
+.about-summary-description {
+  color: #cbdad2;
+  display: block;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.about-toggle {
+  align-items: center;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 700;
+  gap: 13px;
+  padding: 9px 11px 9px 17px;
+  white-space: nowrap;
+}
+
+.about-toggle-open { display: none; }
+
+.about-toggle-icon {
+  align-items: center;
+  background: var(--lime);
+  border-radius: 50%;
+  color: var(--deep);
+  display: inline-flex;
+  font-size: 0;
+  font-weight: 400;
+  height: 34px;
+  justify-content: center;
+  line-height: 1;
+  width: 34px;
+}
+
+.about-toggle-icon::before { content: "+"; font-size: 22px; }
+
+.about-disclosure[open] > .about-summary {
+  border-bottom: 1px solid rgb(255 255 255 / 17%);
+}
+
+.about-disclosure[open] .about-toggle-closed { display: none; }
+.about-disclosure[open] .about-toggle-open { display: inline; }
+.about-disclosure[open] .about-toggle-icon::before { content: "−"; }
+.about-expanded-content { padding-top: 58px; }
+
 .about-layout {
   display: grid;
   gap: clamp(34px, 6vw, 84px);
@@ -596,6 +663,11 @@
   .package-tabs { grid-template-columns: 1fr; }
   .comparison-prices { grid-template-columns: 1fr; }
   .about-section { scroll-margin-top: 150px; }
+  .about-disclosure > summary { gap: 22px; grid-template-columns: 1fr; padding: 29px 0; }
+  .about-summary-title { font-size: 30px; }
+  .about-summary-description { font-size: 14px; }
+  .about-toggle { justify-self: start; }
+  .about-expanded-content { padding-top: 42px; }
   .about-intro h2 { font-size: 34px; }
   .about-intro .about-lead { font-size: 17px; }
   .about-information { grid-template-columns: 1fr; }
