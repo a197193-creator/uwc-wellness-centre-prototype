@@ -2,6 +2,10 @@
 .netlify/
 .vercel/
 
+# Generated review and verification files
+output/
+tmp/
+
 # Environment files and credentials
 .env
 .env.*

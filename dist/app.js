@@ -222,18 +222,15 @@
     $('#hero-text').innerHTML = slides[activeSlide];
     $$('.slide-dots button').forEach((button,index) => button.setAttribute('aria-current', String(index === activeSlide)));
   }
-  function summaryText() {
-    const summary = model.summarize(plan);
-    return ['UMBI WELLNESS CENTRE — SCREENING PLAN','Prototype selection for discussion only', 'Date: ' + new Date().toLocaleDateString('en-MY'),'',...summary.items.flatMap(item => [`${item.kind === 'package' ? 'PACKAGE' : 'TEST / SERVICE'}: ${item.name}`,'Proposed price: ' + money(item.price) + (item.provisional ? ' (working price)' : ''),item.note || '','']),`INDICATIVE TOTAL: ${money(summary.subtotal)}`,'',...summary.warnings.map(w => 'REVIEW: ' + w),'','Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.','No appointment, order or payment has been created. Nothing has been sent to UWC.','Screening suitability should be discussed with a qualified healthcare professional.'].join('\r\n');
-  }
   function downloadPlan() {
-    const blob = new Blob(['\uFEFF' + summaryText()],{type:'text/plain;charset=utf-8'});
+    const summary = model.summarize(plan);
+    const blob = window.UWCPdf.createPlanPdf(summary, new Date().toLocaleDateString('en-MY'));
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
-    anchor.href = url;anchor.download = 'UWC-Screening-Plan.txt';
+    anchor.href = url;anchor.download = 'UWC-Screening-Plan.pdf';
     document.body.append(anchor);anchor.click();anchor.remove();
     setTimeout(() => URL.revokeObjectURL(url),1000);
-    showToast('Review summary prepared. If no file appears, use Print plan. Nothing was submitted.');
+    showToast('Your designed PDF review summary has been downloaded. Nothing was submitted.');
   }
   function printPlan() {
     const summary = model.summarize(plan);

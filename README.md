@@ -26,6 +26,7 @@ The PHP endpoint does not receive or store customer information. The current pro
 - `styles.css`, `enhancements.css` and `readability.css`: design, responsive styles and larger text
 - `catalogue.js`: screening packages, test catalogue and pricing logic
 - `icons.js`: screening pictograms used for package inclusions and individual tests
+- `pdf.js`: branded A4 review-summary PDF generated locally in the browser
 - `app.js`: package selection, plan totals and checkout preview
 - `api/prototype-status.php`: read-only PHP endpoint identifying the site as a non-transactional prototype
 - `assets/`: official UWC photographs, retained UMBI/TMC screening photographs and the website mark
