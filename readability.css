@@ -36,7 +36,7 @@
   .test-card .add-test,
   .quick-plan-summary .button,
   .confirm-actions > .button {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .button,
@@ -94,8 +94,29 @@
   .quick-plan-summary small,
   .payment-total span,
   .care-card figcaption span {
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.6;
+  }
+
+  /* Keep the package comparison and supporting information comfortably readable. */
+  .brand small,
+  .footer-top .brand small,
+  .package-comparison-summary small,
+  .working-price-note,
+  .package-rationale,
+  .about-contact address span {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .package-comparison-summary strong,
+  .about-contact address strong,
+  .about-socials a,
+  .about-audience span,
+  .appointment-note,
+  .accreditation-note p:last-child {
+    font-size: 14px;
+    line-height: 1.65;
   }
 
   .eyebrow,
@@ -114,7 +135,7 @@
   .test-name,
   .package-highlights,
   .faq-list summary {
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.55;
   }
 
@@ -123,7 +144,7 @@
   .remove-item,
   .prototype-notice b,
   .prototype-notice span {
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.65;
   }
 
