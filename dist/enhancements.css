@@ -179,6 +179,196 @@
 .drawer-footer > .button + .button { margin-top: 9px; }
 .pay-button .plan-total-live { font: inherit; font-weight: 800; }
 
+.package-tabs { grid-template-columns: minmax(280px, 420px); }
+.package-tab:only-child { min-height: 164px; }
+
+.package-match {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 18px;
+  padding: 17px;
+}
+
+.package-match .eyebrow { font-size: 10px; margin-bottom: 8px; }
+.package-match strong { display: block; font-size: 15px; line-height: 1.45; }
+.package-match > p:last-of-type { color: var(--muted); font-size: 13px; line-height: 1.6; margin-top: 8px; }
+.package-match-progress { background: #f0f4ed; }
+.package-match-complete { background: var(--pine); border-color: var(--pine); color: #fff; }
+.package-match-complete .eyebrow { color: var(--lime); }
+.package-match-complete h3 { font-size: 20px; line-height: 1.35; }
+.package-match-complete > p:last-of-type { color: #d4e2da; margin-bottom: 14px; }
+
+.comparison-prices {
+  border-bottom: 1px solid rgb(255 255 255 / 18%);
+  border-top: 1px solid rgb(255 255 255 / 18%);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 15px 0 12px;
+  padding: 13px 0;
+}
+
+.comparison-prices span { min-width: 0; }
+.comparison-prices small { color: #b9d0c5; display: block; font-size: 10px; line-height: 1.35; }
+.comparison-prices strong { color: #fff; font-size: 14px; margin-top: 4px; overflow-wrap: anywhere; }
+
+.about-section {
+  background: var(--deep);
+  color: #f6faf6;
+  scroll-margin-top: 110px;
+}
+
+.about-section .eyebrow { color: var(--lime); }
+
+.about-layout {
+  display: grid;
+  gap: clamp(34px, 6vw, 84px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
+}
+
+.about-intro h2 {
+  color: #fff;
+  font-size: clamp(34px, 4vw, 54px);
+  max-width: 640px;
+}
+
+.about-intro > p:not(.eyebrow) {
+  color: #cbdad2;
+  font-size: 16px;
+  line-height: 1.75;
+  margin-top: 18px;
+  max-width: 720px;
+}
+
+.about-intro .about-lead {
+  color: #fff;
+  font-size: 19px;
+  line-height: 1.65;
+}
+
+.about-intro strong { color: var(--lime); font-weight: 650; }
+
+.about-audience {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 28px;
+}
+
+.about-audience span {
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 999px;
+  color: #f4f8f4;
+  font-size: 13px;
+  padding: 8px 13px;
+}
+
+.about-information { display: grid; gap: 14px; }
+
+.about-service-card,
+.accreditation-note {
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 18px;
+}
+
+.about-service-card {
+  background: #fff;
+  color: var(--ink);
+  padding: 28px;
+}
+
+.about-service-card .eyebrow { color: var(--teal); }
+.about-service-card h3 { font-size: 25px; line-height: 1.25; }
+
+.about-service-card ul {
+  list-style: none;
+  margin: 23px 0 20px;
+  padding: 0;
+}
+
+.about-service-card li {
+  align-items: flex-start;
+  border-top: 1px solid var(--line);
+  display: flex;
+  font-size: 14px;
+  gap: 10px;
+  line-height: 1.55;
+  padding: 11px 0;
+}
+
+.about-service-card li::before { color: var(--teal); content: "✓"; font-weight: 800; }
+
+.appointment-note {
+  background: var(--pale);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 14px 15px;
+}
+
+.accreditation-note {
+  align-items: flex-start;
+  background: rgb(255 255 255 / 7%);
+  display: grid;
+  gap: 17px;
+  grid-template-columns: auto 1fr;
+  padding: 24px;
+}
+
+.accreditation-mark {
+  background: var(--lime);
+  border-radius: 50%;
+  color: var(--deep);
+  display: grid;
+  font-size: 18px;
+  font-weight: 800;
+  height: 40px;
+  place-items: center;
+  width: 40px;
+}
+
+.accreditation-note .eyebrow { margin-bottom: 8px; }
+.accreditation-note h3 { color: #fff; font-size: 19px; margin-bottom: 11px; }
+.accreditation-note p:last-child { color: #cbdad2; font-size: 13px; line-height: 1.7; }
+.accreditation-note strong { color: #fff; }
+
+.about-contact {
+  border-top: 1px solid rgb(255 255 255 / 17%);
+  display: grid;
+  gap: 28px 44px;
+  grid-template-columns: minmax(180px, .55fr) minmax(0, 1.45fr);
+  margin-top: 54px;
+  padding-top: 34px;
+}
+
+.about-contact-heading h3 { color: #fff; font-size: 25px; }
+.about-contact address { display: grid; font-style: normal; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.about-contact address a,
+.about-contact address p {
+  border-bottom: 1px solid rgb(255 255 255 / 14%);
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  min-width: 0;
+  padding: 0 0 12px;
+}
+
+.about-contact address span { color: #9fb8ad; font-size: 12px; }
+.about-contact address strong { color: #fff; font-size: 14px; font-weight: 600; line-height: 1.55; overflow-wrap: anywhere; }
+.about-contact address a:hover strong { color: var(--lime); }
+
+.about-socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  grid-column: 2;
+}
+
+.about-socials a { color: var(--lime); font-size: 13px; font-weight: 700; }
+.about-socials a:hover { color: #fff; }
+
 .care-section { background: #e8f0eb; }
 
 .care-gallery {
@@ -329,11 +519,25 @@
 
 @media (max-width: 900px) {
   .header-plan-total { display: none; }
+  .about-layout { grid-template-columns: 1fr; }
+  .about-information { grid-template-columns: 1fr 1fr; }
+  .about-contact { grid-template-columns: 1fr; }
+  .about-socials { grid-column: 1; }
   .care-gallery { grid-auto-rows: 220px; grid-template-columns: 1fr 1fr; }
   .care-card-wide { grid-column: span 1; }
 }
 
 @media (max-width: 640px) {
+  .package-tabs { grid-template-columns: 1fr; }
+  .comparison-prices { grid-template-columns: 1fr; }
+  .about-section { scroll-margin-top: 150px; }
+  .about-intro h2 { font-size: 34px; }
+  .about-intro .about-lead { font-size: 17px; }
+  .about-information { grid-template-columns: 1fr; }
+  .about-service-card { padding: 23px 20px; }
+  .accreditation-note { grid-template-columns: 1fr; padding: 22px 20px; }
+  .about-contact { margin-top: 40px; padding-top: 28px; }
+  .about-contact address { grid-template-columns: 1fr; }
   .care-gallery { grid-auto-rows: 210px; grid-template-columns: 1fr; margin-top: 26px; }
   .care-card figcaption { bottom: 14px; left: 15px; right: 15px; }
   .care-card figcaption b { font-size: 20px; }
