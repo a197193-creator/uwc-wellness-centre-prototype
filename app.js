@@ -16,6 +16,7 @@
   let confirmation = null;
   let toastTimer;
   let storageAvailable = true;
+  let customerDetails = null;
   const dialogOpeners = new Map();
   const openGroups = new Map();
   const tabNames = {
@@ -84,7 +85,7 @@
     const savingClass = pkg.saving < 0 ? 'comparison-negative' : '';
     const priceHeading = pkg.pricePrefix ? `<small>${escapeHTML(pkg.pricePrefix)}</small>${money(pkg.price)}` : money(pkg.price);
     $('#package-panel').setAttribute('aria-labelledby', 'tab-' + pkg.id);
-    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary"><p class="eyebrow">YOUR PACKAGE AT A GLANCE</p><div class="package-price">${priceHeading}</div><p class="price-caption">Proposed package price · current range ${escapeHTML(pkg.priceRange)}</p><div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${pkg.pricePrefix ? 'From ' : ''}${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul><button class="button primary full" data-add-package="${pkg.id}">${selected ? 'Package added · View plan' : 'Choose this package'} <span aria-hidden="true">${selected ? '✓' : '+'}</span></button><div class="quick-plan-summary" aria-label="Current screening plan total"><span><small>My plan total</small><strong class="plan-total-live">RM0</strong></span><button class="button secondary full" data-action="open-plan">My plan</button><button class="button pay-quick full" data-action="open-payment">Continue to review <span aria-hidden="true">→</span></button></div><p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
+    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary"><p class="eyebrow">YOUR PACKAGE AT A GLANCE</p><div class="package-price">${priceHeading}</div><p class="price-caption">Proposed package price · current range ${escapeHTML(pkg.priceRange)}</p><div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${pkg.pricePrefix ? 'From ' : ''}${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul><button class="button primary full" data-add-package="${pkg.id}">${selected ? 'Package added · View plan' : 'Choose this package'} <span aria-hidden="true">${selected ? '✓' : '+'}</span></button><div class="quick-plan-summary" aria-label="Current screening plan total"><span><small>My plan total</small><strong class="plan-total-live">RM0</strong></span><button class="button secondary full" data-action="open-plan">My plan</button><button class="button pay-quick full" data-action="open-plan">Continue to review <span aria-hidden="true">→</span></button></div><p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
   }
   function renderTests() {
     const query = $('#test-search').value.trim().toLowerCase();
@@ -131,10 +132,11 @@
     $('#plan-total').textContent = money(summary.subtotal);
     $('#plan-total-note').textContent = !summary.count ? 'Choose a package or individual components to begin.' : summary.needsQuote ? 'This total includes working prices that still require UWC confirmation.' : 'Packages, services and prices are proposed and subject to UWC confirmation.';
     ['download-plan','print-plan','clear-plan'].forEach(id => { $('#' + id).disabled = !summary.count; });
-    $$('[data-action="open-payment"]').forEach(button => { button.disabled = !summary.count; });
+    $$('[data-action="open-details"]').forEach(button => { button.disabled = !summary.count; });
+    $$('.pay-quick').forEach(button => { button.disabled = !summary.count; });
     $('#payment-item-count').textContent = !summary.count ? 'Choose a package or individual test to continue.' : `You have ${summary.count} selected ${summary.count === 1 ? 'item' : 'items'} ready for review.`;
     $('#payment-total-label').textContent = 'Indicative total';
-    $('.privacy-note').textContent = storageAvailable ? 'Saved in this browser only. No appointment, order or payment is submitted.' : 'Browser storage is unavailable; this plan lasts until the page is closed. Nothing is submitted.';
+    $('.privacy-note').textContent = storageAvailable ? 'Your plan is saved in this browser. Customer details stay only in this page session. No booking or payment is submitted.' : 'Your plan and customer details last only until this page is closed. Nothing is submitted.';
   }
   function update() {
     const focus = document.activeElement;
@@ -162,7 +164,7 @@
   }
   function openDialog(id) {
     const opener = document.activeElement;
-    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog');
+    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog');
     const attribute = ['data-detail','data-add-package','data-action','data-test','id'].find(name => opener.hasAttribute(name));
     dialogOpeners.set(id,{element:opener,container,attribute,value:attribute ? opener.getAttribute(attribute) : ''});
     $('#' + id).showModal();
@@ -238,6 +240,94 @@
     window.print();
   }
 
+  const customerForm = $('#customer-form');
+  const customerFields = {
+    name: $('#customer-name'),
+    phone: $('#customer-phone'),
+    email: $('#customer-email'),
+    notes: $('#customer-notes'),
+    consent: $('#customer-consent')
+  };
+  function fieldError(control, errorId, message) {
+    const error = $('#' + errorId);
+    error.textContent = message;
+    if (message) control.setAttribute('aria-invalid', 'true');
+    else control.removeAttribute('aria-invalid');
+  }
+  function groupError(name, groupId, errorId, message) {
+    const group = $('#' + groupId);
+    $('#' + errorId).textContent = message;
+    if (message) group.setAttribute('aria-invalid', 'true');
+    else group.removeAttribute('aria-invalid');
+    $$(`input[name="${name}"]`, group).forEach(input => {
+      if (message) input.setAttribute('aria-invalid', 'true');
+      else input.removeAttribute('aria-invalid');
+    });
+  }
+  function validateCustomerDetails() {
+    let firstInvalid = null;
+    const name = customerFields.name.value.trim();
+    const phone = customerFields.phone.value.trim();
+    const email = customerFields.email.value.trim();
+    const notes = customerFields.notes.value.trim();
+    const contact = customerForm.querySelector('input[name="contactMethod"]:checked');
+    const firstTime = customerForm.querySelector('input[name="firstTime"]:checked');
+    const phoneDigits = phone.replace(/\D/g, '');
+    const errors = [
+      [customerFields.name, 'customer-name-error', !name ? 'Enter your full name.' : name.length < 2 ? 'Enter a name of at least 2 characters.' : ''],
+      [customerFields.phone, 'customer-phone-error', !phone ? 'Enter a contact number.' : !/^\+?[0-9][0-9 ()-]*$/.test(phone) || phoneDigits.length < 7 || phoneDigits.length > 15 ? 'Enter a valid contact number with 7–15 digits.' : ''],
+      [customerFields.email, 'customer-email-error', !email ? 'Enter your email address.' : customerFields.email.validity.typeMismatch || !customerFields.email.checkValidity() ? 'Enter a valid email address.' : '']
+    ];
+    errors.forEach(([control, id, message]) => { fieldError(control, id, message); if (message && !firstInvalid) firstInvalid = control; });
+    const contactMessage = contact ? '' : 'Choose how UWC should contact you.';
+    groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', contactMessage);
+    if (contactMessage && !firstInvalid) firstInvalid = customerForm.querySelector('input[name="contactMethod"]');
+    const firstTimeMessage = firstTime ? '' : 'Choose Yes or No for your first visit.';
+    groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', firstTimeMessage);
+    if (firstTimeMessage && !firstInvalid) firstInvalid = customerForm.querySelector('input[name="firstTime"]');
+    const notesMessage = notes.length > 500 ? 'Keep booking notes within 500 characters.' : '';
+    fieldError(customerFields.notes, 'customer-notes-error', notesMessage);
+    if (notesMessage && !firstInvalid) firstInvalid = customerFields.notes;
+    const consentMessage = customerFields.consent.checked ? '' : 'Read and agree to the booking and privacy notice before continuing.';
+    fieldError(customerFields.consent, 'customer-consent-error', consentMessage);
+    if (consentMessage && !firstInvalid) firstInvalid = customerFields.consent;
+    if (firstInvalid) {
+      const status = $('#customer-form-status');
+      status.hidden = false;
+      status.classList.add('is-error');
+      status.textContent = 'Please correct the highlighted fields before saving your details.';
+      firstInvalid.focus();
+      return null;
+    }
+    return {name, phone, email, contactMethod:contact.value, firstTime:firstTime.value, notes, consent:true};
+  }
+  customerForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const valid = validateCustomerDetails();
+    if (!valid) return;
+    customerDetails = valid;
+    const status = $('#customer-form-status');
+    status.hidden = false;
+    status.classList.remove('is-error');
+    status.textContent = 'Details saved in this page session. The next stage is selecting a preferred appointment. No request has been sent to UWC.';
+    $('#save-customer-details').textContent = 'Update saved details ✓';
+    status.focus({preventScroll:true});
+  });
+  customerForm.addEventListener('input', event => {
+    if (!event.target.matches('input, textarea')) return;
+    customerDetails = null;
+    $('#customer-form-status').hidden = true;
+    $('#save-customer-details').innerHTML = 'Save details <span aria-hidden="true">→</span>';
+    if (event.target.id === 'customer-notes') $('#customer-notes-count').textContent = `${event.target.value.length} / 500`;
+    if (event.target.name === 'contactMethod') groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', '');
+    else if (event.target.name === 'firstTime') groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', '');
+    else if (customerFields[event.target.name]) fieldError(event.target, `customer-${event.target.name}-error`, '');
+  });
+  customerForm.addEventListener('change', event => {
+    if (event.target.name === 'consent') fieldError(customerFields.consent, 'customer-consent-error', '');
+  });
+  customerForm.reset();
+
   document.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button || button.disabled) return;
@@ -249,7 +339,8 @@
     else if (button.dataset.detail) { detailId = button.dataset.detail;renderDetail(detailId);openDialog('test-dialog'); }
     else if (button.dataset.remove) { plan = model.removeItem(plan,button.dataset.remove);update();showToast('Selection removed from your plan.'); }
     else if (button.dataset.action === 'open-plan') {if ($('#payment-dialog').open) $('#payment-dialog').close();renderPlan();openDialog('plan-dialog');}
-    else if (button.dataset.action === 'open-payment') {if ($('#plan-dialog').open) $('#plan-dialog').close();renderPlan();openDialog('payment-dialog');}
+    else if (button.dataset.action === 'open-details') {if ($('#plan-dialog').open) $('#plan-dialog').close();renderPlan();openDialog('customer-dialog');customerFields.name.focus();}
+    else if (button.dataset.action === 'details-to-plan') {$('#customer-dialog').close();renderPlan();openDialog('plan-dialog');}
     else if (button.dataset.action === 'browse-packages') {$('#plan-dialog').close();$('#packages').scrollIntoView();$('#tab-' + activePackage).focus({preventScroll:true});}
     else if (button.dataset.slide !== undefined) setSlide(button.dataset.slide === 'previous' ? activeSlide - 1 : button.dataset.slide === 'next' ? activeSlide + 1 : Number(button.dataset.slide));
   });

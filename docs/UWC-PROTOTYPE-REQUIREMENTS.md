@@ -181,6 +181,10 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 
 ## 10. Inputs still needed before production implementation
 
+### Progress update — 25 September 2026
+
+The customer-details form, field validation and approved booking/privacy notice are implemented. The user can review a selected plan, enter and save details for the current page session, return to edit the plan, and reopen the form without losing the entered values. Form submission does not send a request to UWC. The preferred appointment, final review, payment preview and confirmation stages remain scheduled for their later dates in the timetable. The newer four-package precision catalogue remains in place as directly requested after the earlier RM150 poster guidance.
+
 These items do not block the 7 October prototype, but they must be confirmed before a live system is launched:
 
 - official public-holiday source or maintained list;
