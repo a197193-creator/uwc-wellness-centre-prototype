@@ -248,6 +248,19 @@
     notes: $('#customer-notes'),
     consent: $('#customer-consent')
   };
+  const cleanName = value => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
+  const cleanPhone = value => `${value.trimStart().startsWith('+') ? '+' : ''}${value.replace(/\D/g, '').slice(0, 15)}`;
+  function restrictInput(control, cleaner) {
+    const original = control.value;
+    const cleaned = cleaner(original);
+    if (original === cleaned) return;
+    const start = control.selectionStart;
+    const end = control.selectionEnd;
+    control.value = cleaned;
+    if (start !== null && end !== null) {
+      control.setSelectionRange(cleaner(original.slice(0, start)).length, cleaner(original.slice(0, end)).length);
+    }
+  }
   function fieldError(control, errorId, message) {
     const error = $('#' + errorId);
     error.textContent = message;
@@ -272,10 +285,10 @@
     const notes = customerFields.notes.value.trim();
     const contact = customerForm.querySelector('input[name="contactMethod"]:checked');
     const firstTime = customerForm.querySelector('input[name="firstTime"]:checked');
-    const phoneDigits = phone.replace(/\D/g, '');
+    const nameLetterCount = (name.match(/\p{L}/gu) || []).length;
     const errors = [
-      [customerFields.name, 'customer-name-error', !name ? 'Enter your full name.' : name.length < 2 ? 'Enter a name of at least 2 characters.' : ''],
-      [customerFields.phone, 'customer-phone-error', !phone ? 'Enter a contact number.' : !/^\+?[0-9][0-9 ()-]*$/.test(phone) || phoneDigits.length < 7 || phoneDigits.length > 15 ? 'Enter a valid contact number with 7–15 digits.' : ''],
+      [customerFields.name, 'customer-name-error', !name ? 'Enter your full name using letters.' : nameLetterCount < 2 ? 'Enter at least two letters for your full name.' : !/^[\p{L}\p{M} '’\-]+$/u.test(name) ? 'Use letters, spaces, apostrophes or hyphens only.' : ''],
+      [customerFields.phone, 'customer-phone-error', !phone ? 'Enter a contact number.' : !/^\+?[0-9]{7,15}$/.test(phone) ? 'Enter 7–15 digits, with + only at the beginning if needed.' : ''],
       [customerFields.email, 'customer-email-error', !email ? 'Enter your email address.' : customerFields.email.validity.typeMismatch || !customerFields.email.checkValidity() ? 'Enter a valid email address.' : '']
     ];
     errors.forEach(([control, id, message]) => { fieldError(control, id, message); if (message && !firstInvalid) firstInvalid = control; });
@@ -315,6 +328,8 @@
   });
   customerForm.addEventListener('input', event => {
     if (!event.target.matches('input, textarea')) return;
+    if (event.target === customerFields.name) restrictInput(customerFields.name, cleanName);
+    if (event.target === customerFields.phone) restrictInput(customerFields.phone, cleanPhone);
     customerDetails = null;
     $('#customer-form-status').hidden = true;
     $('#save-customer-details').innerHTML = 'Save details <span aria-hidden="true">→</span>';
@@ -363,7 +378,11 @@
         else $('dialog[open] [data-close]')?.focus({preventScroll:true});
       }
     });
-    dialog.addEventListener('click', event => {if (event.target === dialog) { const rect = dialog.getBoundingClientRect();if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); }});
+    dialog.addEventListener('click', event => {
+      if (dialog.id === 'customer-dialog' || event.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+    });
   });
   $('#confirm-action').addEventListener('click', () => { const action = confirmation;confirmation = null;$('#confirm-dialog').close();if (action) action(); });
   $('#clear-plan').addEventListener('click', () => confirmChange('Remove every package and test from this browser’s screening plan? You can build a new plan at any time.', () => {plan = model.createPlan();update();showToast('Your plan has been cleared.');}));

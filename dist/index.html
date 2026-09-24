@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#124f46">
   <title>UWC — A clearer picture of your wellbeing</title>
   <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260925-1">
-  <link rel="stylesheet" href="enhancements.css?v=20260925-1">
-  <link rel="stylesheet" href="readability.css?v=20260925-1">
-  <script src="catalogue.js?v=20260925-1" defer></script>
-  <script src="icons.js?v=20260925-1" defer></script>
-  <script src="pdf.js?v=20260925-1" defer></script>
-  <script src="app.js?v=20260925-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20260925-2">
+  <link rel="stylesheet" href="enhancements.css?v=20260925-2">
+  <link rel="stylesheet" href="readability.css?v=20260925-2">
+  <script src="catalogue.js?v=20260925-2" defer></script>
+  <script src="icons.js?v=20260925-2" defer></script>
+  <script src="pdf.js?v=20260925-2" defer></script>
+  <script src="app.js?v=20260925-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -153,8 +153,8 @@
       <div class="customer-plan-strip"><span>Indicative plan total</span><strong class="plan-total-live">RM0</strong><button class="text-link" type="button" data-action="details-to-plan">Edit plan</button></div>
       <form id="customer-form" method="dialog" novalidate autocomplete="on">
         <div class="customer-fields">
-          <div class="customer-field"><label for="customer-name">Full name <span aria-hidden="true">*</span></label><input id="customer-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="customer-name-error"><p class="field-error" id="customer-name-error"></p></div>
-          <div class="customer-field"><label for="customer-phone">Contact number <span aria-hidden="true">*</span></label><input id="customer-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" placeholder="e.g. +60 12-345 6789" required aria-describedby="customer-phone-error"><p class="field-error" id="customer-phone-error"></p></div>
+          <div class="customer-field"><label for="customer-name">Full name <span aria-hidden="true">*</span></label><input id="customer-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="customer-name-hint customer-name-error"><p class="field-hint" id="customer-name-hint">Letters only. Spaces, apostrophes and hyphens are allowed.</p><p class="field-error" id="customer-name-error"></p></div>
+          <div class="customer-field"><label for="customer-phone">Contact number <span aria-hidden="true">*</span></label><input id="customer-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="16" pattern="\+?[0-9]{7,15}" placeholder="e.g. +6012346567" required aria-describedby="customer-phone-hint customer-phone-error"><p class="field-hint" id="customer-phone-hint">Digits only, with an optional + at the beginning.</p><p class="field-error" id="customer-phone-error"></p></div>
           <div class="customer-field customer-field-wide"><label for="customer-email">Email address <span aria-hidden="true">*</span></label><input id="customer-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="customer-email-error"><p class="field-error" id="customer-email-error"></p></div>
           <fieldset class="customer-choice" id="customer-contact-group" aria-describedby="customer-contact-error"><legend>Preferred contact method <span aria-hidden="true">*</span></legend><div class="customer-options"><label><input type="radio" name="contactMethod" value="Phone call" required> Phone call</label><label><input type="radio" name="contactMethod" value="WhatsApp"> WhatsApp</label><label><input type="radio" name="contactMethod" value="Email"> Email</label></div><p class="field-error" id="customer-contact-error"></p></fieldset>
           <fieldset class="customer-choice" id="customer-first-time-group" aria-describedby="customer-first-time-error"><legend>Is this your first visit to UWC? <span aria-hidden="true">*</span></legend><div class="customer-options"><label><input type="radio" name="firstTime" value="Yes" required> Yes</label><label><input type="radio" name="firstTime" value="No"> No</label></div><p class="field-error" id="customer-first-time-error"></p></fieldset>

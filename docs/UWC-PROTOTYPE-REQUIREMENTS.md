@@ -100,8 +100,8 @@ The website now opens each package to show its cumulative components, à la cart
 
 | Field | Required | Prototype validation |
 | --- | :---: | --- |
-| Full name | Yes | Non-empty; sensible text length |
-| Contact number | Yes | Accept Malaysian and international-style numbers, spaces, `+` and hyphens |
+| Full name | Yes | At least two letters; letters, spaces, apostrophes and hyphens only |
+| Contact number | Yes | 7–15 digits with one optional leading `+`; other characters are removed during entry |
 | Email address | Yes | Valid email format |
 | Preferred contact method | Yes | Phone call, WhatsApp or Email |
 | First-time customer status | Yes | Yes or No |

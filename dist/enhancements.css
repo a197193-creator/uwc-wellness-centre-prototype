@@ -747,6 +747,7 @@
 .customer-options input, .customer-consent input { accent-color: var(--deep); height: 18px; margin: 0; width: 18px; }
 .customer-choice[aria-invalid="true"] .customer-options { outline: 1px solid #b34832; outline-offset: 5px; border-radius: 8px; }
 .field-meta { color: var(--muted); display: flex; flex-wrap: wrap; font-size: 13px; gap: 5px 14px; justify-content: space-between; line-height: 1.5; margin-top: 6px; }
+.field-hint { color: var(--muted); font-size: 13px; line-height: 1.5; margin: 6px 0 12px; }
 .field-error { color: #a23827; font-size: 13px; font-weight: 650; line-height: 1.45; margin: 6px 0 14px; }
 .field-error:empty { display: none; }
 .customer-privacy { background: #edf4ef; border-radius: 14px; margin-top: 18px; padding: 20px; }
