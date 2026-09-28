@@ -1,5 +1,4 @@
-# Local hosting metadata
-.netlify/
+# Local Vercel metadata
 .vercel/
 
 # Generated review and verification files

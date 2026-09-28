@@ -1,3 +1,0 @@
-# No install or build step: the prepared static files are deployable as-is.
-[build]
-  publish = "dist"

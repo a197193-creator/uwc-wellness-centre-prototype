@@ -27,13 +27,13 @@ The PHP endpoint does not receive or store customer information. The current pro
 - `catalogue.js`: screening packages, test catalogue and pricing logic
 - `icons.js`: screening pictograms used for package inclusions and individual tests
 - `pdf.js`: branded A4 review-summary PDF generated locally in the browser
-- `app.js`: package selection, plan totals and the customer-details demonstration
+- `app.js`: package selection, plan totals, customer details and preferred-appointment demonstration
 - `api/prototype-status.php`: read-only PHP endpoint identifying the site as a non-transactional prototype
 - `assets/`: official UWC photographs, retained UMBI/TMC screening photographs and the website mark
 - `PHOTO-SOURCES.md`: photograph provenance and original source links
 - `build.ps1`: refreshes the ready-to-publish `dist` folder from the current source
-- `dist/`: ready-to-publish static website
-- `netlify.toml`: Netlify settings, with `dist` as the publish directory
+- `dist/`: built website copy retained for the publishing workflow
+- `vercel.json`: Vercel configuration for the PHP prototype-status endpoint
 
 ## Preview locally
 
@@ -41,8 +41,8 @@ From this folder, run `python -m http.server 4173` if Python is installed, then 
 
 ## Update and publish
 
-Edit the root source files, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1` from this folder to refresh `dist`. The current public prototype is hosted on Vercel at the URL above. The project is a static site and can be deployed from the repository root; the included Netlify configuration remains available for a `dist`-based deployment if needed.
+Edit the root source files, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1` from this folder to refresh `dist`. Push changes to the connected GitHub `main` branch to update the existing Vercel project and the public URL above. Do not create a separate Vercel project or share a deployment-specific URL for routine updates.
 
-The current journey reaches the customer-details stage. Appointment selection and the subsequent demonstration stages are scheduled separately. No real booking or payment is submitted. Customer details are kept only in the active page session and cleared on reload; the selected plan uses browser storage. Prices are proposed and subject to UWC confirmation.
+The current journey reaches the preferred-appointment prototype stage after customer details. Final review, payment and confirmation are scheduled separately. No real booking or payment is submitted. Customer details and appointment preferences are kept only in the active page session and cleared on reload; the selected plan uses browser storage. Prices are proposed and subject to UWC confirmation.
 
 This shareable copy excludes Git history, hosting account metadata and unused concept images.
