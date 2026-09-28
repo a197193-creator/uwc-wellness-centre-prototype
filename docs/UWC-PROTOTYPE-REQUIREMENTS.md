@@ -144,6 +144,7 @@ Display this cancellation/rescheduling notice:
 ### Prototype appointment behaviour
 
 - Offer future dates only; past dates and weekends must not be selectable.
+- For the prototype, allow preferred dates from tomorrow through three calendar months ahead, following UWC's request to try a longer window. Show one week at a time with week arrows and a month jump, rather than a long list of dates.
 - Public holidays must be excluded through a configurable list. The holiday list/source must be confirmed before production use.
 - Show appointment times within the approved 8:00 a.m.–10:00 a.m. window.
 - Until UWC confirms the slot interval, use 30-minute demonstration options: 8:00, 8:30, 9:00, 9:30 and 10:00 a.m.
@@ -187,7 +188,7 @@ The customer-details form, field validation and approved booking/privacy notice 
 
 ### Progress update — 28 September 2026
 
-The preferred-appointment prototype step now follows valid customer details. It offers the next 15 future weekdays in Kuala Lumpur time and the five proposed morning choices, and saves the preference only in the active page session. The interface includes the agreed duration and cancellation/rescheduling notices and states that no availability or booking is confirmed. Public-holiday exclusions are configurable but await UWC's approved list; final slot interval and whether 10:00 a.m. can start an appointment also remain open. The 29 September refinement and 30 September final-review/payment/confirmation integration are not marked complete.
+The preferred-appointment prototype step now follows valid customer details. Following UWC's request to try three months, it offers a rolling three-calendar-month window in Kuala Lumpur time, displayed as a compact seven-day strip with week arrows and a month jump, plus the five proposed morning choices. The preference is saved only in the active page session. The interface includes the agreed duration and cancellation/rescheduling notices and states that no availability or booking is confirmed. Public-holiday exclusions are configurable but await UWC's approved list; final slot interval and whether 10:00 a.m. can start an appointment also remain open. The 29 September refinement and 30 September final-review/payment/confirmation integration are not marked complete.
 
 These items do not block the 7 October prototype, but they must be confirmed before a live system is launched:
 

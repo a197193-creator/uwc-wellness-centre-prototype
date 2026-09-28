@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#124f46">
   <title>UWC — A clearer picture of your wellbeing</title>
   <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260928-1">
-  <link rel="stylesheet" href="enhancements.css?v=20260928-1">
-  <link rel="stylesheet" href="readability.css?v=20260928-1">
-  <script src="catalogue.js?v=20260928-1" defer></script>
-  <script src="icons.js?v=20260928-1" defer></script>
-  <script src="pdf.js?v=20260928-1" defer></script>
-  <script src="app.js?v=20260928-1" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20260928-2">
+  <link rel="stylesheet" href="enhancements.css?v=20260928-2">
+  <link rel="stylesheet" href="readability.css?v=20260928-2">
+  <script src="catalogue.js?v=20260928-2" defer></script>
+  <script src="icons.js?v=20260928-2" defer></script>
+  <script src="pdf.js?v=20260928-2" defer></script>
+  <script src="app.js?v=20260928-2" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -171,7 +171,28 @@
     <div class="appointment-shell">
       <div class="customer-heading"><div><p class="eyebrow">STEP 03 / PREFERRED APPOINTMENT</p><h2 id="appointment-title">Choose a date and time.</h2><p>Select a preferred time for your screening visit. This is a demonstration, not a live availability calendar.</p></div><button class="icon-button" data-close="appointment-dialog" aria-label="Close appointment selection">×</button></div>
       <div class="customer-plan-strip"><span>Indicative plan total</span><strong class="plan-total-live">RM0</strong><button class="text-link" type="button" data-action="appointment-to-details">Edit details</button></div>
-      <fieldset class="appointment-choice" id="appointment-date-group" aria-describedby="appointment-date-hint appointment-date-error"><legend>Preferred date <span aria-hidden="true">*</span></legend><p class="appointment-hint" id="appointment-date-hint">Upcoming weekdays only. Public-holiday exclusions are pending UWC confirmation.</p><div id="appointment-dates" class="appointment-date-grid"></div><p class="field-error" id="appointment-date-error"></p></fieldset>
+      <fieldset class="appointment-choice" id="appointment-date-group" aria-describedby="appointment-date-hint appointment-window-hint appointment-date-error">
+        <legend>Preferred date <span aria-hidden="true">*</span></legend>
+        <p class="appointment-hint" id="appointment-date-hint">Browse by week or jump to a month. Weekends are unavailable; public-holiday exclusions are pending UWC confirmation.</p>
+        <div class="appointment-schedule-card">
+          <div class="appointment-schedule-header">
+            <h3>Schedule</h3>
+            <div class="appointment-schedule-controls">
+              <select id="appointment-month-select" aria-label="Jump to month"></select>
+              <button id="appointment-prev-week" type="button" aria-label="Previous week">‹</button>
+              <button id="appointment-next-week" type="button" aria-label="Next week">›</button>
+            </div>
+          </div>
+          <p id="appointment-week-range" class="appointment-week-range" aria-live="polite"></p>
+          <div id="appointment-week" class="appointment-week" role="group"></div>
+          <div class="appointment-selected-card">
+            <span class="appointment-selected-icon" aria-hidden="true">▦</span>
+            <div><span class="appointment-selected-label">Your preferred date</span><strong id="appointment-selection-summary" aria-live="polite">No date selected yet</strong><small>Request only · UWC has not confirmed a booking</small></div>
+          </div>
+        </div>
+        <p id="appointment-window-hint" class="appointment-window-hint"></p>
+        <p class="field-error" id="appointment-date-error"></p>
+      </fieldset>
       <fieldset class="appointment-choice" id="appointment-time-group" aria-describedby="appointment-time-hint appointment-time-error"><legend>Preferred time <span aria-hidden="true">*</span></legend><p class="appointment-hint" id="appointment-time-hint">Morning demonstration times; the final slot interval and 10:00 a.m. start require UWC confirmation.</p><div class="appointment-time-grid"><label><input type="radio" name="preferredTime" value="08:00"><span>8:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="08:30"><span>8:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:00"><span>9:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:30"><span>9:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="10:00"><span>10:00 a.m.</span></label></div><p class="field-error" id="appointment-time-error"></p></fieldset>
       <div class="appointment-notes"><p>Please allow approximately 30 minutes to 2 hours for your visit, depending on the selected screening package or services.</p><p>Customers may request to cancel or reschedule their appointment at any time. However, customers are encouraged to notify UWC at least a day before the scheduled appointment date, whenever possible.</p></div>
       <p class="appointment-prototype-note">Your choice is a preferred appointment only. No booking is confirmed or sent to UWC, and these times do not show real-time availability.</p>

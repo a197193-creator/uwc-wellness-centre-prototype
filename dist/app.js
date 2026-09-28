@@ -19,6 +19,8 @@
   let customerDetails = null;
   let preferredAppointment = null;
   let appointmentDraft = {date: null, time: null};
+  let appointmentWeekStart = null;
+  let appointmentMonthFocus = null;
   // Replace with a UWC-approved Kuala Lumpur holiday list before live booking.
   const appointmentHolidayDates = new Set();
   const appointmentTimes = ['08:00', '08:30', '09:00', '09:30', '10:00'];
@@ -258,59 +260,136 @@
     const value = type => parts.find(part => part.type === type).value;
     return `${value('year')}-${value('month')}-${value('day')}`;
   }
-  function appointmentDates() {
+  function appointmentWindow() {
     const [year, month, day] = malaysiaTodayKey().split('-').map(Number);
-    const dates = [];
-    for (let offset = 1; dates.length < 15 && offset <= 40; offset++) {
-      const date = new Date(Date.UTC(year, month - 1, day + offset, 12));
-      const weekday = date.getUTCDay();
-      const key = date.toISOString().slice(0, 10);
-      if (weekday === 0 || weekday === 6 || appointmentHolidayDates.has(key)) continue;
-      dates.push({
-        key,
-        weekday: new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'short'}).format(date),
-        label: new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', day:'numeric', month:'short'}).format(date)
-      });
-    }
-    return dates;
+    const first = new Date(Date.UTC(year, month - 1, day + 1, 12));
+    const lastDay = new Date(Date.UTC(year, month + 3, 0, 12)).getUTCDate();
+    const last = new Date(Date.UTC(year, month + 2, Math.min(day, lastDay), 12));
+    return {first: first.toISOString().slice(0, 10), last: last.toISOString().slice(0, 10), firstMonth: year * 12 + month - 1, lastMonth: last.getUTCFullYear() * 12 + last.getUTCMonth()};
+  }
+  function validAppointmentDate(key) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(key || '')) return false;
+    const {first, last} = appointmentWindow();
+    if (key < first || key > last || appointmentHolidayDates.has(key)) return false;
+    const date = new Date(`${key}T12:00:00Z`);
+    if (Number.isNaN(date.getTime())) return false;
+    return date.toISOString().slice(0, 10) === key && date.getUTCDay() !== 0 && date.getUTCDay() !== 6;
+  }
+  function dateLabel(key) {
+    return new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${key}T12:00:00Z`));
+  }
+  function addDaysToKey(key, days) {
+    const date = new Date(`${key}T12:00:00Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  }
+  function weekStartForKey(key) {
+    const day = new Date(`${key}T12:00:00Z`).getUTCDay();
+    return addDaysToKey(key, -((day + 6) % 7));
+  }
+  function monthNumberForKey(key) {
+    return Number(key.slice(0, 4)) * 12 + Number(key.slice(5, 7)) - 1;
+  }
+  function renderAppointmentWeek() {
+    const window = appointmentWindow();
+    if (!validAppointmentDate(appointmentDraft.date)) appointmentDraft.date = null;
+    const firstWeek = weekStartForKey(window.first);
+    const lastWeek = weekStartForKey(window.last);
+    appointmentWeekStart = appointmentWeekStart && appointmentWeekStart >= firstWeek && appointmentWeekStart <= lastWeek ? appointmentWeekStart : firstWeek;
+    const monthSelect = $('#appointment-month-select');
+    const firstMonth = monthNumberForKey(window.first);
+    const lastMonth = monthNumberForKey(window.last);
+    const options = Array.from({length:lastMonth - firstMonth + 1}, (_, offset) => {
+      const monthNumber = firstMonth + offset;
+      const date = new Date(Date.UTC(Math.floor(monthNumber / 12), monthNumber % 12, 1, 12));
+      const label = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', month:'short', year:'numeric'}).format(date);
+      return `<option value="${monthNumber}">${label}</option>`;
+    }).join('');
+    if (monthSelect.innerHTML !== options) monthSelect.innerHTML = options;
+    monthSelect.value = String(appointmentMonthFocus);
+    $('#appointment-prev-week').disabled = appointmentWeekStart === firstWeek;
+    $('#appointment-next-week').disabled = appointmentWeekStart === lastWeek;
+    const endOfWeek = addDaysToKey(appointmentWeekStart, 6);
+    const shortDate = key => new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', day:'numeric', month:'short'}).format(new Date(`${key}T12:00:00Z`));
+    $('#appointment-week-range').textContent = `${shortDate(appointmentWeekStart)} – ${shortDate(endOfWeek)}`;
+    $('#appointment-week').innerHTML = Array.from({length:7}, (_, index) => {
+      const key = addDaysToKey(appointmentWeekStart, index);
+      const date = new Date(`${key}T12:00:00Z`);
+      const available = validAppointmentDate(key);
+      const weekday = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'short'}).format(date);
+      const month = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', month:'short'}).format(date);
+      return `<button type="button" class="appointment-week-day" data-appointment-date="${key}" aria-label="${dateLabel(key)}${available ? '' : ', unavailable'}" aria-pressed="${key === appointmentDraft.date}" ${available ? '' : 'disabled'}><span>${weekday}</span><strong>${date.getUTCDate()}</strong><small>${month}</small></button>`;
+    }).join('');
+    $('#appointment-week').setAttribute('aria-label', `Preferred dates, ${shortDate(appointmentWeekStart)} to ${shortDate(endOfWeek)}`);
+    $('#appointment-window-hint').textContent = `Choose a weekday from tomorrow through ${dateLabel(window.last)}.`;
+    $('#appointment-selection-summary').textContent = appointmentDraft.date ? dateLabel(appointmentDraft.date) : 'No date selected yet';
   }
   function renderAppointment() {
-    const dates = appointmentDates();
-    if (!dates.some(date => date.key === appointmentDraft.date)) appointmentDraft.date = null;
-    $('#appointment-dates').innerHTML = dates.map(date => `<label class="appointment-date-option"><input type="radio" name="preferredDate" value="${date.key}" aria-label="${date.weekday}, ${date.label} ${date.key.slice(0, 4)}" ${date.key === appointmentDraft.date ? 'checked' : ''}><span>${date.weekday}</span><strong>${date.label}</strong></label>`).join('');
+    if (!validAppointmentDate(appointmentDraft.date)) appointmentDraft.date = null;
+    const window = appointmentWindow();
+    appointmentWeekStart = weekStartForKey(appointmentDraft.date || window.first);
+    appointmentMonthFocus = monthNumberForKey(appointmentDraft.date || window.first);
+    renderAppointmentWeek();
     $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach(input => { input.checked = input.value === appointmentDraft.time; });
   }
   const appointmentDialog = $('#appointment-dialog');
-  appointmentDialog.addEventListener('change', event => {
-    if (!event.target.matches('input[type="radio"]')) return;
-    appointmentDraft = {
-      date: appointmentDialog.querySelector('input[name="preferredDate"]:checked')?.value || null,
-      time: appointmentDialog.querySelector('input[name="preferredTime"]:checked')?.value || null
-    };
-    preferredAppointment = null;
-    $('#appointment-status').hidden = true;
-    if (event.target.name === 'preferredDate') groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', '');
-    else groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
-  });
-  $('#save-appointment').addEventListener('click', () => {
-    const selectedDate = appointmentDialog.querySelector('input[name="preferredDate"]:checked');
-    const selectedTime = appointmentDialog.querySelector('input[name="preferredTime"]:checked');
-    const validDate = selectedDate && appointmentDates().some(date => date.key === selectedDate.value);
-    const validTime = selectedTime && appointmentTimes.includes(selectedTime.value);
-    groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', validDate ? '' : 'Choose one of the future weekday dates shown.');
-    groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', validTime ? '' : 'Choose a preferred morning time.');
-    if (!validDate || !validTime) {
-      (validDate ? appointmentDialog.querySelector('input[name="preferredTime"]') : appointmentDialog.querySelector('input[name="preferredDate"]'))?.focus();
+  appointmentDialog.addEventListener('click', event => {
+    const weekButton = event.target.closest('#appointment-prev-week, #appointment-next-week');
+    if (weekButton && !weekButton.disabled) {
+      appointmentWeekStart = addDaysToKey(appointmentWeekStart, weekButton.id === 'appointment-next-week' ? 7 : -7);
+      const window = appointmentWindow();
+      appointmentMonthFocus = Math.max(monthNumberForKey(window.first), Math.min(monthNumberForKey(addDaysToKey(appointmentWeekStart, 3)), monthNumberForKey(window.last)));
+      renderAppointmentWeek();
       return;
     }
-    preferredAppointment = {date: selectedDate.value, time: selectedTime.value};
+    const dayButton = event.target.closest('[data-appointment-date]');
+    if (!dayButton || !validAppointmentDate(dayButton.dataset.appointmentDate)) return;
+    appointmentDraft.date = dayButton.dataset.appointmentDate;
+    preferredAppointment = null;
+    $$('.appointment-week-day', appointmentDialog).forEach(button => button.setAttribute('aria-pressed', String(button === dayButton)));
+    $('#appointment-selection-summary').textContent = dateLabel(appointmentDraft.date);
+    $('#appointment-status').hidden = true;
+    groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', '');
+  });
+  appointmentDialog.addEventListener('change', event => {
+    if (event.target.matches('#appointment-month-select')) {
+      const monthNumber = Number(event.target.value);
+      appointmentMonthFocus = monthNumber;
+      const year = Math.floor(monthNumber / 12);
+      const month = monthNumber % 12;
+      const days = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
+      for (let day = 1; day <= days; day += 1) {
+        const key = new Date(Date.UTC(year, month, day, 12)).toISOString().slice(0, 10);
+        if (!validAppointmentDate(key)) continue;
+        appointmentWeekStart = weekStartForKey(key);
+        renderAppointmentWeek();
+        break;
+      }
+      return;
+    }
+    if (!event.target.matches('input[name="preferredTime"]')) return;
+    appointmentDraft.time = event.target.value;
+    preferredAppointment = null;
+    $('#appointment-status').hidden = true;
+    groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
+  });
+  $('#save-appointment').addEventListener('click', () => {
+    const selectedTime = appointmentDialog.querySelector('input[name="preferredTime"]:checked');
+    const validDate = validAppointmentDate(appointmentDraft.date);
+    const validTime = selectedTime && appointmentTimes.includes(selectedTime.value);
+    groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', validDate ? '' : 'Choose a future weekday within the next three months.');
+    groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', validTime ? '' : 'Choose a preferred morning time.');
+    if (!validDate || !validTime) {
+      (validDate ? appointmentDialog.querySelector('input[name="preferredTime"]') : $('#appointment-week .appointment-week-day:not(:disabled)'))?.focus();
+      return;
+    }
+    preferredAppointment = {date: appointmentDraft.date, time: selectedTime.value};
     appointmentDraft = {...preferredAppointment};
-    const label = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${preferredAppointment.date}T12:00:00Z`));
     const time = selectedTime.parentElement.textContent.trim();
     const status = $('#appointment-status');
     status.hidden = false;
     status.classList.remove('is-error');
-    status.textContent = `Preferred appointment saved for ${label} at ${time} This is not a confirmed booking; nothing has been sent to UWC.`;
+    status.textContent = `Preferred appointment saved for ${dateLabel(preferredAppointment.date)} at ${time} This is not a confirmed booking; nothing has been sent to UWC.`;
     status.focus({preventScroll:true});
   });
   const cleanName = value => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
@@ -392,7 +471,7 @@
     $('#customer-dialog').close();
     renderAppointment();
     openDialog('appointment-dialog');
-    appointmentDialog.querySelector('input[name="preferredDate"]')?.focus();
+    $('#appointment-week .appointment-week-day:not(:disabled)')?.focus();
   });
   customerForm.addEventListener('input', event => {
     if (!event.target.matches('input, textarea')) return;
