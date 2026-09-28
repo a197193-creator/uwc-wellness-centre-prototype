@@ -174,7 +174,7 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 | Review plan | Adapted to confirmed catalogue | Extend into the new staged journey |
 | Customer details | Missing | Build form and validation |
 | Privacy notice/consent | Missing | Add exact notice and mandatory checkbox |
-| Appointment selection | Missing | Add preferred date/time stage and notices |
+| Appointment selection | In progress 28 September | Weekday/date and morning-time prototype added; confirm holiday exclusions and final slot rules with UWC |
 | Final review | Partial | Expand to include customer and appointment information |
 | Payment preview | Present | Keep demonstrational; update wording and sequence |
 | Confirmation | Missing as a full stage | Add prototype confirmation state |
@@ -184,6 +184,10 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 ### Progress update — 25 September 2026
 
 The customer-details form, field validation and approved booking/privacy notice are implemented. The user can review a selected plan, enter and save details for the current page session, return to edit the plan, and reopen the form without losing the entered values. Form submission does not send a request to UWC. The preferred appointment, final review, payment preview and confirmation stages remain scheduled for their later dates in the timetable. The newer four-package precision catalogue remains in place as directly requested after the earlier RM150 poster guidance.
+
+### Progress update — 28 September 2026
+
+The preferred-appointment prototype step now follows valid customer details. It offers the next 15 future weekdays in Kuala Lumpur time and the five proposed morning choices, and saves the preference only in the active page session. The interface includes the agreed duration and cancellation/rescheduling notices and states that no availability or booking is confirmed. Public-holiday exclusions are configurable but await UWC's approved list; final slot interval and whether 10:00 a.m. can start an appointment also remain open. The 29 September refinement and 30 September final-review/payment/confirmation integration are not marked complete.
 
 These items do not block the 7 October prototype, but they must be confirmed before a live system is launched:
 

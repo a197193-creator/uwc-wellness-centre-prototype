@@ -8,13 +8,13 @@
   <meta name="theme-color" content="#124f46">
   <title>UWC — A clearer picture of your wellbeing</title>
   <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260925-2">
-  <link rel="stylesheet" href="enhancements.css?v=20260925-2">
-  <link rel="stylesheet" href="readability.css?v=20260925-2">
-  <script src="catalogue.js?v=20260925-2" defer></script>
-  <script src="icons.js?v=20260925-2" defer></script>
-  <script src="pdf.js?v=20260925-2" defer></script>
-  <script src="app.js?v=20260925-2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20260928-1">
+  <link rel="stylesheet" href="enhancements.css?v=20260928-1">
+  <link rel="stylesheet" href="readability.css?v=20260928-1">
+  <script src="catalogue.js?v=20260928-1" defer></script>
+  <script src="icons.js?v=20260928-1" defer></script>
+  <script src="pdf.js?v=20260928-1" defer></script>
+  <script src="app.js?v=20260928-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -163,8 +163,20 @@
         <div class="customer-privacy"><h3>Booking and privacy notice</h3><p id="customer-privacy-notice">By submitting this booking request, I confirm that the information provided is accurate and consent to UWC using my contact and booking information to arrange, manage and communicate matters relating to my health-screening appointment. I understand that my information will be handled in accordance with the applicable privacy and data-protection requirements.</p><label class="customer-consent" for="customer-consent"><input id="customer-consent" name="consent" type="checkbox" required aria-describedby="customer-privacy-notice customer-consent-error"><span>I have read and agree to the booking and privacy notice.</span></label><p class="field-error" id="customer-consent-error"></p></div>
         <p class="customer-demo-note">This is a prototype. Saving these details does not send a booking request to UWC. Details stay in this page session and disappear when you reload or close the page.</p>
         <p id="customer-form-status" class="customer-form-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
-        <div class="customer-actions"><button class="button secondary" type="button" data-action="details-to-plan">Back to plan</button><button class="button primary" type="submit" id="save-customer-details">Save details <span aria-hidden="true">→</span></button></div>
+        <div class="customer-actions"><button class="button secondary" type="button" data-action="details-to-plan">Back to plan</button><button class="button primary" type="submit" id="save-customer-details">Save details &amp; choose appointment <span aria-hidden="true">→</span></button></div>
       </form>
+    </div>
+  </dialog>
+  <dialog id="appointment-dialog" class="appointment-dialog" aria-labelledby="appointment-title">
+    <div class="appointment-shell">
+      <div class="customer-heading"><div><p class="eyebrow">STEP 03 / PREFERRED APPOINTMENT</p><h2 id="appointment-title">Choose a date and time.</h2><p>Select a preferred time for your screening visit. This is a demonstration, not a live availability calendar.</p></div><button class="icon-button" data-close="appointment-dialog" aria-label="Close appointment selection">×</button></div>
+      <div class="customer-plan-strip"><span>Indicative plan total</span><strong class="plan-total-live">RM0</strong><button class="text-link" type="button" data-action="appointment-to-details">Edit details</button></div>
+      <fieldset class="appointment-choice" id="appointment-date-group" aria-describedby="appointment-date-hint appointment-date-error"><legend>Preferred date <span aria-hidden="true">*</span></legend><p class="appointment-hint" id="appointment-date-hint">Upcoming weekdays only. Public-holiday exclusions are pending UWC confirmation.</p><div id="appointment-dates" class="appointment-date-grid"></div><p class="field-error" id="appointment-date-error"></p></fieldset>
+      <fieldset class="appointment-choice" id="appointment-time-group" aria-describedby="appointment-time-hint appointment-time-error"><legend>Preferred time <span aria-hidden="true">*</span></legend><p class="appointment-hint" id="appointment-time-hint">Morning demonstration times; the final slot interval and 10:00 a.m. start require UWC confirmation.</p><div class="appointment-time-grid"><label><input type="radio" name="preferredTime" value="08:00"><span>8:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="08:30"><span>8:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:00"><span>9:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:30"><span>9:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="10:00"><span>10:00 a.m.</span></label></div><p class="field-error" id="appointment-time-error"></p></fieldset>
+      <div class="appointment-notes"><p>Please allow approximately 30 minutes to 2 hours for your visit, depending on the selected screening package or services.</p><p>Customers may request to cancel or reschedule their appointment at any time. However, customers are encouraged to notify UWC at least a day before the scheduled appointment date, whenever possible.</p></div>
+      <p class="appointment-prototype-note">Your choice is a preferred appointment only. No booking is confirmed or sent to UWC, and these times do not show real-time availability.</p>
+      <p id="appointment-status" class="customer-form-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
+      <div class="customer-actions"><button class="button secondary" type="button" data-action="appointment-to-details">Back to details</button><button class="button primary" type="button" id="save-appointment">Save preferred appointment <span aria-hidden="true">→</span></button></div>
     </div>
   </dialog>
   <dialog id="payment-dialog" class="payment-dialog" aria-labelledby="payment-title"><button class="icon-button payment-close" data-close="payment-dialog" aria-label="Close payment review">×</button><div class="payment-shell"><p class="eyebrow">CHECKOUT PREVIEW</p><span class="payment-symbol" aria-hidden="true">✓</span><h2 id="payment-title">Ready for the next step<span class="brand-dot">.</span></h2><p id="payment-item-count">Review your selected screening plan.</p><div class="payment-total"><span id="payment-total-label">Indicative total</span><strong class="plan-total-live">RM0</strong></div><div class="prototype-notice"><b>No charge will be made.</b><span>This prototype demonstrates the payment hand-off only. A secure gateway, final quotation and appointment confirmation can be connected after UWC approves the flow.</span></div><button class="button primary full" data-action="open-plan">Back to my plan <span aria-hidden="true">←</span></button><button class="text-link payment-dismiss" data-close="payment-dialog">Continue browsing</button></div></dialog>

@@ -762,6 +762,49 @@
 .customer-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 .customer-actions .button { min-height: 46px; }
 
+.appointment-dialog {
+  background: #f8faf7;
+  border: 0;
+  border-radius: 24px;
+  box-shadow: 0 30px 90px rgb(10 37 32 / 28%);
+  color: var(--ink);
+  max-height: calc(100dvh - 32px);
+  max-width: calc(100% - 28px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+  width: 760px;
+}
+.appointment-dialog::backdrop { backdrop-filter: blur(4px); background: rgb(8 31 28 / 68%); }
+.appointment-shell { padding: 38px 42px 34px; }
+.appointment-choice { border: 0; margin: 0 0 24px; min-width: 0; padding: 0; }
+.appointment-choice legend { font-size: 17px; font-weight: 700; padding: 0; }
+.appointment-hint { color: var(--muted); font-size: 14px; line-height: 1.5; margin: 5px 0 14px; }
+.appointment-date-grid { display: grid; gap: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.appointment-date-option, .appointment-time-grid label {
+  background: #fff;
+  border: 1px solid #bdcfc4;
+  border-radius: 11px;
+  cursor: pointer;
+  font-size: 15px;
+  min-height: 64px;
+  padding: 12px;
+}
+.appointment-date-option { align-items: start; display: grid; gap: 5px 9px; grid-template-columns: 18px 1fr; }
+.appointment-date-option input { accent-color: var(--deep); grid-row: span 2; height: 18px; margin: 2px 0 0; width: 18px; }
+.appointment-date-option span { color: var(--muted); font-size: 14px; }
+.appointment-date-option strong { font-size: 17px; line-height: 1.2; }
+.appointment-date-option:has(input:checked), .appointment-time-grid label:has(input:checked) { background: #eaf2ec; border-color: var(--deep); }
+.appointment-date-option:has(input:focus-visible), .appointment-time-grid label:has(input:focus-visible) { outline: 3px solid #88bca0; outline-offset: 2px; }
+.appointment-time-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.appointment-time-grid label { align-items: center; display: inline-flex; gap: 9px; min-height: 50px; }
+.appointment-time-grid input { accent-color: var(--deep); height: 18px; margin: 0; width: 18px; }
+.appointment-choice[aria-invalid="true"] .appointment-date-grid, .appointment-choice[aria-invalid="true"] .appointment-time-grid { border-radius: 10px; outline: 1px solid #b34832; outline-offset: 5px; }
+.appointment-notes { background: #edf4ef; border-radius: 14px; padding: 17px 20px; }
+.appointment-notes p { color: #344f43; font-size: 14px; line-height: 1.6; margin: 0; }
+.appointment-notes p + p { margin-top: 12px; }
+.appointment-prototype-note { color: var(--muted); font-size: 14px; line-height: 1.6; margin: 18px 0; }
+
 @media (max-width: 900px) {
   .header-plan-total { display: none; }
   .package-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -799,6 +842,8 @@
   .payment-dialog h2 { font-size: 30px; }
   .payment-total strong { font-size: 29px; }
   .customer-shell { padding: 27px 20px 24px; }
+  .appointment-shell { padding: 27px 20px 24px; }
+  .appointment-date-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .customer-fields { grid-template-columns: 1fr; }
   .customer-field-wide, .customer-choice { grid-column: 1; }
   .customer-plan-strip { margin: 20px 0 24px; }

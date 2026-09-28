@@ -17,6 +17,11 @@
   let toastTimer;
   let storageAvailable = true;
   let customerDetails = null;
+  let preferredAppointment = null;
+  let appointmentDraft = {date: null, time: null};
+  // Replace with a UWC-approved Kuala Lumpur holiday list before live booking.
+  const appointmentHolidayDates = new Set();
+  const appointmentTimes = ['08:00', '08:30', '09:00', '09:30', '10:00'];
   const dialogOpeners = new Map();
   const openGroups = new Map();
   const tabNames = {
@@ -164,7 +169,7 @@
   }
   function openDialog(id) {
     const opener = document.activeElement;
-    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog');
+    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog, #appointment-dialog');
     const attribute = ['data-detail','data-add-package','data-action','data-test','id'].find(name => opener.hasAttribute(name));
     dialogOpeners.set(id,{element:opener,container,attribute,value:attribute ? opener.getAttribute(attribute) : ''});
     $('#' + id).showModal();
@@ -248,6 +253,66 @@
     notes: $('#customer-notes'),
     consent: $('#customer-consent')
   };
+  function malaysiaTodayKey() {
+    const parts = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Kuala_Lumpur', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date());
+    const value = type => parts.find(part => part.type === type).value;
+    return `${value('year')}-${value('month')}-${value('day')}`;
+  }
+  function appointmentDates() {
+    const [year, month, day] = malaysiaTodayKey().split('-').map(Number);
+    const dates = [];
+    for (let offset = 1; dates.length < 15 && offset <= 40; offset++) {
+      const date = new Date(Date.UTC(year, month - 1, day + offset, 12));
+      const weekday = date.getUTCDay();
+      const key = date.toISOString().slice(0, 10);
+      if (weekday === 0 || weekday === 6 || appointmentHolidayDates.has(key)) continue;
+      dates.push({
+        key,
+        weekday: new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'short'}).format(date),
+        label: new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', day:'numeric', month:'short'}).format(date)
+      });
+    }
+    return dates;
+  }
+  function renderAppointment() {
+    const dates = appointmentDates();
+    if (!dates.some(date => date.key === appointmentDraft.date)) appointmentDraft.date = null;
+    $('#appointment-dates').innerHTML = dates.map(date => `<label class="appointment-date-option"><input type="radio" name="preferredDate" value="${date.key}" aria-label="${date.weekday}, ${date.label} ${date.key.slice(0, 4)}" ${date.key === appointmentDraft.date ? 'checked' : ''}><span>${date.weekday}</span><strong>${date.label}</strong></label>`).join('');
+    $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach(input => { input.checked = input.value === appointmentDraft.time; });
+  }
+  const appointmentDialog = $('#appointment-dialog');
+  appointmentDialog.addEventListener('change', event => {
+    if (!event.target.matches('input[type="radio"]')) return;
+    appointmentDraft = {
+      date: appointmentDialog.querySelector('input[name="preferredDate"]:checked')?.value || null,
+      time: appointmentDialog.querySelector('input[name="preferredTime"]:checked')?.value || null
+    };
+    preferredAppointment = null;
+    $('#appointment-status').hidden = true;
+    if (event.target.name === 'preferredDate') groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', '');
+    else groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
+  });
+  $('#save-appointment').addEventListener('click', () => {
+    const selectedDate = appointmentDialog.querySelector('input[name="preferredDate"]:checked');
+    const selectedTime = appointmentDialog.querySelector('input[name="preferredTime"]:checked');
+    const validDate = selectedDate && appointmentDates().some(date => date.key === selectedDate.value);
+    const validTime = selectedTime && appointmentTimes.includes(selectedTime.value);
+    groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', validDate ? '' : 'Choose one of the future weekday dates shown.');
+    groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', validTime ? '' : 'Choose a preferred morning time.');
+    if (!validDate || !validTime) {
+      (validDate ? appointmentDialog.querySelector('input[name="preferredTime"]') : appointmentDialog.querySelector('input[name="preferredDate"]'))?.focus();
+      return;
+    }
+    preferredAppointment = {date: selectedDate.value, time: selectedTime.value};
+    appointmentDraft = {...preferredAppointment};
+    const label = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${preferredAppointment.date}T12:00:00Z`));
+    const time = selectedTime.parentElement.textContent.trim();
+    const status = $('#appointment-status');
+    status.hidden = false;
+    status.classList.remove('is-error');
+    status.textContent = `Preferred appointment saved for ${label} at ${time} This is not a confirmed booking; nothing has been sent to UWC.`;
+    status.focus({preventScroll:true});
+  });
   const cleanName = value => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
   const cleanPhone = value => `${value.trimStart().startsWith('+') ? '+' : ''}${value.replace(/\D/g, '').slice(0, 15)}`;
   function restrictInput(control, cleaner) {
@@ -322,9 +387,12 @@
     const status = $('#customer-form-status');
     status.hidden = false;
     status.classList.remove('is-error');
-    status.textContent = 'Details saved in this page session. The next stage is selecting a preferred appointment. No request has been sent to UWC.';
-    $('#save-customer-details').textContent = 'Update saved details ✓';
-    status.focus({preventScroll:true});
+    status.textContent = 'Details saved in this page session. No request has been sent to UWC.';
+    $('#save-customer-details').innerHTML = 'Update details &amp; choose appointment <span aria-hidden="true">→</span>';
+    $('#customer-dialog').close();
+    renderAppointment();
+    openDialog('appointment-dialog');
+    appointmentDialog.querySelector('input[name="preferredDate"]')?.focus();
   });
   customerForm.addEventListener('input', event => {
     if (!event.target.matches('input, textarea')) return;
@@ -332,7 +400,7 @@
     if (event.target === customerFields.phone) restrictInput(customerFields.phone, cleanPhone);
     customerDetails = null;
     $('#customer-form-status').hidden = true;
-    $('#save-customer-details').innerHTML = 'Save details <span aria-hidden="true">→</span>';
+    $('#save-customer-details').innerHTML = 'Save details &amp; choose appointment <span aria-hidden="true">→</span>';
     if (event.target.id === 'customer-notes') $('#customer-notes-count').textContent = `${event.target.value.length} / 500`;
     if (event.target.name === 'contactMethod') groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', '');
     else if (event.target.name === 'firstTime') groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', '');
@@ -356,6 +424,7 @@
     else if (button.dataset.action === 'open-plan') {if ($('#payment-dialog').open) $('#payment-dialog').close();renderPlan();openDialog('plan-dialog');}
     else if (button.dataset.action === 'open-details') {if ($('#plan-dialog').open) $('#plan-dialog').close();renderPlan();openDialog('customer-dialog');customerFields.name.focus();}
     else if (button.dataset.action === 'details-to-plan') {$('#customer-dialog').close();renderPlan();openDialog('plan-dialog');}
+    else if (button.dataset.action === 'appointment-to-details') {appointmentDialog.close();openDialog('customer-dialog');customerFields.name.focus();}
     else if (button.dataset.action === 'browse-packages') {$('#plan-dialog').close();$('#packages').scrollIntoView();$('#tab-' + activePackage).focus({preventScroll:true});}
     else if (button.dataset.slide !== undefined) setSlide(button.dataset.slide === 'previous' ? activeSlide - 1 : button.dataset.slide === 'next' ? activeSlide + 1 : Number(button.dataset.slide));
   });
@@ -379,7 +448,7 @@
       }
     });
     dialog.addEventListener('click', event => {
-      if (dialog.id === 'customer-dialog' || event.target !== dialog) return;
+      if (dialog.id === 'customer-dialog' || dialog.id === 'appointment-dialog' || event.target !== dialog) return;
       const rect = dialog.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     });
