@@ -175,7 +175,7 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 | Review plan | Adapted to confirmed catalogue | Extend into the new staged journey |
 | Customer details | Missing | Build form and validation |
 | Privacy notice/consent | Missing | Add exact notice and mandatory checkbox |
-| Appointment selection | In progress 28 September | Weekday/date and morning-time prototype added; confirm holiday exclusions and final slot rules with UWC |
+| Appointment selection | Prototype completed 29 September | Confirm holiday exclusions and final slot rules with UWC before live use |
 | Final review | Partial | Expand to include customer and appointment information |
 | Payment preview | Present | Keep demonstrational; update wording and sequence |
 | Confirmation | Missing as a full stage | Add prototype confirmation state |
@@ -189,6 +189,10 @@ The customer-details form, field validation and approved booking/privacy notice 
 ### Progress update — 28 September 2026
 
 The preferred-appointment prototype step now follows valid customer details. Following UWC's request to try three months, it offers a rolling three-calendar-month window in Kuala Lumpur time, displayed as a compact seven-day strip with week arrows and a month jump, plus the five proposed morning choices. The preference is saved only in the active page session. The interface includes the agreed duration and cancellation/rescheduling notices and states that no availability or booking is confirmed. Public-holiday exclusions are configurable but await UWC's approved list; final slot interval and whether 10:00 a.m. can start an appointment also remain open. The 29 September refinement and 30 September final-review/payment/confirmation integration are not marked complete.
+
+### Progress update — 29 September 2026
+
+The appointment selector's 29 September refinement is complete. Months without eligible dates are omitted from the jump control, date pills have a short, subtle entrance/hover animation, and narrow phones display all seven days in a readable two-row layout. Local browser checks covered the three-month boundary, disabled past/weekend dates, month and week navigation, required-field errors, keyboard selection, saving a preferred appointment, and 320px mobile overflow. Reduced-motion preferences disable the animation. The 30 September final-review/payment/confirmation work remains scheduled separately. UWC's approved holiday list and final appointment-time rules are still needed before real bookings.
 
 These items do not block the 7 October prototype, but they must be confirmed before a live system is launched:
 

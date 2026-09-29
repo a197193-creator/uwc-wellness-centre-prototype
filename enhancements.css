@@ -792,13 +792,14 @@
 .appointment-schedule-controls select:focus-visible, .appointment-schedule-controls button:focus-visible, .appointment-week-day:focus-visible { outline: 3px solid #88bca0; outline-offset: 2px; }
 .appointment-week-range { color: var(--muted); font-size: 13px; margin: 12px 0 9px; }
 .appointment-week { display: grid; gap: 7px; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.appointment-week-day { align-items: center; background: #f1f4f1; border: 1px solid transparent; border-radius: 999px; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 82px; padding: 7px 2px; }
+.appointment-week-day { align-items: center; animation: appointment-day-appear 240ms ease-out both; background: #f1f4f1; border: 1px solid transparent; border-radius: 999px; color: var(--ink); cursor: pointer; display: flex; flex-direction: column; justify-content: center; min-height: 82px; padding: 7px 2px; transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease, transform 180ms ease; }
 .appointment-week-day span { font-size: 12px; }
 .appointment-week-day strong { font-size: 19px; line-height: 1.35; }
 .appointment-week-day small { font-size: 11px; }
-.appointment-week-day:hover:not(:disabled) { background: #e5f0e8; border-color: var(--deep); }
-.appointment-week-day[aria-pressed="true"] { background: var(--deep); color: #fff; }
+.appointment-week-day:hover:not(:disabled) { background: #e5f0e8; border-color: var(--deep); box-shadow: 0 5px 12px rgb(18 79 70 / 10%); transform: translateY(-2px); }
+.appointment-week-day[aria-pressed="true"] { background: var(--deep); box-shadow: 0 4px 12px rgb(18 79 70 / 18%); color: #fff; }
 .appointment-week-day:disabled { color: #a4b2a9; cursor: not-allowed; opacity: .72; }
+@keyframes appointment-day-appear { from { opacity: .55; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 .appointment-selected-card { align-items: center; border: 1px solid #dce6de; border-radius: 16px; display: flex; gap: 13px; margin-top: 18px; padding: 14px; }
 .appointment-selected-icon { align-items: center; background: #e5f0e8; border-radius: 12px; color: var(--deep); display: inline-flex; flex: 0 0 42px; font-size: 23px; height: 42px; justify-content: center; }
 .appointment-selected-card > div { display: grid; gap: 3px; min-width: 0; }
@@ -818,7 +819,8 @@
 .appointment-time-grid label:has(input:checked) { background: #eaf2ec; border-color: var(--deep); }
 .appointment-time-grid label:has(input:focus-visible) { outline: 3px solid #88bca0; outline-offset: 2px; }
 .appointment-time-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.appointment-time-grid label { align-items: center; display: inline-flex; gap: 9px; min-height: 50px; }
+.appointment-time-grid label { align-items: center; display: inline-flex; gap: 9px; min-height: 50px; transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease; }
+.appointment-time-grid label:hover { border-color: var(--deep); transform: translateY(-1px); }
 .appointment-time-grid input { accent-color: var(--deep); height: 18px; margin: 0; width: 18px; }
 .appointment-choice[aria-invalid="true"] .appointment-schedule-card, .appointment-choice[aria-invalid="true"] .appointment-time-grid { outline: 1px solid #b34832; outline-offset: 5px; }
 .appointment-notes { background: #edf4ef; border-radius: 14px; padding: 17px 20px; }
@@ -865,6 +867,8 @@
   .customer-shell { padding: 27px 20px 24px; }
   .appointment-shell { padding: 27px 20px 24px; }
   .appointment-schedule-card { padding: 13px; }
+  .appointment-schedule-header { align-items: stretch; flex-direction: column; gap: 10px; }
+  .appointment-schedule-controls select { flex: 1; max-width: none; min-width: 0; }
   .appointment-week { gap: 4px; }
   .appointment-week-day { min-height: 70px; }
   .appointment-week-day span { font-size: 11px; }
@@ -876,7 +880,14 @@
   .customer-actions .button { width: 100%; }
 }
 
+@media (max-width: 360px) {
+  .appointment-week { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .appointment-week-day { border-radius: 16px; min-height: 66px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .care-card img,
-  .test-row-icon { transition: none; }
+  .test-row-icon,
+  .appointment-week-day,
+  .appointment-time-grid label { animation: none; transition: none; }
 }

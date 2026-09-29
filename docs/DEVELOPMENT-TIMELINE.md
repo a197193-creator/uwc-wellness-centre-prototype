@@ -12,7 +12,7 @@
 | 23 September | Develop About UWC navigation and information section | **Completed early on 22 September.** Added the responsive About section, accreditation wording, contacts and links. Updated the catalogue again with the four supplied precision packages, cumulative inclusions, proposed component pricing and package-comparison logic. |
 | 24–25 September | Develop customer-details form, validation and privacy notice | **Completed 25 September.** Added the approved fields, inline validation, consent checkbox and privacy wording. Details remain in the current page session and are cleared on reload. The plan now leads to this stage. |
 | 26–27 September | Contingency / self-review | No formal UWC review required; use only if earlier development needs correction or extra testing. |
-| 28–29 September | Develop appointment date and time-selection interface | Weekday/date rules, demonstration time slots, duration and cancellation notices. |
+| 28–29 September | Develop appointment date and time-selection interface | **Completed 29 September.** Three-month week/month picker, required date/time validation, gentle motion, responsive layout and booking notices tested. UWC's holiday list and final time rules remain pending for live use. |
 | 30 September | Integrate the complete journey from package selection to confirmation | End-to-end staged journey with editing and retained state. |
 | 1 October | Conduct responsive, accessibility and functional testing | Mobile/desktop, keyboard, validation, totals, navigation and console checks. |
 | 2 October | Deploy and share the feature-complete review version | Stable public review URL and concise review checklist. |

@@ -290,6 +290,16 @@
   function monthNumberForKey(key) {
     return Number(key.slice(0, 4)) * 12 + Number(key.slice(5, 7)) - 1;
   }
+  function firstAvailableDateInMonth(monthNumber) {
+    const year = Math.floor(monthNumber / 12);
+    const month = monthNumber % 12;
+    const days = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
+    for (let day = 1; day <= days; day += 1) {
+      const key = new Date(Date.UTC(year, month, day, 12)).toISOString().slice(0, 10);
+      if (validAppointmentDate(key)) return key;
+    }
+    return null;
+  }
   function renderAppointmentWeek() {
     const window = appointmentWindow();
     if (!validAppointmentDate(appointmentDraft.date)) appointmentDraft.date = null;
@@ -299,13 +309,19 @@
     const monthSelect = $('#appointment-month-select');
     const firstMonth = monthNumberForKey(window.first);
     const lastMonth = monthNumberForKey(window.last);
-    const options = Array.from({length:lastMonth - firstMonth + 1}, (_, offset) => {
-      const monthNumber = firstMonth + offset;
+    const availableMonths = Array.from({length:lastMonth - firstMonth + 1}, (_, offset) => firstMonth + offset)
+      .filter(monthNumber => firstAvailableDateInMonth(monthNumber));
+    const options = availableMonths.map(monthNumber => {
       const date = new Date(Date.UTC(Math.floor(monthNumber / 12), monthNumber % 12, 1, 12));
       const label = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', month:'short', year:'numeric'}).format(date);
       return `<option value="${monthNumber}">${label}</option>`;
     }).join('');
     if (monthSelect.innerHTML !== options) monthSelect.innerHTML = options;
+    if (!availableMonths.includes(appointmentMonthFocus)) {
+      appointmentMonthFocus = availableMonths.reduce((closest, month) =>
+        Math.abs(month - appointmentMonthFocus) < Math.abs(closest - appointmentMonthFocus) ? month : closest,
+      availableMonths[0]);
+    }
     monthSelect.value = String(appointmentMonthFocus);
     $('#appointment-prev-week').disabled = appointmentWeekStart === firstWeek;
     $('#appointment-next-week').disabled = appointmentWeekStart === lastWeek;
@@ -355,16 +371,8 @@
     if (event.target.matches('#appointment-month-select')) {
       const monthNumber = Number(event.target.value);
       appointmentMonthFocus = monthNumber;
-      const year = Math.floor(monthNumber / 12);
-      const month = monthNumber % 12;
-      const days = new Date(Date.UTC(year, month + 1, 0, 12)).getUTCDate();
-      for (let day = 1; day <= days; day += 1) {
-        const key = new Date(Date.UTC(year, month, day, 12)).toISOString().slice(0, 10);
-        if (!validAppointmentDate(key)) continue;
-        appointmentWeekStart = weekStartForKey(key);
-        renderAppointmentWeek();
-        break;
-      }
+      appointmentWeekStart = weekStartForKey(firstAvailableDateInMonth(monthNumber));
+      renderAppointmentWeek();
       return;
     }
     if (!event.target.matches('input[name="preferredTime"]')) return;
