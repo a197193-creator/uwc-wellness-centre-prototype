@@ -155,7 +155,7 @@
     return new Blob([new TextEncoder().encode(output)], { type: 'application/pdf' });
   }
 
-  function createPlanPdf(summary, dateLabel) {
+  function createPlanPdf(summary, dateLabel, appointmentLabel) {
     if (!summary || !Array.isArray(summary.items)) throw new Error('A valid screening-plan summary is required.');
     const pages = [];
     let commands;
@@ -229,6 +229,14 @@
       cursor += cardHeight + 10;
     });
 
+    if (appointmentLabel) {
+      ensureSpace(77);
+      rectangle(commands, MARGIN, cursor, CONTENT_WIDTH, 62, colours.mint, colours.line, 0.8);
+      text(commands, 'PREFERRED APPOINTMENT - NOT CONFIRMED', MARGIN + 15, cursor + 11, { size: 7.5, bold: true, fill: colours.teal });
+      wrappedText(commands, cleanText(appointmentLabel), MARGIN + 15, cursor + 28, CONTENT_WIDTH - 30, { size: 11, lineHeight: 13, bold: true, fill: colours.ink });
+      cursor += 77;
+    }
+
     if (summary.warnings && summary.warnings.length) {
       ensureSpace(48);
       text(commands, 'IMPORTANT REVIEW NOTES', MARGIN, cursor + 1, { size: 8, bold: true, fill: colours.amberInk });
@@ -256,7 +264,7 @@
     cursor += 84;
     rectangle(commands, MARGIN, cursor, CONTENT_WIDTH, 58, colours.mint);
     text(commands, 'WHAT HAPPENS NEXT?', MARGIN + 15, cursor + 11, { size: 7, bold: true, fill: colours.teal });
-    wrappedText(commands, 'This PDF is a review summary only. No appointment, order or payment has been created, and nothing has been sent to UWC. Screening suitability should be discussed with a qualified healthcare professional.', MARGIN + 15, cursor + 25, CONTENT_WIDTH - 30, { size: 8.3, lineHeight: 10.5, fill: colours.ink });
+    wrappedText(commands, 'This PDF records an appointment preference only. No booking is confirmed, no order or payment has been created, and nothing has been sent to UWC. Discuss screening suitability with a qualified healthcare professional.', MARGIN + 15, cursor + 25, CONTENT_WIDTH - 30, { size: 8.3, lineHeight: 10.5, fill: colours.ink });
 
     pages.forEach(function (page, pageIndex) {
       line(page, MARGIN, 790, PAGE_WIDTH - MARGIN, 790, colours.line, 0.7);

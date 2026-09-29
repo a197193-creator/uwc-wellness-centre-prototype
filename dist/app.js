@@ -92,7 +92,7 @@
     const savingClass = pkg.saving < 0 ? 'comparison-negative' : '';
     const priceHeading = pkg.pricePrefix ? `<small>${escapeHTML(pkg.pricePrefix)}</small>${money(pkg.price)}` : money(pkg.price);
     $('#package-panel').setAttribute('aria-labelledby', 'tab-' + pkg.id);
-    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary"><p class="eyebrow">YOUR PACKAGE AT A GLANCE</p><div class="package-price">${priceHeading}</div><p class="price-caption">Proposed package price · current range ${escapeHTML(pkg.priceRange)}</p><div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${pkg.pricePrefix ? 'From ' : ''}${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul><button class="button primary full" data-add-package="${pkg.id}">${selected ? 'Package added · View plan' : 'Choose this package'} <span aria-hidden="true">${selected ? '✓' : '+'}</span></button><div class="quick-plan-summary" aria-label="Current screening plan total"><span><small>My plan total</small><strong class="plan-total-live">RM0</strong></span><button class="button secondary full" data-action="open-plan">My plan</button><button class="button pay-quick full" data-action="open-plan">Continue to review <span aria-hidden="true">→</span></button></div><p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
+    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary"><p class="eyebrow">YOUR PACKAGE AT A GLANCE</p><div class="package-price">${priceHeading}</div><p class="price-caption">Proposed package price · current range ${escapeHTML(pkg.priceRange)}</p><div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${pkg.pricePrefix ? 'From ' : ''}${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul>${selected ? '<p class="package-selected-status"><span aria-hidden="true">✓</span> Added to your plan</p>' : `<button class="button primary full" data-add-package="${pkg.id}">Choose this package <span aria-hidden="true">+</span></button>`}<p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
   }
   function renderTests() {
     const query = $('#test-search').value.trim().toLowerCase();
@@ -138,14 +138,15 @@
     $('#total-label').textContent = 'Indicative total';
     $('#plan-total').textContent = money(summary.subtotal);
     $('#plan-total-note').textContent = !summary.count ? 'Choose a package or individual components to begin.' : summary.needsQuote ? 'This total includes working prices that still require UWC confirmation.' : 'Packages, services and prices are proposed and subject to UWC confirmation.';
-    ['download-plan','print-plan','clear-plan'].forEach(id => { $('#' + id).disabled = !summary.count; });
+    $('#clear-plan').disabled = !summary.count;
     $$('[data-action="open-details"]').forEach(button => { button.disabled = !summary.count; });
-    $$('.pay-quick').forEach(button => { button.disabled = !summary.count; });
     $('#payment-item-count').textContent = !summary.count ? 'Choose a package or individual test to continue.' : `You have ${summary.count} selected ${summary.count === 1 ? 'item' : 'items'} ready for review.`;
     $('#payment-total-label').textContent = 'Indicative total';
     $('.privacy-note').textContent = storageAvailable ? 'Your plan is saved in this browser. Customer details stay only in this page session. No booking or payment is submitted.' : 'Your plan and customer details last only until this page is closed. Nothing is submitted.';
   }
   function update() {
+    preferredAppointment = null;
+    $('#appointment-export').hidden = true;
     const focus = document.activeElement;
     const focusContainer = focus.closest('#package-panel, #test-grid, #plan-items, #test-detail');
     const action = focus.dataset.test ? ['test',focus.dataset.test] : focus.dataset.remove ? ['remove',focus.dataset.remove] : focus.dataset.addPackage ? ['add-package',focus.dataset.addPackage] : null;
@@ -232,8 +233,9 @@
     $$('.slide-dots button').forEach((button,index) => button.setAttribute('aria-current', String(index === activeSlide)));
   }
   function downloadPlan() {
+    if (!preferredAppointment) return;
     const summary = model.summarize(plan);
-    const blob = window.UWCPdf.createPlanPdf(summary, new Date().toLocaleDateString('en-MY'));
+    const blob = window.UWCPdf.createPlanPdf(summary, new Date().toLocaleDateString('en-MY'), appointmentSummaryText());
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;anchor.download = 'UWC-Screening-Plan.pdf';
@@ -242,8 +244,9 @@
     showToast('Your designed PDF review summary has been downloaded. Nothing was submitted.');
   }
   function printPlan() {
+    if (!preferredAppointment) return;
     const summary = model.summarize(plan);
-    $('#print-summary').innerHTML = `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map(item => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>No appointment, order or payment has been created. Nothing has been submitted. Discuss screening suitability with a qualified healthcare professional.</p>`;
+    $('#print-summary').innerHTML = `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><p><strong>Preferred appointment:</strong> ${escapeHTML(appointmentSummaryText())} (not confirmed)</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map(item => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>This appointment preference has not been sent to UWC or confirmed. No order or payment has been created. Discuss screening suitability with a qualified healthcare professional.</p>`;
     window.print();
   }
 
@@ -277,6 +280,12 @@
   }
   function dateLabel(key) {
     return new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${key}T12:00:00Z`));
+  }
+  function appointmentSummaryText() {
+    if (!preferredAppointment) return '';
+    const [hours, minutes] = preferredAppointment.time.split(':').map(Number);
+    const time = `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'a.m.' : 'p.m.'}`;
+    return `${dateLabel(preferredAppointment.date)} at ${time}`;
   }
   function addDaysToKey(key, days) {
     const date = new Date(`${key}T12:00:00Z`);
@@ -347,6 +356,7 @@
     appointmentMonthFocus = monthNumberForKey(appointmentDraft.date || window.first);
     renderAppointmentWeek();
     $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach(input => { input.checked = input.value === appointmentDraft.time; });
+    $('#appointment-export').hidden = !preferredAppointment;
   }
   const appointmentDialog = $('#appointment-dialog');
   appointmentDialog.addEventListener('click', event => {
@@ -362,6 +372,7 @@
     if (!dayButton || !validAppointmentDate(dayButton.dataset.appointmentDate)) return;
     appointmentDraft.date = dayButton.dataset.appointmentDate;
     preferredAppointment = null;
+    $('#appointment-export').hidden = true;
     $$('.appointment-week-day', appointmentDialog).forEach(button => button.setAttribute('aria-pressed', String(button === dayButton)));
     $('#appointment-selection-summary').textContent = dateLabel(appointmentDraft.date);
     $('#appointment-status').hidden = true;
@@ -378,6 +389,7 @@
     if (!event.target.matches('input[name="preferredTime"]')) return;
     appointmentDraft.time = event.target.value;
     preferredAppointment = null;
+    $('#appointment-export').hidden = true;
     $('#appointment-status').hidden = true;
     groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
   });
@@ -393,6 +405,7 @@
     }
     preferredAppointment = {date: appointmentDraft.date, time: selectedTime.value};
     appointmentDraft = {...preferredAppointment};
+    $('#appointment-export').hidden = false;
     const time = selectedTime.parentElement.textContent.trim();
     const status = $('#appointment-status');
     status.hidden = false;

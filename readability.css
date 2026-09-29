@@ -148,6 +148,27 @@
     line-height: 1.65;
   }
 
+  .plan-dialog .remove-item {
+    align-items: center;
+    background: #fff0ee;
+    border: 1px solid #d48780;
+    border-radius: 8px;
+    color: #982a24;
+    display: inline-flex;
+    font-weight: 700;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 12px;
+    min-height: 38px;
+    padding: 6px 12px;
+    text-decoration: none;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+  }
+
+  .plan-dialog .remove-item::before { content: "×"; font-size: 18px; line-height: 1; }
+  .plan-dialog .remove-item:hover { background: #982a24; border-color: #982a24; color: #fff; transform: translateY(-1px); }
+  .plan-dialog .remove-item:focus-visible { outline: 3px solid #982a24; outline-offset: 3px; }
+
   .tab-price strong,
   .test-card-price,
   .plan-item h3,
@@ -300,4 +321,38 @@
   .payment-shell { padding-top: 38px; padding-bottom: 24px; }
   .payment-symbol { width: 48px; height: 48px; margin: 4px auto 14px; }
   .payment-total { margin-top: 20px; padding-block: 16px; }
+}
+
+@media screen {
+  .package-sidebar .package-selected-status {
+    align-items: center;
+    background: #e2f1e7;
+    border: 1px solid #a8cbb2;
+    border-radius: 8px;
+    color: #145044;
+    display: flex;
+    font-size: 14px;
+    font-weight: 700;
+    gap: 9px;
+    grid-column: 1;
+    margin-top: 19px;
+    min-height: 46px;
+    padding: 11px 15px;
+    width: 100%;
+  }
+
+  .appointment-export {
+    background: #edf4ef;
+    border: 1px solid #bcd5c4;
+    border-radius: 14px;
+    margin-top: 20px;
+    padding: 18px;
+  }
+  .appointment-export p { color: #345648; font-size: 14px; line-height: 1.6; }
+  .appointment-export-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .appointment-export-actions .button { flex: 1 1 180px; }
+}
+
+@media screen and (max-width: 640px) {
+  .appointment-export-actions .button { flex-basis: 100%; }
 }
