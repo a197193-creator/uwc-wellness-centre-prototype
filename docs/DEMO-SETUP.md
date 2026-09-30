@@ -1,22 +1,22 @@
 # UWC database demonstration — setup and test
 
-This is a **prototype demonstration**, not a live booking or payment system. The public package-selection journey does not write to Supabase. The two seeded records use fictional `example.invalid` addresses and `Demo only` payment labels; no charge took place. Do not enter real customer or payment data into the sample dashboard.
+This is a **prototype demonstration**, not a live booking or payment system. The public site can now save a *demo appointment request* in Supabase and return a tracking code. It does not reserve a real UWC slot or collect payment. Use test contact details only; do not enter patient, identification, medical, or payment information. The seeded records use fictional `example.invalid` addresses and have no payment recorded.
 
 ## What's included
 
 - `public.packages`: the four proposed packages and example durations.
-- `public.appointments`: fictional bookings with unique codes issued by a PostgreSQL trigger only when `payment_status='paid'`.
+- `public.appointments`: fictional samples and submitted demo requests. A PostgreSQL trigger issues unique codes to demo requests without marking them paid; future real bookings still require `payment_status='paid'` before code issuance.
 - `public.admin_users`: links a Supabase Auth user to the admin role.
 - `public.appointment_notes` and `public.appointment_events`: note visibility and audit history.
 - `private.lookup_attempts`: 10 guest code attempts per minute per forwarded IP address, stored as a keyed hash.
 - Row-level security (RLS) on every table. Anonymous and non-admin users have no direct appointment SELECT privilege.
-- The `booking-gateway` Edge Function handles guest lookup and responses. Its service credential is server-side only.
+- The `booking-gateway` Edge Function handles guest demo submission, lookup and responses. Its service credential is server-side only.
 
-The demo intentionally has no real payment webhook, confirmation email, or public booking submission. A production launch needs those integrations plus UWC approval of slots, durations, retention, and privacy wording.
+The demo intentionally has no real payment webhook, confirmation email, or live booking submission. A production launch needs those integrations plus UWC approval of slots, durations, retention, and privacy wording.
 
 ## Create the first admin securely
 
-1. In the Supabase Dashboard, open Authentication → Users and create/invite your staff account with a strong password. Do not put its credentials in Git or this website.
+1. Visit `/admin/` and select **Create account**, or create/invite the account under Supabase Dashboard → Authentication → Users. Confirm the email. Account creation alone does **not** grant admin access. Do not put credentials in Git or this website.
 2. Copy that Auth user's UUID. In the Supabase SQL Editor, run this once, replacing the placeholder:
 
 ```sql
@@ -27,9 +27,12 @@ on conflict (user_id) do update set role = excluded.role;
 
 3. Visit `/admin/` on the website and sign in. An Auth account without an `admin_users` row cannot read the dashboard data.
 
+Supabase Auth requires the confirmation redirect `https://uwc-wellness-centre-prototype.vercel.app/admin/` in Authentication → URL Configuration. The project's default mailer may send only to pre-authorized team addresses; configure a trusted custom SMTP service before inviting other staff. Do not disable email confirmation just to bypass this requirement.
+
 ## Test the sample flow
 
-1. In Supabase SQL Editor, get the generated demo codes (do not share these with real customers):
+1. On the public site, select a package, enter **test** contact details, choose a preferred weekday and time, then press **Confirm demo request**. Save the code. The request appears as `pending_review` with payment `pending`, amount paid RM0. No charge is made.
+2. In Supabase SQL Editor, you can also get the generated codes for fictional samples (do not share these with real customers):
 
 ```sql
 select booking_code, package_name, status, is_demo
@@ -38,10 +41,10 @@ where is_demo
 order by created_at;
 ```
 
-2. Open `/track/`, enter a code, and confirm only package, appointment, status, payment status, amount, customer-visible note, and creation date appear. The browser formats times in the visitor's local timezone.
-3. Sign in at `/admin/` with the seeded admin account. Open a booking and try Approve, Reject, Request changes, Reschedule, notes, and day view. All mutations require a confirmation dialog and appear in the audit history.
-4. For the sample booking in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review and appears in the admin dashboard via Realtime (or Refresh if the connection is interrupted).
-5. To demonstrate a future paid-booking confirmation, insert a **fictional** appointment server-side with `payment_status='pending'`. It has no code. Have a trusted server update it to `paid`; the database then generates the code. Do not mark real payments paid manually.
+3. Open `/track/`, enter the code, and confirm only package, appointment, status, payment status, amount paid, customer-visible note, and creation date appear. The browser formats times in the visitor's local timezone with a short label.
+4. Sign in at `/admin/` with an approved admin account. Open the request to view its test contact details and selected plan; try Approve, Reject, Request changes, Reschedule, notes, and day view. All mutations require a confirmation dialog and appear in the audit history. For demo requests, Approve updates the **prototype status only**, even though no payment was taken.
+5. For a booking in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review and appears in the admin dashboard via Realtime (or Refresh if interrupted).
+6. A future real paid-booking confirmation remains separate: a server-created real appointment with `payment_status='pending'` has no code until a trusted payment server updates it to `paid`. Do not mark real payments paid manually.
 
 ## Access checks
 

@@ -155,7 +155,7 @@
     return new Blob([new TextEncoder().encode(output)], { type: 'application/pdf' });
   }
 
-  function createPlanPdf(summary, dateLabel, appointmentLabel) {
+  function createPlanPdf(summary, dateLabel, appointmentLabel, bookingCode) {
     if (!summary || !Array.isArray(summary.items)) throw new Error('A valid screening-plan summary is required.');
     const pages = [];
     let commands;
@@ -230,11 +230,15 @@
     });
 
     if (appointmentLabel) {
-      ensureSpace(77);
-      rectangle(commands, MARGIN, cursor, CONTENT_WIDTH, 62, colours.mint, colours.line, 0.8);
+      ensureSpace(103);
+      rectangle(commands, MARGIN, cursor, CONTENT_WIDTH, 88, colours.mint, colours.line, 0.8);
       text(commands, 'PREFERRED APPOINTMENT - NOT CONFIRMED', MARGIN + 15, cursor + 11, { size: 7.5, bold: true, fill: colours.teal });
       wrappedText(commands, cleanText(appointmentLabel), MARGIN + 15, cursor + 28, CONTENT_WIDTH - 30, { size: 11, lineHeight: 13, bold: true, fill: colours.ink });
-      cursor += 77;
+      if (bookingCode) {
+        text(commands, 'DEMO REQUEST CODE - SAVE THIS', MARGIN + 15, cursor + 51, { size: 7.5, bold: true, fill: colours.teal });
+        text(commands, cleanText(bookingCode), MARGIN + 15, cursor + 64, { size: 13, bold: true, fill: colours.ink });
+      }
+      cursor += 103;
     }
 
     if (summary.warnings && summary.warnings.length) {
@@ -264,7 +268,7 @@
     cursor += 84;
     rectangle(commands, MARGIN, cursor, CONTENT_WIDTH, 58, colours.mint);
     text(commands, 'WHAT HAPPENS NEXT?', MARGIN + 15, cursor + 11, { size: 7, bold: true, fill: colours.teal });
-    wrappedText(commands, 'This PDF records an appointment preference only. No booking is confirmed, no order or payment has been created, and nothing has been sent to UWC. Discuss screening suitability with a qualified healthcare professional.', MARGIN + 15, cursor + 25, CONTENT_WIDTH - 30, { size: 8.3, lineHeight: 10.5, fill: colours.ink });
+    wrappedText(commands, 'This PDF records a demo request in the prototype dashboard. It is not a confirmed UWC appointment. No payment has been taken. Use the code to check the demo status and discuss screening suitability with a qualified healthcare professional.', MARGIN + 15, cursor + 25, CONTENT_WIDTH - 30, { size: 8.3, lineHeight: 10.5, fill: colours.ink });
 
     pages.forEach(function (page, pageIndex) {
       line(page, MARGIN, 790, PAGE_WIDTH - MARGIN, 790, colours.line, 0.7);

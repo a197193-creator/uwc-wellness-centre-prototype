@@ -359,6 +359,8 @@
 
 /* The demo tracker stays visible without squeezing the existing header links. */
 .site-header nav a[href="/track/"] { color: var(--pine); font-weight: 700; }
+.demo-code-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border:1px solid #bcd5c4;border-radius:10px;padding:13px 15px;margin:14px 0}.demo-code-row strong{font-size:clamp(18px,3vw,24px);letter-spacing:.04em;overflow-wrap:anywhere}.appointment-export a[href="/track/"]{color:#124f46;text-decoration:underline;font-weight:700}
+@media screen and (max-width:640px){.demo-code-row{align-items:flex-start;flex-direction:column}.demo-code-row .button{width:100%}}
 @media screen and (max-width: 640px) {
   .site-header nav { flex-wrap: wrap; justify-content: flex-start; gap: 8px 16px; }
   .site-header nav a[href="/track/"] {

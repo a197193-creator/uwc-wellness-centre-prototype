@@ -60,7 +60,7 @@ async function enterDashboard() {
 
 async function loadBookings() {
   const { data, error } = await supabase.from('appointments')
-    .select('id,booking_code,package_id,package_name,customer_name,customer_email,customer_phone,scheduled_at,duration_minutes,status,payment_status,amount_due,amount_paid,payment_method,transaction_reference,paid_at,customer_visible_note,customer_response,customer_requested_at,suggested_slots,is_demo,created_at,updated_at')
+    .select('id,booking_code,package_id,package_name,customer_name,customer_email,customer_phone,scheduled_at,duration_minutes,status,payment_status,amount_due,amount_paid,payment_method,transaction_reference,paid_at,customer_visible_note,customer_response,customer_requested_at,suggested_slots,is_demo,plan_snapshot,created_at,updated_at')
     .order('created_at', { ascending: false }).limit(500);
   if (error) { showError(error); return; }
   allBookings = data || [];
@@ -127,7 +127,7 @@ function renderTable() {
       tr.append(node('td', '', content));
     }
     const statusCell = node('td'); statusCell.append(badge(booking.status)); tr.append(statusCell);
-    tr.append(node('td', '', booking.payment_status), node('td', '', money(booking.amount_paid)), node('td', '', dateTime(booking.created_at)));
+    tr.append(node('td', '', booking.is_demo && booking.payment_status === 'pending' ? 'Not taken' : booking.payment_status), node('td', '', money(booking.amount_due)), node('td', '', dateTime(booking.created_at)));
     const actionCell = node('td'); const button = node('button', 'outline-button compact', 'View');
     button.type = 'button'; button.addEventListener('click', () => openDetails(booking.id));
     actionCell.append(button); tr.append(actionCell); body.append(tr);
@@ -170,15 +170,24 @@ async function openDetails(id) {
   const info = node('dl', 'detail-facts');
   for (const [label, value] of [
     ['Customer', booking.customer_name], ['Email', booking.customer_email], ['Phone', booking.customer_phone],
+    ['Preferred contact', booking.plan_snapshot?.contact_method], ['First visit', booking.plan_snapshot?.first_visit],
+    ['Booking notes', booking.plan_snapshot?.booking_notes],
     ['Package', booking.package_name], ['Duration', `${booking.duration_minutes} minutes`],
     ['Appointment', dateTime(booking.scheduled_at)], ['Status', statusNames[booking.status]],
-    ['Payment status', booking.payment_status], ['Amount due', money(booking.amount_due)],
+    ['Payment status', booking.is_demo && booking.payment_status === 'pending' ? 'Not taken (demo)' : booking.payment_status], ['Indicative total', money(booking.amount_due)],
     ['Amount paid', money(booking.amount_paid)], ['Payment method', booking.payment_method],
     ['Transaction reference', booking.transaction_reference], ['Paid at', dateTime(booking.paid_at)],
     ['Created', dateTime(booking.created_at)], ['Customer-visible note', booking.customer_visible_note],
     ['Customer response', booking.customer_response], ['New preferred time', dateTime(booking.customer_requested_at)]
   ]) fact(info, label, value);
-  content.append(info, node('p', 'muted', 'Payment status is read-only in this demo. Only a trusted payment server or webhook may set it.'));
+  content.append(info);
+  if (Array.isArray(booking.plan_snapshot?.items) && booking.plan_snapshot.items.length) {
+    content.append(node('h3', '', 'Selected plan'));
+    const selection = node('ul', 'history-list');
+    for (const item of booking.plan_snapshot.items) selection.append(node('li', '', `${item.name} · indicative ${money(item.price)}`));
+    content.append(selection);
+  }
+  content.append(node('p', 'muted', 'Demo requests take no payment. Payment status is read-only; only a trusted payment server or webhook could update a future live payment.'));
   const controls = node('div', 'action-grid');
   for (const [key, label] of Object.entries(actions)) {
     const button = node('button', 'outline-button', label); button.type = 'button';
@@ -234,6 +243,40 @@ $('#login-form').addEventListener('submit', async (event) => {
     try { await enterDashboard(); } catch { $('#login-message').textContent = 'Unable to verify admin access.'; }
   }
   button.disabled = false;
+});
+
+function showSignup(show) {
+  $('#signup-form').hidden = !show;
+  $('#login-form').hidden = show;
+  $('#auth-signup-entry').hidden = show;
+  $('#auth-title').textContent = show ? 'Create staff account.' : 'Staff sign in.';
+  $('#auth-intro').textContent = show
+    ? 'Use your work email. Account creation requires email confirmation and UWC admin approval before you can open the dashboard.'
+    : 'Use an approved Supabase Auth account assigned the admin role. No password is stored in this website.';
+  $('#login-message').textContent = '';
+  if (show) $('#signup-email').focus(); else $('#email').focus();
+}
+$('#show-signup').addEventListener('click', () => showSignup(true));
+$('#hide-signup').addEventListener('click', () => showSignup(false));
+$('#signup-form').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const email = $('#signup-email').value.trim();
+  const password = $('#signup-password').value;
+  const status = $('#signup-message');
+  if (password !== $('#signup-confirm').value) { status.textContent = 'Passwords do not match.'; return; }
+  const button = event.target.querySelector('button[type="submit"]');
+  button.disabled = true; status.textContent = 'Creating account…';
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email, password, options: { emailRedirectTo: `${window.location.origin}/admin/` }
+    });
+    if (error) throw error;
+    if (data.session) await supabase.auth.signOut();
+    status.textContent = 'Check your email to confirm the account. A UWC administrator must approve it before dashboard access is available.';
+    event.target.reset();
+  } catch (error) {
+    status.textContent = error?.message || 'Account creation failed. Please try again.';
+  } finally { button.disabled = false; }
 });
 
 $('#sign-out').addEventListener('click', async () => {

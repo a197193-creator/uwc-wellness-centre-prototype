@@ -5,9 +5,9 @@
   <meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#124f46">
   <title>UWC admin — demonstration</title>
   <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20260930-1">
-  <script src="../demo-config.js?v=20260930-1" defer></script>
-  <script type="module" src="../admin.js?v=20260930-1"></script>
+  <link rel="stylesheet" href="../demo.css?v=20260930-2">
+  <script src="../demo-config.js?v=20260930-2" defer></script>
+  <script type="module" src="../admin.js?v=20260930-2"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -16,24 +16,34 @@
     <nav aria-label="Page navigation"><a href="/">Public site</a><button id="sign-out" class="link-button" type="button" hidden>Sign out</button></nav>
   </div></header>
   <main id="main" class="demo-wrap admin-main">
-    <div class="demo-banner"><strong>Prototype database</strong> · Fictional records and payment values. Do not use this screen for actual appointments or financial decisions.</div>
+    <div class="demo-banner"><strong>Prototype database</strong> · Sample records and submitted demo requests only. No real appointments or payments; please use test contact details.</div>
     <section id="login-panel" class="card auth-card">
-      <p class="eyebrow">RESTRICTED ACCESS</p><h1>Staff sign in.</h1>
-      <p>Use an approved Supabase Auth account assigned the admin role. No password is stored in this website.</p>
+      <p class="eyebrow">RESTRICTED ACCESS</p><h1 id="auth-title">Staff sign in.</h1>
+      <p id="auth-intro">Use an approved Supabase Auth account assigned the admin role. No password is stored in this website.</p>
       <form id="login-form">
         <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
         <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
         <button class="button" type="submit">Sign in</button>
       </form>
       <p id="login-message" class="message" role="status" aria-live="polite"></p>
+      <div id="auth-signup-entry" class="auth-signup-entry"><p>New staff member? Create an account to request access.</p><button id="show-signup" class="outline-button" type="button">Create account</button></div>
+      <form id="signup-form" hidden>
+        <p>Creating an account does not unlock the dashboard. A UWC administrator must approve your account separately.</p>
+        <label for="signup-email">Email</label><input id="signup-email" type="email" autocomplete="email" required>
+        <label for="signup-password">Password</label><input id="signup-password" type="password" autocomplete="new-password" minlength="12" required>
+        <label for="signup-confirm">Confirm password</label><input id="signup-confirm" type="password" autocomplete="new-password" minlength="12" required>
+        <button class="button" type="submit">Create account</button>
+        <button id="hide-signup" class="link-button" type="button">Back to sign in</button>
+        <p id="signup-message" class="message" role="status" aria-live="polite"></p>
+      </form>
     </section>
     <section id="dashboard" hidden>
-      <div class="dashboard-title"><div><p class="eyebrow">APPOINTMENT MANAGEMENT</p><h1>Booking overview.</h1><p>Review sample bookings, respond to changes, and inspect the audit trail.</p></div><button id="refresh" class="outline-button" type="button">Refresh</button></div>
+      <div class="dashboard-title"><div><p class="eyebrow">APPOINTMENT MANAGEMENT</p><h1>Booking overview.</h1><p>Review demo requests, respond to changes, and inspect the audit trail.</p></div><button id="refresh" class="outline-button" type="button">Refresh</button></div>
       <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
       <div class="summary-grid" aria-label="Dashboard summary">
         <div class="card metric"><span>Pending review</span><strong id="count-pending">0</strong></div>
         <div class="card metric"><span>Today's appointments</span><strong id="count-today">0</strong></div>
-        <div class="card metric"><span>Paid demo total</span><strong id="count-revenue">RM0</strong></div>
+        <div class="card metric"><span>Payments collected</span><strong id="count-revenue">RM0</strong></div>
         <div class="card metric"><span>Changes requested</span><strong id="count-changes">0</strong></div>
       </div>
       <section class="card toolbar" aria-label="Appointment filters">
@@ -46,7 +56,7 @@
       </section>
       <section class="card table-card" aria-label="Appointments list">
         <div class="table-heading"><h2>Appointments</h2><span id="row-count"></span></div>
-        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Payment</th><th>Amount</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Payment</th><th>Indicative total</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
         <div class="pager"><button id="previous-page" class="outline-button" type="button">Previous</button><span id="page-label"></span><button id="next-page" class="outline-button" type="button">Next</button></div>
       </section>
       <section class="card day-card"><div class="table-heading"><h2>Schedule day view</h2><label>Choose day<input id="day-date" type="date"></label></div><div id="day-list"></div></section>

@@ -13,8 +13,14 @@
   let currentCode = '';
 
   const text = (selector, value) => { document.querySelector(selector).textContent = value ?? '—'; };
-  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
-  const formatDate = (value) => value ? `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))} (${timezone})` : '—';
+  const formatDate = (value) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    const when = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+    const zone = new Intl.DateTimeFormat(undefined, { timeZoneName: 'short' })
+      .formatToParts(date).find(part => part.type === 'timeZoneName')?.value;
+    return `${when}${zone ? ` ${zone}` : ''}`;
+  };
   const currency = (value) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'MYR', maximumFractionDigits: 2 }).format(Number(value) || 0);
 
   async function callGateway(body) {
@@ -33,7 +39,9 @@
     text('#result-code', currentCode);
     text('#result-date', formatDate(booking.scheduled_at));
     const paymentLabels = { paid: 'Paid', pending: 'Pending', failed: 'Failed', refunded: 'Refunded' };
-    text('#result-payment', `${paymentLabels[booking.payment_status] || booking.payment_status}${booking.is_demo ? ' (fictional demo payment)' : ''}`);
+    const payment = booking.is_demo && booking.payment_status === 'pending'
+      ? 'Not taken (demo request)' : `${paymentLabels[booking.payment_status] || booking.payment_status}${booking.is_demo ? ' (fictional demo payment)' : ''}`;
+    text('#result-payment', payment);
     text('#result-amount', currency(booking.amount_paid));
     text('#result-created', formatDate(booking.created_at));
     const badge = document.querySelector('#result-status');

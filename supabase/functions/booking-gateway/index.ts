@@ -1,4 +1,4 @@
-// Public code-based demo lookup. The database remains private to the service role.
+// Public demo requests and code-based lookup. The database remains private to the service role.
 const originAllowlist = new Set([
   "https://uwc-wellness-centre-prototype.vercel.app",
   "http://localhost:8000",
@@ -55,7 +55,7 @@ Deno.serve(async (req: Request) => {
     return response({ error: "JSON required" }, 415, origin);
   }
   const contentLength = Number(req.headers.get("content-length") || "0");
-  if (contentLength > 4096) return response({ error: "Request too large" }, 413, origin);
+  if (contentLength > 8192) return response({ error: "Request too large" }, 413, origin);
   const key = serviceKey();
   const baseUrl = Deno.env.get("SUPABASE_URL");
   if (!key || !baseUrl) return response({ error: "Service unavailable" }, 503, origin);
@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
   let payload: Record<string, unknown>;
   try {
     const raw = await req.text();
-    if (raw.length > 4096) return response({ error: "Request too large" }, 413, origin);
+    if (raw.length > 8192) return response({ error: "Request too large" }, 413, origin);
     payload = JSON.parse(raw);
     if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw Error("Invalid body");
   } catch {
@@ -71,11 +71,18 @@ Deno.serve(async (req: Request) => {
   }
 
   const action = payload.action;
-  if (action !== "lookup" && action !== "respond") return response({ error: "Invalid request" }, 400, origin);
+  if (action !== "lookup" && action !== "respond" && action !== "create_demo") {
+    return response({ error: "Invalid request" }, 400, origin);
+  }
+  if (action === "create_demo" && (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data))) {
+    return response({ error: "Check the request details and try again." }, 400, origin);
+  }
   const code = typeof payload.code === "string" ? payload.code.trim().toUpperCase() : "";
   if (code.length > 80) return response({ error: genericMessage }, 404, origin);
   const ipHash = await hashIp(req, key);
-  const argumentsForRpc: Record<string, unknown> = { p_code: code, p_ip_hash: ipHash };
+  const argumentsForRpc: Record<string, unknown> = action === "create_demo"
+    ? { p_data: payload.data, p_ip_hash: ipHash }
+    : { p_code: code, p_ip_hash: ipHash };
   if (action === "respond") {
     const message = typeof payload.message === "string" ? payload.message.trim() : "";
     const requestedAt = payload.requested_at;
@@ -88,7 +95,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const rpc = action === "lookup" ? "guest_booking_lookup" : "guest_booking_respond";
+    const rpc = action === "lookup" ? "guest_booking_lookup"
+      : action === "respond" ? "guest_booking_respond" : "guest_demo_create";
     const result = await fetch(`${baseUrl}/rest/v1/rpc/${rpc}`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -98,10 +106,12 @@ Deno.serve(async (req: Request) => {
     if (!result.ok) {
       if (data?.message === "rate_limited") return response({ error: "Too many attempts. Please wait a minute." }, 429, origin);
       if (data?.message === "response_invalid") return response({ error: "Enter a valid message or date." }, 400, origin);
+      if (data?.message === "demo_request_invalid") return response({ error: "Check the request details and try again." }, 400, origin);
       return response({ error: "Booking service is temporarily unavailable." }, 503, origin);
     }
     if (!data) return response({ error: genericMessage }, 404, origin);
     if (action === "respond") return response({ accepted: true }, 200, origin);
+    if (action === "create_demo") return response({ booking: data }, 201, origin);
     return response({ booking: data }, 200, origin);
   } catch {
     return response({ error: "Network error. Please try again." }, 503, origin);
