@@ -4,6 +4,7 @@
 # Generated review and verification files
 output/
 tmp/
+supabase/.temp/
 
 # Environment files and credentials
 .env

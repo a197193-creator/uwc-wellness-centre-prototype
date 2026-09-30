@@ -1,0 +1,2 @@
+[functions.booking-gateway]
+verify_jwt = false

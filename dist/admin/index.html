@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#124f46">
+  <title>UWC admin — demonstration</title>
+  <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../demo.css?v=20260930-1">
+  <script src="../demo-config.js?v=20260930-1" defer></script>
+  <script type="module" src="../admin.js?v=20260930-1"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="demo-header"><div class="demo-wrap header-row">
+    <a class="brand" href="/" aria-label="UWC home"><img src="../assets/uwc-mark.svg" width="42" height="42" alt=""><span><strong>UWC.</strong><small>Staff demo dashboard</small></span></a>
+    <nav aria-label="Page navigation"><a href="/">Public site</a><button id="sign-out" class="link-button" type="button" hidden>Sign out</button></nav>
+  </div></header>
+  <main id="main" class="demo-wrap admin-main">
+    <div class="demo-banner"><strong>Prototype database</strong> · Fictional records and payment values. Do not use this screen for actual appointments or financial decisions.</div>
+    <section id="login-panel" class="card auth-card">
+      <p class="eyebrow">RESTRICTED ACCESS</p><h1>Staff sign in.</h1>
+      <p>Use an approved Supabase Auth account assigned the admin role. No password is stored in this website.</p>
+      <form id="login-form">
+        <label for="email">Email</label><input id="email" type="email" autocomplete="username" required>
+        <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required>
+        <button class="button" type="submit">Sign in</button>
+      </form>
+      <p id="login-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+    <section id="dashboard" hidden>
+      <div class="dashboard-title"><div><p class="eyebrow">APPOINTMENT MANAGEMENT</p><h1>Booking overview.</h1><p>Review sample bookings, respond to changes, and inspect the audit trail.</p></div><button id="refresh" class="outline-button" type="button">Refresh</button></div>
+      <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
+      <div class="summary-grid" aria-label="Dashboard summary">
+        <div class="card metric"><span>Pending review</span><strong id="count-pending">0</strong></div>
+        <div class="card metric"><span>Today's appointments</span><strong id="count-today">0</strong></div>
+        <div class="card metric"><span>Paid demo total</span><strong id="count-revenue">RM0</strong></div>
+        <div class="card metric"><span>Changes requested</span><strong id="count-changes">0</strong></div>
+      </div>
+      <section class="card toolbar" aria-label="Appointment filters">
+        <label>Search code or contact<input id="search" type="search" placeholder="Code, name, email, phone"></label>
+        <label>Status<select id="filter-status"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="changes_requested">Changes Requested</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+        <label>Payment<select id="filter-payment"><option value="">All payments</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select></label>
+        <label>Package<select id="filter-package"><option value="">All packages</option></select></label>
+        <label>From<input id="filter-from" type="date"></label><label>To<input id="filter-to" type="date"></label>
+        <label>Sort<select id="sort"><option value="created_desc">Newest first</option><option value="created_asc">Oldest first</option><option value="scheduled_asc">Appointment soonest</option><option value="scheduled_desc">Appointment latest</option></select></label>
+      </section>
+      <section class="card table-card" aria-label="Appointments list">
+        <div class="table-heading"><h2>Appointments</h2><span id="row-count"></span></div>
+        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Payment</th><th>Amount</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
+        <div class="pager"><button id="previous-page" class="outline-button" type="button">Previous</button><span id="page-label"></span><button id="next-page" class="outline-button" type="button">Next</button></div>
+      </section>
+      <section class="card day-card"><div class="table-heading"><h2>Schedule day view</h2><label>Choose day<input id="day-date" type="date"></label></div><div id="day-list"></div></section>
+    </section>
+  </main>
+  <dialog id="details-dialog" class="details-dialog" aria-labelledby="details-title"><div class="dialog-head"><div><p class="eyebrow">BOOKING DETAILS</p><h2 id="details-title"></h2></div><button class="icon-close" type="button" data-close="details-dialog" aria-label="Close details">×</button></div><div id="details-content"></div></dialog>
+  <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title"><form id="action-form"><div class="dialog-head"><h2 id="action-title"></h2><button class="icon-close" type="button" data-close="action-dialog" aria-label="Close action">×</button></div><p id="action-description"></p><label id="action-note-label" for="action-note">Reason or note<textarea id="action-note" rows="3" maxlength="2000"></textarea></label><label id="action-date-label" for="action-date">New appointment time<input id="action-date" type="datetime-local"></label><div id="suggested-inputs"><p>Suggested alternative times (up to three)</p><input type="datetime-local" aria-label="Alternative time 1"><input type="datetime-local" aria-label="Alternative time 2"><input type="datetime-local" aria-label="Alternative time 3"></div><p id="action-message" class="message" role="status"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="action-dialog">Keep unchanged</button><button class="button" id="confirm-action" type="submit">Confirm</button></div></form></dialog>
+</body>
+</html>

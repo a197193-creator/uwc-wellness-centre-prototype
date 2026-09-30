@@ -356,3 +356,17 @@
 @media screen and (max-width: 640px) {
   .appointment-export-actions .button { flex-basis: 100%; }
 }
+
+/* The demo tracker stays visible without squeezing the existing header links. */
+.site-header nav a[href="/track/"] { color: var(--pine); font-weight: 700; }
+@media screen and (max-width: 640px) {
+  .site-header nav { flex-wrap: wrap; justify-content: flex-start; gap: 8px 16px; }
+  .site-header nav a[href="/track/"] {
+    background: var(--pale);
+    border-radius: 7px;
+    margin: 0;
+    padding: 6px 10px;
+    text-align: center;
+    width: 100%;
+  }
+}

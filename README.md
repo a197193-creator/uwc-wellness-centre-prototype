@@ -20,7 +20,7 @@ The project stays within the technologies used in the student's coursework:
 - **JavaScript** for catalogue interaction and the prototype journey
 - **PHP** for a small server-side prototype-status endpoint and, after UWC approval, future booking-side processing
 
-The PHP endpoint does not receive or store customer information. The current prototype must not submit real bookings or payments.
+The PHP endpoint does not receive or store customer information. The public selection journey must not submit real bookings or payments. A separate **fictional Supabase database demonstration** now supports a guest code lookup and restricted admin view; its seeded payment values do not represent charges.
 
 - `index.html`: page structure and text
 - `styles.css`, `enhancements.css` and `readability.css`: design, responsive styles and larger text
@@ -34,15 +34,21 @@ The PHP endpoint does not receive or store customer information. The current pro
 - `build.ps1`: refreshes the ready-to-publish `dist` folder from the current source
 - `dist/`: built website copy retained for the publishing workflow
 - `vercel.json`: Vercel configuration for the PHP prototype-status endpoint
+- `track/`, `track.js`: guest booking-code lookup for fictional sample bookings
+- `admin/`, `admin.js`: Supabase Auth-protected staff dashboard
+- `demo.css`, `demo-config.js`: shared demo styling and public-only Supabase configuration
+- `supabase/migrations/`: SQL schema, RLS policies, sample rows, and audited admin functions
+- `supabase/functions/booking-gateway/`: rate-limited, code-based guest lookup and change response
+- `docs/DEMO-SETUP.md`: first-admin setup, security boundaries and end-to-end test instructions
 
 ## Preview locally
 
-From this folder, run `python -m http.server 4173` if Python is installed, then open http://localhost:4173/.
+From this folder, run `npx --yes http-server . -p 8000 -c-1`, then open http://localhost:8000/.
 
 ## Update and publish
 
 Edit the root source files, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1` from this folder to refresh `dist`. Push changes to the connected GitHub `main` branch to update the existing Vercel project and the public URL above. Do not create a separate Vercel project or share a deployment-specific URL for routine updates.
 
-The current journey reaches the preferred-appointment prototype stage after customer details. Final review, payment and confirmation are scheduled separately. No real booking or payment is submitted. Customer details and appointment preferences are kept only in the active page session and cleared on reload; the selected plan uses browser storage. Prices are proposed and subject to UWC confirmation.
+The public journey reaches the preferred-appointment prototype stage after customer details. Final review, payment and confirmation are scheduled separately. No real booking or payment is submitted by that journey. Customer details and appointment preferences are kept only in the active page session and cleared on reload; the selected plan uses browser storage. Prices are proposed and subject to UWC confirmation. The tracker and admin dashboard use separate fictional sample records to demonstrate how the future database workflow could look.
 
 This shareable copy excludes Git history, hosting account metadata and unused concept images.
