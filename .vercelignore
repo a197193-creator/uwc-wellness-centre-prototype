@@ -1,0 +1,9 @@
+# Keep only website source and the PHP status endpoint in the deployment.
+supabase/
+docs/
+dist/
+README.md
+PHOTO-SOURCES.md
+build.ps1
+output/
+tmp/
