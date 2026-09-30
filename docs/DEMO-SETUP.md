@@ -1,4 +1,4 @@
-# UWC database demonstration — setup and test
+# UWC prototype — demo dashboard and request flow
 
 This is a **prototype demonstration**, not a live booking or payment system. The public site can now save a *demo appointment request* in Supabase and return a tracking code. It does not reserve a real UWC slot or collect payment. Use test contact details only; do not enter patient, identification, medical, or payment information. The seeded records use fictional `example.invalid` addresses and have no payment recorded.
 
@@ -12,22 +12,15 @@ This is a **prototype demonstration**, not a live booking or payment system. The
 - Row-level security (RLS) on every table. Anonymous and non-admin users have no direct appointment SELECT privilege.
 - The `booking-gateway` Edge Function handles guest demo submission, lookup and responses. Its service credential is server-side only.
 
-The demo intentionally has no real payment webhook, confirmation email, or live booking submission. A production launch needs those integrations plus UWC approval of slots, durations, retention, and privacy wording.
+The `/admin/` page is now a **standalone UI preview**: its fictional records and actions stay in the browser tab. It does not read or change Supabase appointments. No account, real email, or SMTP configuration is required to use that page. The Supabase admin-role table and RLS remain in place for a future authenticated dashboard.
 
-## Create the first admin securely
+The prototype intentionally has no real payment webhook, confirmation email, or live booking submission. A production launch needs those integrations plus UWC approval of slots, durations, retention, and privacy wording.
 
-1. Visit `/admin/` and select **Create account**, or create/invite the account under Supabase Dashboard → Authentication → Users. Confirm the email. Account creation alone does **not** grant admin access. Do not put credentials in Git or this website.
-2. Copy that Auth user's UUID. In the Supabase SQL Editor, run this once, replacing the placeholder:
+## Open the admin demo
 
-```sql
-insert into public.admin_users (user_id, role)
-values ('PASTE-AUTH-USER-UUID-HERE'::uuid, 'admin')
-on conflict (user_id) do update set role = excluded.role;
-```
+Visit `/admin/` and sign in with the credentials shown on the page: username `demo`, password `uwc-demo`. They are deliberately public and provide **no security boundary**. The dashboard contains only fictional sample data, not submitted customer details. Use Approve, Reject, Request changes, Reschedule, notes, filters, and the day view to explore the design. Changes reset on page reload or sign-out.
 
-3. Visit `/admin/` on the website and sign in. An Auth account without an `admin_users` row cannot read the dashboard data.
-
-Supabase Auth requires the confirmation redirect `https://uwc-wellness-centre-prototype.vercel.app/admin/` in Authentication → URL Configuration. The project's default mailer may send only to pre-authorized team addresses; configure a trusted custom SMTP service before inviting other staff. Do not disable email confirmation just to bypass this requirement.
+Do not use this demo password to protect real records. A future connected staff dashboard must restore Supabase Auth and the database-enforced admin role.
 
 ## Test the sample flow
 
@@ -42,8 +35,8 @@ order by created_at;
 ```
 
 3. Open `/track/`, enter the code, and confirm only package, appointment, status, payment status, amount paid, customer-visible note, and creation date appear. The browser formats times in the visitor's local timezone with a short label.
-4. Sign in at `/admin/` with an approved admin account. Open the request to view its test contact details and selected plan; try Approve, Reject, Request changes, Reschedule, notes, and day view. All mutations require a confirmation dialog and appear in the audit history. For demo requests, Approve updates the **prototype status only**, even though no payment was taken.
-5. For a booking in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review and appears in the admin dashboard via Realtime (or Refresh if interrupted).
+4. Open `/admin/` with the public demo credentials above. Its fictional sample records let you preview staff actions, but they are **not linked** to the public request you just submitted. Dashboard changes do not appear in `/track/`.
+5. For a backend sample booking already in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review in Supabase. The current standalone admin demo will not display that change.
 6. A future real paid-booking confirmation remains separate: a server-created real appointment with `payment_status='pending'` has no code until a trusted payment server updates it to `paid`. Do not mark real payments paid manually.
 
 ## Access checks
@@ -57,7 +50,7 @@ select
   has_table_privilege('service_role', 'public.appointments', 'select') as service_can_select;
 ```
 
-The authenticated role has SELECT privilege so RLS can permit admins, but a non-admin receives no rows. Guest lookup is not a table SELECT: the Edge Function calls a service-only RPC that returns a strict safe-field JSON projection. It never returns name, email, phone, payment provider reference, or internal notes. Invalid and unknown codes return the same message.
+The authenticated role has SELECT privilege so RLS can permit a future approved admin, but a non-admin receives no rows. The current demo dashboard makes no appointment-table queries. Guest lookup is not a table SELECT: the Edge Function calls a service-only RPC that returns a strict safe-field JSON projection. It never returns name, email, phone, payment provider reference, or internal notes. Invalid and unknown codes return the same message.
 
 ## Deployment
 

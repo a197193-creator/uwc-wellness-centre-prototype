@@ -1,7 +1,4 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/+esm';
-
-const config = window.UWC_DEMO_CONFIG;
-const supabase = createClient(config.supabaseUrl, config.publishableKey);
+// UI-only dashboard preview. Never connect this public demo login to private appointments.
 const $ = (selector) => document.querySelector(selector);
 const statusNames = {
   pending_review: 'Pending Review', confirmed: 'Confirmed', rejected: 'Rejected',
@@ -12,8 +9,7 @@ const actions = {
   reschedule: 'Reschedule', complete: 'Mark completed', cancel: 'Cancel',
   note_internal: 'Add internal note', note_customer: 'Add customer-visible note'
 };
-const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'local time';
-const dateTime = (value) => value ? `${new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))} (${timezone})` : '—';
+const dateTime = (value) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
 const money = (value) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'MYR', maximumFractionDigits: 2 }).format(Number(value) || 0);
 const node = (tag, className, content) => {
   const element = document.createElement(tag);
@@ -21,50 +17,54 @@ const node = (tag, className, content) => {
   if (content !== undefined && content !== null) element.textContent = String(content);
   return element;
 };
-let allBookings = [];
+let allBookings = createDemoBookings();
 let currentPage = 1;
 let selectedBooking = null;
 let pendingAction = null;
-let realtime = null;
-
-function showError(error) { $('#dashboard-message').textContent = error?.message || String(error); }
 function localDate(value) { return new Date(value).toLocaleDateString('en-CA'); }
 
-async function verifyAdmin() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return false;
-  const { data, error: roleError } = await supabase.from('admin_users').select('role').eq('user_id', user.id).maybeSingle();
-  if (roleError) throw roleError;
-  return data?.role === 'admin';
+function nextWeekday(offset, hour) {
+  const date = new Date();
+  date.setDate(date.getDate() + offset);
+  date.setHours(hour, 0, 0, 0);
+  while (date.getDay() === 0 || date.getDay() === 6) date.setDate(date.getDate() + 1);
+  return date.toISOString();
 }
 
-async function enterDashboard() {
-  const allowed = await verifyAdmin();
-  if (!allowed) {
-    $('#login-panel').hidden = false;
-    $('#dashboard').hidden = true;
-    $('#login-message').textContent = 'This account is not assigned the UWC admin role.';
-    await supabase.auth.signOut();
-    return;
-  }
+function createDemoBookings() {
+  const packages = [
+    ['Precision Baseline Health Screening', 450, 60],
+    ['Precision Expanded Health Screening', 1800, 90],
+    ['Precision Wellness and Health Status', 4200, 120]
+  ];
+  return packages.map(([packageName, amount, duration], index) => ({
+    id: `demo-${index + 1}`, booking_code: `DEMO-00${index + 1}`,
+    customer_name: `Demo Visitor ${String.fromCharCode(65 + index)}`,
+    customer_email: `visitor-${index + 1}@example.invalid`, customer_phone: 'Demo only',
+    package_name: packageName, scheduled_at: nextWeekday(index, 9 + index),
+    duration_minutes: duration, amount_due: amount, amount_paid: 0,
+    status: ['pending_review', 'changes_requested', 'confirmed'][index],
+    customer_visible_note: index === 1 ? 'Please choose another preferred time for this screening.' : null,
+    customer_response: null, customer_requested_at: null,
+    suggested_slots: index === 1 ? [nextWeekday(5, 9), nextWeekday(6, 10)] : [],
+    plan_snapshot: { contact_method: 'Email', first_visit: index === 0 ? 'Yes' : 'No',
+      booking_notes: 'Fictional dashboard sample', items: [{name:packageName,price:amount}] },
+    created_at: new Date(Date.now() - (index + 1) * 86400000).toISOString(),
+    notes: [], events: [{event_type:'demo_record_created',old_status:null,
+      new_status:['pending_review', 'changes_requested', 'confirmed'][index],
+      message:'Fictional sample record',created_at:new Date(Date.now() - (index + 1) * 86400000).toISOString(),actor_type:'system'}]
+  }));
+}
+
+function enterDashboard() {
   $('#login-panel').hidden = true;
   $('#dashboard').hidden = false;
   $('#sign-out').hidden = false;
-  await loadBookings();
-  if (!realtime) {
-    realtime = supabase.channel('uwc-admin-appointments')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, () => loadBookings())
-      .subscribe();
-  }
+  loadBookings();
 }
 
-async function loadBookings() {
-  const { data, error } = await supabase.from('appointments')
-    .select('id,booking_code,package_id,package_name,customer_name,customer_email,customer_phone,scheduled_at,duration_minutes,status,payment_status,amount_due,amount_paid,payment_method,transaction_reference,paid_at,customer_visible_note,customer_response,customer_requested_at,suggested_slots,is_demo,plan_snapshot,created_at,updated_at')
-    .order('created_at', { ascending: false }).limit(500);
-  if (error) { showError(error); return; }
-  allBookings = data || [];
-  $('#dashboard-message').textContent = allBookings.length >= 500 ? 'Demo view is limited to the latest 500 bookings.' : '';
+function loadBookings() {
+  $('#dashboard-message').textContent = 'Fictional records only. Actions are a preview and reset on reload.';
   fillPackageFilter(); renderSummary(); renderTable(); renderDay();
 }
 
@@ -85,21 +85,21 @@ function renderSummary() {
   $('#count-today').textContent = allBookings.filter((row) => localDate(row.scheduled_at) === today).length;
   $('#count-changes').textContent = allBookings.filter((row) => row.status === 'changes_requested').length;
   const from = $('#filter-from').value, to = $('#filter-to').value;
-  const paid = allBookings.filter((row) => row.payment_status === 'paid' &&
-    (!from || localDate(row.paid_at || row.created_at) >= from) &&
-    (!to || localDate(row.paid_at || row.created_at) <= to));
-  $('#count-revenue').textContent = money(paid.reduce((sum, row) => sum + Number(row.amount_paid), 0));
+  const selected = allBookings.filter((row) =>
+    (!from || localDate(row.scheduled_at) >= from) &&
+    (!to || localDate(row.scheduled_at) <= to));
+  $('#count-revenue').textContent = money(selected.reduce((sum, row) => sum + Number(row.amount_due), 0));
 }
 
 function filteredBookings() {
   const search = $('#search').value.trim().toLowerCase();
-  const status = $('#filter-status').value, payment = $('#filter-payment').value;
+  const status = $('#filter-status').value;
   const packageName = $('#filter-package').value, from = $('#filter-from').value, to = $('#filter-to').value;
   const result = allBookings.filter((row) => {
     const haystack = [row.booking_code, row.customer_name, row.customer_email, row.customer_phone].join(' ').toLowerCase();
     const scheduledDay = localDate(row.scheduled_at);
     return (!search || haystack.includes(search)) && (!status || row.status === status) &&
-      (!payment || row.payment_status === payment) && (!packageName || row.package_name === packageName) &&
+      (!packageName || row.package_name === packageName) &&
       (!from || scheduledDay >= from) && (!to || scheduledDay <= to);
   });
   const sort = $('#sort').value;
@@ -127,14 +127,14 @@ function renderTable() {
       tr.append(node('td', '', content));
     }
     const statusCell = node('td'); statusCell.append(badge(booking.status)); tr.append(statusCell);
-    tr.append(node('td', '', booking.is_demo && booking.payment_status === 'pending' ? 'Not taken' : booking.payment_status), node('td', '', money(booking.amount_due)), node('td', '', dateTime(booking.created_at)));
+    tr.append(node('td', '', money(booking.amount_due)), node('td', '', dateTime(booking.created_at)));
     const actionCell = node('td'); const button = node('button', 'outline-button compact', 'View');
     button.type = 'button'; button.addEventListener('click', () => openDetails(booking.id));
     actionCell.append(button); tr.append(actionCell); body.append(tr);
   }
   if (!rows.length) {
     const tr = node('tr'); const cell = node('td', 'empty-table', 'No appointments match these filters.');
-    cell.colSpan = 10; tr.append(cell); body.append(tr);
+    cell.colSpan = 9; tr.append(cell); body.append(tr);
   }
   $('#row-count').textContent = `${rows.length} matching`;
   $('#page-label').textContent = `Page ${currentPage} of ${pages}`;
@@ -161,7 +161,7 @@ function fact(list, label, value) {
   const pair = node('div'); pair.append(node('dt', '', label), node('dd', '', value ?? '—')); list.append(pair);
 }
 
-async function openDetails(id) {
+function openDetails(id) {
   const booking = allBookings.find((row) => row.id === id);
   if (!booking) return;
   selectedBooking = booking;
@@ -174,9 +174,7 @@ async function openDetails(id) {
     ['Booking notes', booking.plan_snapshot?.booking_notes],
     ['Package', booking.package_name], ['Duration', `${booking.duration_minutes} minutes`],
     ['Appointment', dateTime(booking.scheduled_at)], ['Status', statusNames[booking.status]],
-    ['Payment status', booking.is_demo && booking.payment_status === 'pending' ? 'Not taken (demo)' : booking.payment_status], ['Indicative total', money(booking.amount_due)],
-    ['Amount paid', money(booking.amount_paid)], ['Payment method', booking.payment_method],
-    ['Transaction reference', booking.transaction_reference], ['Paid at', dateTime(booking.paid_at)],
+    ['Indicative total', money(booking.amount_due)],
     ['Created', dateTime(booking.created_at)], ['Customer-visible note', booking.customer_visible_note],
     ['Customer response', booking.customer_response], ['New preferred time', dateTime(booking.customer_requested_at)]
   ]) fact(info, label, value);
@@ -187,27 +185,22 @@ async function openDetails(id) {
     for (const item of booking.plan_snapshot.items) selection.append(node('li', '', `${item.name} · indicative ${money(item.price)}`));
     content.append(selection);
   }
-  content.append(node('p', 'muted', 'Demo requests take no payment. Payment status is read-only; only a trusted payment server or webhook could update a future live payment.'));
+  content.append(node('p', 'muted', 'Preview only. No payment or real appointment is created.'));
   const controls = node('div', 'action-grid');
   for (const [key, label] of Object.entries(actions)) {
     const button = node('button', 'outline-button', label); button.type = 'button';
     button.addEventListener('click', () => openAction(key)); controls.append(button);
   }
   content.append(controls);
-  const [notesQuery, eventsQuery] = await Promise.all([
-    supabase.from('appointment_notes').select('body,visibility,created_at,author_id').eq('appointment_id', id).order('created_at', { ascending: false }),
-    supabase.from('appointment_events').select('event_type,old_status,new_status,message,created_at,actor_type,actor_id').eq('appointment_id', id).order('created_at', { ascending: false })
-  ]);
-  if (notesQuery.error || eventsQuery.error) showError(notesQuery.error || eventsQuery.error);
   const notesTitle = node('h3', '', 'Notes'); content.append(notesTitle);
   const notes = node('ul', 'history-list');
-  for (const note of notesQuery.data || []) notes.append(historyItem(`${note.visibility} · ${dateTime(note.created_at)} · by ${note.author_id || 'system'}`, note.body));
+  for (const note of booking.notes) notes.append(historyItem(`${note.visibility} · ${dateTime(note.created_at)} · by Demo staff`, note.body));
   if (!notes.childNodes.length) notes.append(node('li', 'muted', 'No notes yet.'));
   content.append(notes, node('h3', '', 'Audit history'));
   const events = node('ul', 'history-list');
-  for (const event of eventsQuery.data || []) {
+  for (const event of booking.events) {
     const transition = event.old_status === event.new_status ? '' : ` · ${event.old_status || 'new'} → ${event.new_status || '—'}`;
-    events.append(historyItem(`${event.event_type}${transition} · ${dateTime(event.created_at)} · ${event.actor_type}${event.actor_id ? ` ${event.actor_id}` : ''}`, event.message));
+    events.append(historyItem(`${event.event_type}${transition} · ${dateTime(event.created_at)} · ${event.actor_type}`, event.message));
   }
   if (!events.childNodes.length) events.append(node('li', 'muted', 'No events yet.'));
   content.append(events);
@@ -234,60 +227,27 @@ function openAction(action) {
   $('#action-dialog').showModal();
 }
 
-$('#login-form').addEventListener('submit', async (event) => {
-  event.preventDefault(); const button = event.target.querySelector('button');
-  button.disabled = true; $('#login-message').textContent = 'Signing in…';
-  const { error } = await supabase.auth.signInWithPassword({ email: $('#email').value.trim(), password: $('#password').value });
-  if (error) $('#login-message').textContent = 'Sign in failed. Check your credentials.';
-  else {
-    try { await enterDashboard(); } catch { $('#login-message').textContent = 'Unable to verify admin access.'; }
-  }
-  button.disabled = false;
-});
-
-function showSignup(show) {
-  $('#signup-form').hidden = !show;
-  $('#login-form').hidden = show;
-  $('#auth-signup-entry').hidden = show;
-  $('#auth-title').textContent = show ? 'Create staff account.' : 'Staff sign in.';
-  $('#auth-intro').textContent = show
-    ? 'Use your work email. Account creation requires email confirmation and UWC admin approval before you can open the dashboard.'
-    : 'Use an approved Supabase Auth account assigned the admin role. No password is stored in this website.';
-  $('#login-message').textContent = '';
-  if (show) $('#signup-email').focus(); else $('#email').focus();
-}
-$('#show-signup').addEventListener('click', () => showSignup(true));
-$('#hide-signup').addEventListener('click', () => showSignup(false));
-$('#signup-form').addEventListener('submit', async (event) => {
+$('#login-form').addEventListener('submit', (event) => {
   event.preventDefault();
-  const email = $('#signup-email').value.trim();
-  const password = $('#signup-password').value;
-  const status = $('#signup-message');
-  if (password !== $('#signup-confirm').value) { status.textContent = 'Passwords do not match.'; return; }
-  const button = event.target.querySelector('button[type="submit"]');
-  button.disabled = true; status.textContent = 'Creating account…';
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email, password, options: { emailRedirectTo: `${window.location.origin}/admin/` }
-    });
-    if (error) throw error;
-    if (data.session) await supabase.auth.signOut();
-    status.textContent = 'Check your email to confirm the account. A UWC administrator must approve it before dashboard access is available.';
-    event.target.reset();
-  } catch (error) {
-    status.textContent = error?.message || 'Account creation failed. Please try again.';
-  } finally { button.disabled = false; }
+  const username = $('#username').value.trim().toLowerCase();
+  if (username !== 'demo' || $('#password').value !== 'uwc-demo') {
+    $('#login-message').textContent = 'Use the demo username and password shown above.';
+    return;
+  }
+  $('#password').value = '';
+  sessionStorage.setItem('uwc-admin-preview', 'open');
+  enterDashboard();
 });
 
-$('#sign-out').addEventListener('click', async () => {
-  if (realtime) { await supabase.removeChannel(realtime); realtime = null; }
-  await supabase.auth.signOut(); allBookings = [];
+$('#sign-out').addEventListener('click', () => {
+  sessionStorage.removeItem('uwc-admin-preview');
+  allBookings = createDemoBookings();
   $('#dashboard').hidden = true; $('#sign-out').hidden = true; $('#login-panel').hidden = false;
-  $('#password').value = ''; $('#login-message').textContent = 'Signed out.';
+  $('#password').value = ''; $('#login-message').textContent = 'Demo closed.';
 });
 
 $('#refresh').addEventListener('click', loadBookings);
-for (const selector of ['#search','#filter-status','#filter-payment','#filter-package','#filter-from','#filter-to','#sort']) {
+for (const selector of ['#search','#filter-status','#filter-package','#filter-from','#filter-to','#sort']) {
   $(selector).addEventListener(selector === '#search' ? 'input' : 'change', () => { currentPage = 1; renderSummary(); renderTable(); });
 }
 $('#day-date').value = localDate(new Date());
@@ -296,24 +256,44 @@ $('#previous-page').addEventListener('click', () => { currentPage--; renderTable
 $('#next-page').addEventListener('click', () => { currentPage++; renderTable(); });
 document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
 
-$('#action-form').addEventListener('submit', async (event) => {
+$('#action-form').addEventListener('submit', (event) => {
   event.preventDefault(); if (!selectedBooking || !pendingAction) return;
-  const button = $('#confirm-action'); button.disabled = true; $('#action-message').textContent = 'Saving…';
+  const booking = selectedBooking;
+  const action = pendingAction;
+  const note = $('#action-note').value.trim();
   const date = $('#action-date').value;
-  const suggestions = [...$('#suggested-inputs').querySelectorAll('input')].filter((input) => input.value).map((input) => new Date(input.value).toISOString());
-  const { data, error } = await supabase.rpc('admin_action', {
-    p_id: selectedBooking.id, p_action: pendingAction, p_note: $('#action-note').value.trim() || null,
-    p_scheduled_at: date ? new Date(date).toISOString() : null, p_suggested_slots: suggestions
-  });
-  if (error) { $('#action-message').textContent = error.message; button.disabled = false; return; }
-  const id = selectedBooking.id;
-  $('#action-dialog').close(); await loadBookings(); await openDetails(id);
-  $('#dashboard-message').textContent = data?.conflicts ? `Saved. Warning: this appointment overlaps ${data.conflicts} confirmed booking(s).` : 'Change saved and recorded in the audit history.';
-  button.disabled = false;
+  const suggestions = [...$('#suggested-inputs').querySelectorAll('input')]
+    .filter((input) => input.value).map((input) => new Date(input.value).toISOString());
+  if ((action === 'reject' || action === 'request_changes' || action.startsWith('note_')) && !note) {
+    $('#action-message').textContent = 'Enter a reason or note first.'; return;
+  }
+  if (action === 'reschedule' && (!date || new Date(date) <= new Date())) {
+    $('#action-message').textContent = 'Choose a future date and time.'; return;
+  }
+  const oldStatus = booking.status;
+  const nextStatus = {
+    approve:'confirmed',reject:'rejected',request_changes:'changes_requested',
+    complete:'completed',cancel:'cancelled'
+  }[action];
+  if (nextStatus) booking.status = nextStatus;
+  if (action === 'reschedule') booking.scheduled_at = new Date(date).toISOString();
+  if (action === 'request_changes') booking.suggested_slots = suggestions;
+  if (note) {
+    const visibility = ['reject','request_changes','note_customer'].includes(action) ? 'customer' : 'internal';
+    booking.notes.unshift({body:note,visibility,created_at:new Date().toISOString()});
+    if (visibility === 'customer') booking.customer_visible_note = note;
+  }
+  booking.events.unshift({event_type:action,old_status:oldStatus,new_status:booking.status,
+    message:note || `Demo ${actions[action].toLowerCase()}`,created_at:new Date().toISOString(),actor_type:'demo staff'});
+  const start = new Date(booking.scheduled_at).getTime();
+  const end = start + booking.duration_minutes * 60000;
+  const conflicts = allBookings.filter((other) => other.id !== booking.id && other.status === 'confirmed' &&
+    start < new Date(other.scheduled_at).getTime() + other.duration_minutes * 60000 &&
+    end > new Date(other.scheduled_at).getTime()).length;
+  $('#action-dialog').close(); loadBookings(); openDetails(booking.id);
+  $('#dashboard-message').textContent = conflicts
+    ? `Demo change shown until reload. Warning: time overlaps ${conflicts} confirmed sample appointment(s).`
+    : 'Demo change shown until reload. No real booking changed.';
 });
 
-supabase.auth.getSession().then(async ({ data }) => {
-  if (data.session) {
-    try { await enterDashboard(); } catch { $('#login-message').textContent = 'Unable to load admin access.'; }
-  }
-});
+if (sessionStorage.getItem('uwc-admin-preview') === 'open') enterDashboard();
