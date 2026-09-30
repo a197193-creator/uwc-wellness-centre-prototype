@@ -142,15 +142,12 @@
     $('#plan-total-note').textContent = !summary.count ? 'Choose a package or individual components to begin.' : summary.needsQuote ? 'This total includes working prices that still require UWC confirmation.' : 'Packages, services and prices are proposed and subject to UWC confirmation.';
     $('#clear-plan').disabled = !summary.count;
     $$('[data-action="open-details"]').forEach(button => { button.disabled = !summary.count; });
-    $('#payment-item-count').textContent = !summary.count ? 'Choose a package or individual test to continue.' : `You have ${summary.count} selected ${summary.count === 1 ? 'item' : 'items'} ready for review.`;
-    $('#payment-total-label').textContent = 'Indicative total';
     $('.privacy-note').textContent = storageAvailable ? 'Your plan is saved in this browser. Confirming a demo request sends entered details to the prototype database. No payment is taken.' : 'Your plan lasts only until this page is closed. Confirmed demo requests are stored in the prototype database; no payment is taken.';
   }
   function update() {
-    if (!submittedBooking) {
-      preferredAppointment = null;
-      $('#appointment-export').hidden = true;
-    }
+    submittedBooking = null;
+    submittedSummary = null;
+    preferredAppointment = null;
     const focus = document.activeElement;
     const focusContainer = focus.closest('#package-panel, #test-grid, #plan-items, #test-detail');
     const action = focus.dataset.test ? ['test',focus.dataset.test] : focus.dataset.remove ? ['remove',focus.dataset.remove] : focus.dataset.addPackage ? ['add-package',focus.dataset.addPackage] : null;
@@ -176,14 +173,15 @@
   }
   function openDialog(id) {
     const opener = document.activeElement;
-    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog, #appointment-dialog');
+    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog, #appointment-dialog, #review-dialog, #booking-confirmation-dialog');
     const attribute = ['data-detail','data-add-package','data-action','data-test','id'].find(name => opener.hasAttribute(name));
     dialogOpeners.set(id,{element:opener,container,attribute,value:attribute ? opener.getAttribute(attribute) : ''});
     $('#' + id).showModal();
     document.body.classList.add('modal-open');
   }
-  function confirmChange(message, callback) {
+  function confirmChange(message, callback, title = 'Update your plan?') {
     confirmation = callback;
+    $('#confirm-title').textContent = title;
     $('#confirm-message').textContent = message;
     openDialog('confirm-dialog');
   }
@@ -250,7 +248,7 @@
   function printPlan() {
     if (!submittedBooking) return;
     const summary = submittedSummary;
-    $('#print-summary').innerHTML = `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><p><strong>Demo request code:</strong> ${escapeHTML(submittedBooking.booking_code)}</p><p><strong>Preferred appointment:</strong> ${escapeHTML(appointmentSummaryText())} (not confirmed)</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map(item => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>This demo request is saved in the prototype dashboard, but is not a confirmed UWC appointment. No payment has been taken. Discuss screening suitability with a qualified healthcare professional.</p>`;
+    $('#print-summary').innerHTML = `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><p><strong>Demo request code:</strong> ${escapeHTML(submittedBooking.booking_code)}</p><p><strong>Preferred appointment:</strong> ${escapeHTML(appointmentSummaryText())} (not confirmed)</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map(item => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>This demo request is saved in the prototype database, but is not a confirmed UWC appointment. No payment has been taken. Discuss screening suitability with a qualified healthcare professional.</p>`;
     window.print();
   }
 
@@ -360,11 +358,17 @@
     appointmentMonthFocus = monthNumberForKey(appointmentDraft.date || window.first);
     renderAppointmentWeek();
     $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach(input => { input.checked = input.value === appointmentDraft.time; });
-    $('#appointment-export').hidden = !submittedBooking;
-    $('#appointment-code').textContent = submittedBooking?.booking_code || '';
-    $('#save-appointment').disabled = Boolean(submittedBooking);
-    $('#appointment-date-group').disabled = Boolean(submittedBooking);
-    $('#appointment-time-group').disabled = Boolean(submittedBooking);
+    $('#appointment-status').hidden = true;
+  }
+  function renderReview() {
+    const summary = model.summarize(plan);
+    $('#review-items').innerHTML = summary.items.map(item => `<div class="review-item"><span>${escapeHTML(item.name)}</span><strong>${money(item.price)}${item.provisional ? '*' : ''}</strong></div>`).join('');
+    $('#review-total').innerHTML = `<span>Indicative total</span><strong>${money(summary.subtotal)}</strong>`;
+    $('#review-warnings').innerHTML = summary.warnings.map(warning => `<p class="plan-warning">${escapeHTML(warning)}</p>`).join('');
+    $('#review-customer').innerHTML = `<div><dt>Name</dt><dd>${escapeHTML(customerDetails.name)}</dd></div><div><dt>Contact</dt><dd>${escapeHTML(customerDetails.phone)} · ${escapeHTML(customerDetails.email)}</dd></div><div><dt>Preferred contact</dt><dd>${escapeHTML(customerDetails.contactMethod)}</dd></div><div><dt>First visit</dt><dd>${escapeHTML(customerDetails.firstTime)}</dd></div>${customerDetails.notes ? `<div><dt>Notes</dt><dd>${escapeHTML(customerDetails.notes)}</dd></div>` : ''}`;
+    $('#review-appointment').textContent = `${appointmentSummaryText()} · preferred only, not confirmed`;
+    $('#review-status').hidden = true;
+    $('#submit-demo-request').disabled = false;
   }
   const appointmentDialog = $('#appointment-dialog');
   appointmentDialog.addEventListener('click', event => {
@@ -381,7 +385,6 @@
     appointmentDraft.date = dayButton.dataset.appointmentDate;
     if (submittedBooking) return;
     preferredAppointment = null;
-    $('#appointment-export').hidden = true;
     $$('.appointment-week-day', appointmentDialog).forEach(button => button.setAttribute('aria-pressed', String(button === dayButton)));
     $('#appointment-selection-summary').textContent = dateLabel(appointmentDraft.date);
     $('#appointment-status').hidden = true;
@@ -399,12 +402,10 @@
     appointmentDraft.time = event.target.value;
     if (submittedBooking) return;
     preferredAppointment = null;
-    $('#appointment-export').hidden = true;
     $('#appointment-status').hidden = true;
     groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
   });
-  $('#save-appointment').addEventListener('click', async () => {
-    if (submittedBooking) return;
+  $('#save-appointment').addEventListener('click', () => {
     const selectedTime = appointmentDialog.querySelector('input[name="preferredTime"]:checked');
     const validDate = validAppointmentDate(appointmentDraft.date);
     const validTime = selectedTime && appointmentTimes.includes(selectedTime.value);
@@ -422,12 +423,28 @@
       status.focus({preventScroll:true});
       return;
     }
+    preferredAppointment = {date:appointmentDraft.date,time:selectedTime.value};
+    renderReview();
+    appointmentDialog.close();
+    openDialog('review-dialog');
+    $('#review-title').focus({preventScroll:true});
+  });
+  $('#submit-demo-request').addEventListener('click', async () => {
+    if (submittedBooking) return;
+    const summary = model.summarize(plan);
+    const status = $('#review-status');
+    if (!customerDetails || !summary.count || !preferredAppointment || !validAppointmentDate(preferredAppointment.date) || !appointmentTimes.includes(preferredAppointment.time)) {
+      status.hidden = false;
+      status.classList.add('is-error');
+      status.textContent = 'Your details or preferred appointment need updating. Please review them before submitting.';
+      status.focus({preventScroll:true});
+      return;
+    }
     const packageItem = summary.items.find(item => item.kind === 'package');
-    const button = $('#save-appointment');
-    const status = $('#appointment-status');
+    const button = $('#submit-demo-request');
     status.hidden = false;
     status.classList.remove('is-error');
-    status.textContent = 'Submitting your demo request…';
+    status.textContent = 'Sending your demo request…';
     button.disabled = true;
     try {
       const config = window.UWC_DEMO_CONFIG;
@@ -441,22 +458,20 @@
           name:customerDetails.name, email:customerDetails.email, phone:customerDetails.phone,
           contact_method:customerDetails.contactMethod, first_visit:customerDetails.firstTime,
           notes:customerDetails.notes, consent:customerDetails.consent,
-          scheduled_at:new Date(`${appointmentDraft.date}T${selectedTime.value}:00+08:00`).toISOString()
+          scheduled_at:new Date(`${preferredAppointment.date}T${preferredAppointment.time}:00+08:00`).toISOString()
         }})
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.booking?.booking_code) throw new Error(data.error || 'Could not save the demo request. Please try again.');
       submittedBooking = data.booking;
       submittedSummary = summary;
-      preferredAppointment = {date:appointmentDraft.date,time:selectedTime.value};
       appointmentDraft = {...preferredAppointment};
       $('#appointment-code').textContent = submittedBooking.booking_code;
-      $('#appointment-export').hidden = false;
-      $('#appointment-date-group').disabled = true;
-      $('#appointment-time-group').disabled = true;
-      status.textContent = `Demo request received for ${appointmentSummaryText()} Save your code below. No appointment is confirmed and no payment was taken.`;
-      status.focus({preventScroll:true});
-      $('#appointment-export').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',block:'nearest'});
+      $('#confirmation-appointment').textContent = `Preferred appointment: ${appointmentSummaryText()} (not confirmed)`;
+      $('#confirmation-total').textContent = `Indicative plan total: ${money(summary.subtotal)}`;
+      $('#review-dialog').close();
+      openDialog('booking-confirmation-dialog');
+      $('#copy-appointment-code').focus({preventScroll:true});
     } catch (error) {
       status.classList.add('is-error');
       status.textContent = error.message || 'Could not save the demo request. Please try again.';
@@ -469,6 +484,20 @@
     try { await navigator.clipboard.writeText(submittedBooking.booking_code); showToast('Demo request code copied.'); }
     catch { showToast('Please select and copy the code above.'); }
   });
+  $('#another-request').addEventListener('click', () => confirmChange(
+    'Save your current booking code before continuing. The existing demo request stays recorded; your plan and contact details can be reused for a new preferred appointment.',
+    () => {
+      $('#booking-confirmation-dialog').close();
+      submittedBooking = null;
+      submittedSummary = null;
+      preferredAppointment = null;
+      appointmentDraft = {date:null,time:null};
+      renderPlan();
+      openDialog('plan-dialog');
+      showToast('Choose or edit your plan to start another demo request.');
+    },
+    'Create another request?'
+  ));
   const cleanName = value => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
   const cleanPhone = value => `${value.trimStart().startsWith('+') ? '+' : ''}${value.replace(/\D/g, '').slice(0, 15)}`;
   function restrictInput(control, cleaner) {
@@ -546,6 +575,11 @@
     status.textContent = 'Details saved in this page session. No request has been sent to UWC.';
     $('#save-customer-details').innerHTML = 'Update details &amp; choose appointment <span aria-hidden="true">→</span>';
     $('#customer-dialog').close();
+    if (submittedBooking) {
+      openDialog('booking-confirmation-dialog');
+      $('#copy-appointment-code').focus({preventScroll:true});
+      return;
+    }
     renderAppointment();
     openDialog('appointment-dialog');
     $('#appointment-week .appointment-week-day:not(:disabled)')?.focus();
@@ -554,6 +588,9 @@
     if (!event.target.matches('input, textarea')) return;
     if (event.target === customerFields.name) restrictInput(customerFields.name, cleanName);
     if (event.target === customerFields.phone) restrictInput(customerFields.phone, cleanPhone);
+    submittedBooking = null;
+    submittedSummary = null;
+    preferredAppointment = null;
     customerDetails = null;
     $('#customer-form-status').hidden = true;
     $('#save-customer-details').innerHTML = 'Save details &amp; choose appointment <span aria-hidden="true">→</span>';
@@ -577,10 +614,13 @@
     else if (button.dataset.test) toggleTest(button.dataset.test);
     else if (button.dataset.detail) { detailId = button.dataset.detail;renderDetail(detailId);openDialog('test-dialog'); }
     else if (button.dataset.remove) { plan = model.removeItem(plan,button.dataset.remove);update();showToast('Selection removed from your plan.'); }
-    else if (button.dataset.action === 'open-plan') {if ($('#payment-dialog').open) $('#payment-dialog').close();renderPlan();openDialog('plan-dialog');}
+    else if (button.dataset.action === 'open-plan') {renderPlan();openDialog('plan-dialog');}
     else if (button.dataset.action === 'open-details') {if ($('#plan-dialog').open) $('#plan-dialog').close();renderPlan();openDialog('customer-dialog');customerFields.name.focus();}
     else if (button.dataset.action === 'details-to-plan') {$('#customer-dialog').close();renderPlan();openDialog('plan-dialog');}
     else if (button.dataset.action === 'appointment-to-details') {appointmentDialog.close();openDialog('customer-dialog');customerFields.name.focus();}
+    else if (button.dataset.action === 'review-to-plan') {$('#review-dialog').close();renderPlan();openDialog('plan-dialog');}
+    else if (button.dataset.action === 'review-to-details') {$('#review-dialog').close();openDialog('customer-dialog');customerFields.name.focus();}
+    else if (button.dataset.action === 'review-to-appointment') {$('#review-dialog').close();renderAppointment();openDialog('appointment-dialog');$('#appointment-week .appointment-week-day[aria-pressed="true"]')?.focus();}
     else if (button.dataset.action === 'browse-packages') {$('#plan-dialog').close();$('#packages').scrollIntoView();$('#tab-' + activePackage).focus({preventScroll:true});}
     else if (button.dataset.slide !== undefined) setSlide(button.dataset.slide === 'previous' ? activeSlide - 1 : button.dataset.slide === 'next' ? activeSlide + 1 : Number(button.dataset.slide));
   });
@@ -604,7 +644,7 @@
       }
     });
     dialog.addEventListener('click', event => {
-      if (dialog.id === 'customer-dialog' || dialog.id === 'appointment-dialog' || event.target !== dialog) return;
+      if (['customer-dialog','appointment-dialog','review-dialog','booking-confirmation-dialog'].includes(dialog.id) || event.target !== dialog) return;
       const rect = dialog.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
     });

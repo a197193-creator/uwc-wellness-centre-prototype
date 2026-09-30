@@ -24,7 +24,7 @@ Do not use this demo password to protect real records. A future connected staff 
 
 ## Test the sample flow
 
-1. On the public site, select a package, enter **test** contact details, choose a preferred weekday and time, then press **Confirm demo request**. Save the code. The request appears as `pending_review` with payment `pending`, amount paid RM0. No charge is made.
+1. On the public site, select a package, enter **test** contact details, choose a preferred weekday and time, review all information, then press **Send demo request**. Save the code shown on the confirmation screen. The request appears as `pending_review` with payment `pending`, amount paid RM0. No charge is made. A second demo request may be started immediately; the first need not be completed.
 2. In Supabase SQL Editor, you can also get the generated codes for fictional samples (do not share these with real customers):
 
 ```sql
