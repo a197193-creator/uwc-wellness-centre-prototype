@@ -9,7 +9,13 @@ const actions = {
   reschedule: 'Reschedule', complete: 'Mark completed', cancel: 'Cancel',
   note_internal: 'Add internal note', note_customer: 'Add customer-visible note'
 };
-const dateTime = (value) => value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
+const malaysiaZone = 'Asia/Kuala_Lumpur';
+const malaysiaDateFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: malaysiaZone, year: 'numeric', month: '2-digit', day: '2-digit'
+});
+const dateTime = (value) => value ? new Intl.DateTimeFormat('en-GB', {
+  timeZone: malaysiaZone, dateStyle: 'medium', timeStyle: 'short'
+}).format(new Date(value)) : '—';
 const money = (value) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'MYR', maximumFractionDigits: 2 }).format(Number(value) || 0);
 const node = (tag, className, content) => {
   const element = document.createElement(tag);
@@ -21,14 +27,26 @@ let allBookings = createDemoBookings();
 let currentPage = 1;
 let selectedBooking = null;
 let pendingAction = null;
-function localDate(value) { return new Date(value).toLocaleDateString('en-CA'); }
+function localDate(value) {
+  const parts = Object.fromEntries(malaysiaDateFormatter.formatToParts(new Date(value))
+    .filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function malaysiaSlot(value) {
+  const match = /^(\d{4}-\d{2}-\d{2})T(08:00|08:30|09:00|09:30|10:00)$/.exec(value);
+  if (!match) return null;
+  const date = new Date(`${match[1]}T${match[2]}:00+08:00`);
+  if (!Number.isFinite(date.getTime()) || localDate(date) !== match[1] ||
+      [0, 6].includes(new Date(`${match[1]}T00:00:00Z`).getUTCDay()) || date <= new Date()) return null;
+  return date.toISOString();
+}
 
 function nextWeekday(offset, hour) {
-  const date = new Date();
-  date.setDate(date.getDate() + offset);
-  date.setHours(hour, 0, 0, 0);
-  while (date.getDay() === 0 || date.getDay() === 6) date.setDate(date.getDate() + 1);
-  return date.toISOString();
+  const date = new Date(`${localDate(new Date())}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  while ([0, 6].includes(date.getUTCDay())) date.setUTCDate(date.getUTCDate() + 1);
+  return new Date(`${date.toISOString().slice(0, 10)}T${String(hour).padStart(2, '0')}:00:00+08:00`).toISOString();
 }
 
 function createDemoBookings() {
@@ -41,12 +59,12 @@ function createDemoBookings() {
     id: `demo-${index + 1}`, booking_code: `DEMO-00${index + 1}`,
     customer_name: `Demo Visitor ${String.fromCharCode(65 + index)}`,
     customer_email: `visitor-${index + 1}@example.invalid`, customer_phone: 'Demo only',
-    package_name: packageName, scheduled_at: nextWeekday(index, 9 + index),
+    package_name: packageName, scheduled_at: nextWeekday(index, index === 0 ? 9 : 10),
     duration_minutes: duration, amount_due: amount, amount_paid: 0,
     status: ['pending_review', 'changes_requested', 'confirmed'][index],
     customer_visible_note: index === 1 ? 'Please choose another preferred time for this screening.' : null,
     customer_response: null, customer_requested_at: null,
-    suggested_slots: index === 1 ? [nextWeekday(5, 9), nextWeekday(6, 10)] : [],
+    suggested_slots: index === 1 ? [nextWeekday(5, 9), nextWeekday(8, 10)] : [],
     plan_snapshot: { contact_method: 'Email', first_visit: index === 0 ? 'Yes' : 'No',
       booking_notes: 'Fictional dashboard sample', items: [{name:packageName,price:amount}] },
     created_at: new Date(Date.now() - (index + 1) * 86400000).toISOString(),
@@ -222,6 +240,7 @@ function openAction(action) {
   $('#action-date-label').hidden = action !== 'reschedule';
   $('#action-date').required = action === 'reschedule';
   $('#suggested-inputs').hidden = action !== 'request_changes';
+  $('#action-slot-hint').hidden = !['reschedule', 'request_changes'].includes(action);
   $('#suggested-inputs').querySelectorAll('input').forEach((input) => { input.value = ''; });
   $('#confirm-action').textContent = `Confirm ${actions[action].toLowerCase()}`;
   $('#action-dialog').showModal();
@@ -262,13 +281,18 @@ $('#action-form').addEventListener('submit', (event) => {
   const action = pendingAction;
   const note = $('#action-note').value.trim();
   const date = $('#action-date').value;
-  const suggestions = [...$('#suggested-inputs').querySelectorAll('input')]
-    .filter((input) => input.value).map((input) => new Date(input.value).toISOString());
+  const suggestedValues = [...$('#suggested-inputs').querySelectorAll('input')]
+    .map((input) => input.value).filter(Boolean);
   if ((action === 'reject' || action === 'request_changes' || action.startsWith('note_')) && !note) {
     $('#action-message').textContent = 'Enter a reason or note first.'; return;
   }
-  if (action === 'reschedule' && (!date || new Date(date) <= new Date())) {
-    $('#action-message').textContent = 'Choose a future date and time.'; return;
+  const scheduledAt = action === 'reschedule' ? malaysiaSlot(date) : null;
+  if (action === 'reschedule' && !scheduledAt) {
+    $('#action-message').textContent = 'Choose a future weekday at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m. Malaysia time.'; return;
+  }
+  const suggestions = action === 'request_changes' ? suggestedValues.map(malaysiaSlot) : [];
+  if (action === 'request_changes' && (suggestions.includes(null) || new Set(suggestions).size !== suggestions.length)) {
+    $('#action-message').textContent = 'Suggested times must be distinct future weekdays from 8:00 to 10:00 a.m. Malaysia time.'; return;
   }
   const oldStatus = booking.status;
   const nextStatus = {
@@ -276,7 +300,7 @@ $('#action-form').addEventListener('submit', (event) => {
     complete:'completed',cancel:'cancelled'
   }[action];
   if (nextStatus) booking.status = nextStatus;
-  if (action === 'reschedule') booking.scheduled_at = new Date(date).toISOString();
+  if (action === 'reschedule') booking.scheduled_at = scheduledAt;
   if (action === 'request_changes') booking.suggested_slots = suggestions;
   if (note) {
     const visibility = ['reject','request_changes','note_customer'].includes(action) ? 'customer' : 'internal';

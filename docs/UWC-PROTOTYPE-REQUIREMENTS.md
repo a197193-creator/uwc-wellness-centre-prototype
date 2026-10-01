@@ -184,7 +184,7 @@ The 30-minute interval and inclusion of 10:00 a.m. as a start time are prototype
 
 ### Progress update — 25 September 2026
 
-The customer-details form, field validation and approved booking/privacy notice are implemented. The user can review a selected plan, enter and save details for the current page session, return to edit the plan, and reopen the form without losing the entered values. Form submission does not send a request to UWC. The preferred appointment, final review, payment preview and confirmation stages remain scheduled for their later dates in the timetable. The newer four-package precision catalogue remains in place as directly requested after the earlier RM150 poster guidance.
+The customer-details form, field validation and approved booking/privacy notice were implemented by 25 September. The user could review a selected plan, enter and save details for the current page session, return to edit the plan, and reopen the form without losing the entered values. At that point, form submission did not send a request to UWC. Later implementation changes are recorded below. The newer four-package precision catalogue remains in place as directly requested after the earlier RM150 poster guidance.
 
 ### Progress update — 28 September 2026
 
@@ -192,7 +192,11 @@ The preferred-appointment prototype step now follows valid customer details. Fol
 
 ### Progress update — 29 September 2026
 
-The appointment selector's 29 September refinement is complete. Months without eligible dates are omitted from the jump control, date pills have a short, subtle entrance/hover animation, and narrow phones display all seven days in a readable two-row layout. Local browser checks covered the three-month boundary, disabled past/weekend dates, month and week navigation, required-field errors, keyboard selection, saving a preferred appointment, and 320px mobile overflow. Reduced-motion preferences disable the animation. The 30 September final-review/payment/confirmation work remains scheduled separately. UWC's approved holiday list and final appointment-time rules are still needed before real bookings.
+The appointment selector's 29 September refinement is complete. Months without eligible dates are omitted from the jump control, date pills have a short, subtle entrance/hover animation, and narrow phones display all seven days in a readable two-row layout. Local browser checks covered the three-month boundary, disabled past/weekend dates, month and week navigation, required-field errors, keyboard selection, saving a preferred appointment, and 320px mobile overflow. Reduced-motion preferences disable the animation. UWC's approved holiday list and final appointment-time rules are still needed before real bookings.
+
+### 1 October implementation note
+
+The 30 September code now sends **test** contact details and a preferred time to a Supabase prototype database when the user confirms a demo request, then returns a tracking code. It takes no payment and reserves no real slot. This differs from the original browser-only data rule in section 6 and replaces the planned payment preview with a no-payment demo request. Confirm this revised demonstration scope and its privacy wording with UWC before using real customer details. The public tracker can read demo requests by code; the dashboard login still displays fictional records only and cannot manage submitted requests. On 1 October, the dashboard preview was corrected to use Kuala Lumpur time, validate weekday morning reschedules and suggested times, and fit narrow mobile screens.
 
 These items do not block the 7 October prototype, but they must be confirmed before a live system is launched:
 

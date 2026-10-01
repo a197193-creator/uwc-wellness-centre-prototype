@@ -13,8 +13,8 @@
 | 24–25 September | Develop customer-details form, validation and privacy notice | **Completed 25 September.** Added the approved fields, inline validation, consent checkbox and privacy wording. Details remain in the current page session and are cleared on reload. The plan now leads to this stage. |
 | 26–27 September | Contingency / self-review | No formal UWC review required; use only if earlier development needs correction or extra testing. |
 | 28–29 September | Develop appointment date and time-selection interface | **Completed 29 September.** Three-month week/month picker, required date/time validation, gentle motion, responsive layout and booking notices tested. UWC's holiday list and final time rules remain pending for live use. |
-| 30 September | Integrate the complete journey from package selection to confirmation | End-to-end staged journey with editing and retained state. |
-| 1 October | Conduct responsive, accessibility and functional testing | Mobile/desktop, keyboard, validation, totals, navigation and console checks. |
+| 30 September | Integrate the complete journey from package selection to confirmation | **Completed 30 September.** Package/plan → customer details → preferred appointment → final review → demo request and tracking code. The current flow takes no payment and does not reserve a real appointment. The admin page remains a separate fictional-data preview. |
+| 1 October | Conduct responsive, accessibility and functional testing | **In progress 1 October.** Rechecked package-to-review flow, weekday morning selection, admin reschedule validation and 320px/390px layouts. Fixed dashboard overflow and Malaysia-time handling. Full regression and UWC review remain. |
 | 2 October | Deploy and share the feature-complete review version | Stable public review URL and concise review checklist. |
 | 3–4 October | Review buffer for UWC and supervisor comments | Consolidated feedback list; no meeting-critical feature work planned. |
 | 5 October | Implement consolidated feedback and corrections | Agreed corrections completed; avoid new scope unless essential. |

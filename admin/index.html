@@ -5,8 +5,8 @@
   <meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#124f46">
   <title>UWC admin — demonstration</title>
   <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20260930-3">
-  <script defer src="../admin.js?v=20260930-3"></script>
+  <link rel="stylesheet" href="../demo.css?v=20261001-1">
+  <script defer src="../admin.js?v=20261001-1"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -52,6 +52,6 @@
     </section>
   </main>
   <dialog id="details-dialog" class="details-dialog" aria-labelledby="details-title"><div class="dialog-head"><div><p class="eyebrow">BOOKING DETAILS</p><h2 id="details-title"></h2></div><button class="icon-close" type="button" data-close="details-dialog" aria-label="Close details">×</button></div><div id="details-content"></div></dialog>
-  <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title"><form id="action-form"><div class="dialog-head"><h2 id="action-title"></h2><button class="icon-close" type="button" data-close="action-dialog" aria-label="Close action">×</button></div><p id="action-description"></p><label id="action-note-label" for="action-note">Reason or note<textarea id="action-note" rows="3" maxlength="2000"></textarea></label><label id="action-date-label" for="action-date">New appointment time<input id="action-date" type="datetime-local"></label><div id="suggested-inputs"><p>Suggested alternative times (up to three)</p><input type="datetime-local" aria-label="Alternative time 1"><input type="datetime-local" aria-label="Alternative time 2"><input type="datetime-local" aria-label="Alternative time 3"></div><p id="action-message" class="message" role="status"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="action-dialog">Keep unchanged</button><button class="button" id="confirm-action" type="submit">Confirm</button></div></form></dialog>
+  <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title"><form id="action-form"><div class="dialog-head"><h2 id="action-title"></h2><button class="icon-close" type="button" data-close="action-dialog" aria-label="Close action">×</button></div><p id="action-description"></p><label id="action-note-label" for="action-note">Reason or note<textarea id="action-note" rows="3" maxlength="2000"></textarea></label><label id="action-date-label" for="action-date">New appointment time<input id="action-date" type="datetime-local"></label><div id="suggested-inputs"><p>Suggested alternative times (up to three)</p><input type="datetime-local" aria-label="Alternative time 1"><input type="datetime-local" aria-label="Alternative time 2"><input type="datetime-local" aria-label="Alternative time 3"></div><p id="action-slot-hint" class="muted" hidden>Use a future weekday at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m. Malaysia time.</p><p id="action-message" class="message" role="status"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="action-dialog">Keep unchanged</button><button class="button" id="confirm-action" type="submit">Confirm</button></div></form></dialog>
 </body>
 </html>
