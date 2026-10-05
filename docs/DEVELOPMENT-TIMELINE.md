@@ -14,10 +14,10 @@
 | 26–27 September | Contingency / self-review | No formal UWC review required; use only if earlier development needs correction or extra testing. |
 | 28–29 September | Develop appointment date and time-selection interface | **Completed 29 September.** Three-month week/month picker, required date/time validation, gentle motion, responsive layout and booking notices tested. UWC's holiday list and final time rules remain pending for live use. |
 | 30 September | Integrate the complete journey from package selection to confirmation | **Completed 30 September.** Package/plan → customer details → preferred appointment → final review → demo request and tracking code. The current flow takes no payment and does not reserve a real appointment. The admin page remains a separate fictional-data preview. |
-| 1 October | Conduct responsive, accessibility and functional testing | **In progress 1 October.** Rechecked package-to-review flow, weekday morning selection, admin reschedule validation and 320px/390px layouts. Fixed dashboard overflow and Malaysia-time handling. Full regression and UWC review remain. |
-| 2 October | Deploy and share the feature-complete review version | Stable public review URL and concise review checklist. |
-| 3–4 October | Review buffer for UWC and supervisor comments | Consolidated feedback list; no meeting-critical feature work planned. |
-| 5 October | Implement consolidated feedback and corrections | Agreed corrections completed; avoid new scope unless essential. |
+| 1 October | Conduct responsive, accessibility and functional testing | **Technical regression completed 5 October**, following the partial 1 October checks. Covered submission/tracking, validation, PDF/print, repeat requests, keyboard focus and 320px/390px layouts. Results: `docs/UWC-REVIEW-2026-10-05.md`. UWC acceptance remains separate. |
+| 2 October | Deploy and share the feature-complete review version | Review release moved to **5 October** to include the pending appointment/admin corrections. Use the existing public URL: https://uwc-wellness-centre-prototype.vercel.app/ . |
+| 3–4 October | Review buffer for UWC and supervisor comments | **Awaiting review.** No new supervisor feedback was recorded in the sheet comments; the user requested the recorded corrections on 5 October. |
+| 5 October | Implement consolidated feedback and corrections | **Completed 5 October for recorded corrections.** Malaysia-time rules, admin mobile layout, visible conflict warnings, keyboard focus, protected submission and tracker-response wording/state are corrected and tested. |
 | 6 October | Complete final testing, deployment and demonstration preparation | Final deployment, demo script and fallback screenshots/notes. |
 | 7 October | Present the updated prototype during the UWC meeting | Demonstrate the approved journey and record follow-up decisions. |
 

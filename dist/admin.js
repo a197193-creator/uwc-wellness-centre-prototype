@@ -9,7 +9,8 @@ const actions = {
   reschedule: 'Reschedule', complete: 'Mark completed', cancel: 'Cancel',
   note_internal: 'Add internal note', note_customer: 'Add customer-visible note'
 };
-const malaysiaZone = 'Asia/Kuala_Lumpur';
+const appointmentRules = window.UWCAppointmentRules;
+const malaysiaZone = appointmentRules.zone;
 const malaysiaDateFormatter = new Intl.DateTimeFormat('en-GB', {
   timeZone: malaysiaZone, year: 'numeric', month: '2-digit', day: '2-digit'
 });
@@ -34,12 +35,7 @@ function localDate(value) {
 }
 
 function malaysiaSlot(value) {
-  const match = /^(\d{4}-\d{2}-\d{2})T(08:00|08:30|09:00|09:30|10:00)$/.exec(value);
-  if (!match) return null;
-  const date = new Date(`${match[1]}T${match[2]}:00+08:00`);
-  if (!Number.isFinite(date.getTime()) || localDate(date) !== match[1] ||
-      [0, 6].includes(new Date(`${match[1]}T00:00:00Z`).getUTCDay()) || date <= new Date()) return null;
-  return date.toISOString();
+  return appointmentRules.slot(value);
 }
 
 function nextWeekday(offset, hour) {
@@ -179,6 +175,23 @@ function fact(list, label, value) {
   const pair = node('div'); pair.append(node('dt', '', label), node('dd', '', value ?? '—')); list.append(pair);
 }
 
+function conflictCount(booking, scheduledAt = booking.scheduled_at) {
+  const start = new Date(scheduledAt).getTime();
+  const end = start + booking.duration_minutes * 60000;
+  return allBookings.filter(other => other.id !== booking.id && other.status === 'confirmed' &&
+    start < new Date(other.scheduled_at).getTime() + other.duration_minutes * 60000 &&
+    end > new Date(other.scheduled_at).getTime()).length;
+}
+
+function showConflictWarning() {
+  const warning = $('#action-conflict-warning');
+  const proposed = pendingAction === 'reschedule' ? malaysiaSlot($('#action-date').value) : selectedBooking?.scheduled_at;
+  const conflicts = selectedBooking && ['approve', 'reschedule'].includes(pendingAction) && proposed
+    ? conflictCount(selectedBooking, proposed) : 0;
+  warning.hidden = !conflicts;
+  warning.textContent = conflicts ? `This time overlaps ${conflicts} confirmed sample appointment(s). Check the duration before confirming.` : '';
+}
+
 function openDetails(id) {
   const booking = allBookings.find((row) => row.id === id);
   if (!booking) return;
@@ -197,6 +210,8 @@ function openDetails(id) {
     ['Customer response', booking.customer_response], ['New preferred time', dateTime(booking.customer_requested_at)]
   ]) fact(info, label, value);
   content.append(info);
+  const overlaps = booking.status === 'confirmed' ? conflictCount(booking) : 0;
+  if (overlaps) content.append(node('p', 'notice', `Schedule warning: overlaps ${overlaps} confirmed sample appointment(s).`));
   if (Array.isArray(booking.plan_snapshot?.items) && booking.plan_snapshot.items.length) {
     content.append(node('h3', '', 'Selected plan'));
     const selection = node('ul', 'history-list');
@@ -243,8 +258,16 @@ function openAction(action) {
   $('#action-slot-hint').hidden = !['reschedule', 'request_changes'].includes(action);
   $('#suggested-inputs').querySelectorAll('input').forEach((input) => { input.value = ''; });
   $('#confirm-action').textContent = `Confirm ${actions[action].toLowerCase()}`;
+  const range = appointmentRules.window();
+  $('#action-date').min = `${range.first}T08:00`;
+  $('#action-date').max = `${range.last}T10:00`;
+  $('#suggested-inputs').querySelectorAll('input').forEach(input => {
+    input.min = `${range.first}T08:00`; input.max = `${range.last}T10:00`;
+  });
+  showConflictWarning();
   $('#action-dialog').showModal();
 }
+$('#action-date').addEventListener('input', showConflictWarning);
 
 $('#login-form').addEventListener('submit', (event) => {
   event.preventDefault();
@@ -274,6 +297,15 @@ $('#day-date').addEventListener('change', renderDay);
 $('#previous-page').addEventListener('click', () => { currentPage--; renderTable(); });
 $('#next-page').addEventListener('click', () => { currentPage++; renderTable(); });
 document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
+document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('keydown', event => {
+  if (event.key !== 'Tab') return;
+  const controls = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]')]
+    .filter(control => control.getClientRects().length);
+  const first = controls[0], last = controls[controls.length - 1];
+  if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+    event.preventDefault(); (event.shiftKey ? last : first)?.focus();
+  }
+}));
 
 $('#action-form').addEventListener('submit', (event) => {
   event.preventDefault(); if (!selectedBooking || !pendingAction) return;
@@ -288,11 +320,11 @@ $('#action-form').addEventListener('submit', (event) => {
   }
   const scheduledAt = action === 'reschedule' ? malaysiaSlot(date) : null;
   if (action === 'reschedule' && !scheduledAt) {
-    $('#action-message').textContent = 'Choose a future weekday at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m. Malaysia time.'; return;
+    $('#action-message').textContent = 'Choose a weekday from tomorrow through the next three months at a listed morning time (Malaysia time).'; return;
   }
   const suggestions = action === 'request_changes' ? suggestedValues.map(malaysiaSlot) : [];
   if (action === 'request_changes' && (suggestions.includes(null) || new Set(suggestions).size !== suggestions.length)) {
-    $('#action-message').textContent = 'Suggested times must be distinct future weekdays from 8:00 to 10:00 a.m. Malaysia time.'; return;
+    $('#action-message').textContent = 'Suggested times must be distinct weekdays from tomorrow through the next three months at a listed morning time (Malaysia time).'; return;
   }
   const oldStatus = booking.status;
   const nextStatus = {
@@ -309,11 +341,7 @@ $('#action-form').addEventListener('submit', (event) => {
   }
   booking.events.unshift({event_type:action,old_status:oldStatus,new_status:booking.status,
     message:note || `Demo ${actions[action].toLowerCase()}`,created_at:new Date().toISOString(),actor_type:'demo staff'});
-  const start = new Date(booking.scheduled_at).getTime();
-  const end = start + booking.duration_minutes * 60000;
-  const conflicts = allBookings.filter((other) => other.id !== booking.id && other.status === 'confirmed' &&
-    start < new Date(other.scheduled_at).getTime() + other.duration_minutes * 60000 &&
-    end > new Date(other.scheduled_at).getTime()).length;
+  const conflicts = booking.status === 'confirmed' ? conflictCount(booking) : 0;
   $('#action-dialog').close(); loadBookings(); openDetails(booking.id);
   $('#dashboard-message').textContent = conflicts
     ? `Demo change shown until reload. Warning: time overlaps ${conflicts} confirmed sample appointment(s).`

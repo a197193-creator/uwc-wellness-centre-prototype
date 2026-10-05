@@ -219,7 +219,11 @@ The review build is feature-complete when a user can:
 4. enter and validate the approved customer fields;
 5. choose an eligible preferred appointment date and time;
 6. review and edit all entered information;
-7. view a clearly non-functional payment preview; and
-8. reach a confirmation screen that states no real booking or payment occurred.
+7. send a demo request without payment, as requested on 30 September; and
+8. receive a booking code and a confirmation screen that states the appointment is pending review and no payment has been taken.
 
 The journey must work at common mobile and desktop widths, with keyboard access, visible focus indicators, useful field labels and no blocking browser-console errors.
+
+### Review corrections — 5 October 2026
+
+The pending 1 October fixes have been incorporated into the review release. Public, tracker and admin date-entry controls now share the rolling three-month weekday and morning-time rules. Admin date entry uses Malaysia time; tracker results retain the visitor's local timezone label. Conflict warnings are visible in the action and details dialogs. Tab/Shift+Tab cycle inside the dialogs. Request review controls are protected during submission and restored after a network failure or timeout. Tracker responses clear old drafts when switching codes and correctly describe updates to the prototype tracker rather than the separate fictional admin preview. Technical regression evidence is recorded in `docs/UWC-REVIEW-2026-10-05.md`. Final UWC acceptance and the 6 October demonstration preparation remain scheduled separately.

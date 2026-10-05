@@ -6,6 +6,7 @@
   const result = document.querySelector('#booking-result');
   const responseWrap = document.querySelector('#response-wrap');
   const responseForm = document.querySelector('#response-form');
+  const appointmentRules = window.UWCAppointmentRules;
   const statuses = {
     pending_review: 'Pending Review', confirmed: 'Confirmed', rejected: 'Rejected',
     changes_requested: 'Changes Requested', completed: 'Completed', cancelled: 'Cancelled'
@@ -26,7 +27,7 @@
   async function callGateway(body) {
     const response = await fetch(config.gatewayUrl, {
       method: 'POST', headers: { 'Content-Type': 'application/json', apikey: config.publishableKey },
-      body: JSON.stringify(body), cache: 'no-store'
+      body: JSON.stringify(body), cache: 'no-store', signal: AbortSignal.timeout(15000)
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || 'Network error. Please try again.');
@@ -34,6 +35,9 @@
   }
 
   function render(booking) {
+    if (!booking || !booking.booking_code) throw new Error('Could not find a booking. Check your code and try again.');
+    if (currentCode !== booking.booking_code) responseForm.reset();
+    document.querySelector('#response-message-status').textContent = '';
     currentCode = booking.booking_code;
     text('#result-package', booking.package_name);
     text('#result-code', currentCode);
@@ -51,6 +55,9 @@
     note.hidden = !booking.customer_visible_note;
     text('#customer-note', booking.customer_visible_note);
     responseWrap.hidden = booking.status !== 'changes_requested';
+    const range = appointmentRules.window();
+    document.querySelector('#requested-at').min = `${range.first}T08:00`;
+    document.querySelector('#requested-at').max = `${range.last}T10:00`;
     const suggestions = document.querySelector('#suggestions');
     suggestions.replaceChildren(suggestions.querySelector('legend'));
     for (const slot of booking.suggested_slots || []) {
@@ -67,7 +74,7 @@
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const code = codeInput.value.trim().toUpperCase();
+    const code = codeInput.value.replace(/\s+/g, '').toUpperCase();
     codeInput.value = code;
     result.hidden = true;
     if (!code) { message.textContent = 'Please enter your booking code.'; codeInput.focus(); return; }
@@ -76,7 +83,8 @@
     try {
       const data = await callGateway({ action: 'lookup', code });
       render(data.booking); message.textContent = '';
-    } catch (error) { message.textContent = error.message; }
+    } catch (error) { message.textContent = error.name === 'TimeoutError' || error instanceof TypeError
+      ? 'Could not connect. Please try again.' : error.message; }
     finally { button.disabled = false; }
   });
 
@@ -87,21 +95,33 @@
 
   responseForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    const button = responseForm.querySelector('button');
+    if (button.disabled) return;
+    const responseCode = currentCode;
     const selected = responseForm.querySelector('input[name="suggested-slot"]:checked')?.value;
     const manual = document.querySelector('#requested-at').value;
-    const preferred = selected || (manual ? new Date(manual).toISOString() : null);
+    const preferred = selected || (manual ? appointmentRules.slot(manual) : null);
     const customerMessage = document.querySelector('#response-message').value.trim();
     const status = document.querySelector('#response-message-status');
+    if (!selected && manual && !preferred) {
+      status.textContent = 'Choose a weekday within the next three months at a listed morning time (Malaysia time).'; return;
+    }
     if (!preferred && !customerMessage) { status.textContent = 'Choose a time or write a message.'; return; }
-    const button = responseForm.querySelector('button');
     button.disabled = true; status.textContent = 'Sending response…';
+    const lockedControls = [codeInput, form.querySelector('button'), ...responseForm.querySelectorAll('input, textarea')];
+    lockedControls.forEach(control => { control.disabled = true; });
     try {
-      await callGateway({ action: 'respond', code: currentCode, message: customerMessage, requested_at: preferred });
-      status.textContent = 'Response sent. Your booking is back in Pending Review.';
-      const refreshed = await callGateway({ action: 'lookup', code: currentCode });
-      render(refreshed.booking);
-      message.textContent = 'Your response was sent to the demo dashboard.';
-    } catch (error) { status.textContent = error.message; }
-    finally { button.disabled = false; }
+      await callGateway({ action: 'respond', code: responseCode, message: customerMessage, requested_at: preferred });
+      responseForm.reset(); responseWrap.hidden = true;
+      try {
+        const refreshed = await callGateway({ action: 'lookup', code: responseCode });
+        render(refreshed.booking);
+        message.textContent = 'Response saved. Your request is back in Pending Review in the prototype tracker.';
+      } catch (_) {
+        message.textContent = 'Response saved, but the latest status could not refresh. Find your booking again to view the update.';
+      }
+    } catch (error) { status.textContent = error.name === 'TimeoutError' || error instanceof TypeError
+      ? 'Could not connect. Please try again.' : error.message; }
+    finally { button.disabled = false; lockedControls.forEach(control => { control.disabled = false; }); }
   });
 })();

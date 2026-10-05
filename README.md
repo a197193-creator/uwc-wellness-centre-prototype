@@ -28,18 +28,20 @@ The PHP endpoint does not receive or store customer information. The public jour
 - `icons.js`: screening pictograms used for package inclusions and individual tests
 - `pdf.js`: branded A4 review-summary PDF generated locally in the browser
 - `app.js`: package selection, plan totals, customer details and preferred-appointment demonstration
+- `appointment-rules.js`: shared Malaysia-time weekday, morning-slot and three-month rules
 - `api/prototype-status.php`: read-only PHP endpoint identifying the site as a non-transactional prototype
 - `assets/`: official UWC photographs, retained UMBI/TMC screening photographs and the website mark
 - `PHOTO-SOURCES.md`: photograph provenance and original source links
 - `build.ps1`: refreshes the ready-to-publish `dist` folder from the current source
 - `dist/`: built website copy retained for the publishing workflow
 - `vercel.json`: Vercel configuration for the PHP prototype-status endpoint
-- `track/`, `track.js`: guest booking-code lookup for fictional sample bookings
+- `track/`, `track.js`: guest booking-code lookup for submitted demo requests and fictional samples
 - `admin/`, `admin.js`: standalone fictional staff dashboard preview with public demo credentials
 - `demo.css`, `demo-config.js`: shared demo styling and public-only Supabase configuration
 - `supabase/migrations/`: SQL schema, RLS policies, sample rows, and audited admin functions
 - `supabase/functions/booking-gateway/`: rate-limited, code-based guest lookup and change response
 - `docs/DEMO-SETUP.md`: demo login, security boundaries and end-to-end test instructions
+- `docs/UWC-REVIEW-2026-10-05.md`: correction list and recorded technical regression results
 
 ## Preview locally
 

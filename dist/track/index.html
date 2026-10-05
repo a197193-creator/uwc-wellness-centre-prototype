@@ -7,9 +7,10 @@
   <meta name="theme-color" content="#124f46">
   <title>Track my booking — UWC demo</title>
   <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20260930-1">
+  <link rel="stylesheet" href="../demo.css?v=20261005-1">
   <script src="../demo-config.js?v=20260930-1" defer></script>
-  <script src="../track.js?v=20260930-2" defer></script>
+  <script src="../appointment-rules.js?v=20261005-1" defer></script>
+  <script src="../track.js?v=20261005-1" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -37,7 +38,8 @@
         <p>Choose one suggested time or send a new preference. This demo does not reserve a live slot.</p>
         <form id="response-form">
           <fieldset id="suggestions"><legend>Suggested times</legend></fieldset>
-          <label for="requested-at">Or choose another preferred date and time</label><input id="requested-at" type="datetime-local">
+          <label for="requested-at">Or choose another preferred date and time</label><input id="requested-at" type="datetime-local" aria-describedby="response-time-hint">
+          <p id="response-time-hint" class="hint">Enter Malaysia time: a weekday from tomorrow through the next three months, at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m.</p>
           <label for="response-message">Your message (optional if a time is selected)</label><textarea id="response-message" maxlength="1000" rows="3" placeholder="Tell UWC what works for you"></textarea>
           <button class="button" type="submit">Send response</button>
         </form>
