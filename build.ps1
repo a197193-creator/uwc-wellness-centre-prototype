@@ -3,7 +3,7 @@ $uwcRoot = $PSScriptRoot
 $uwcPublish = Join-Path $uwcRoot 'dist'
 $uwcPublishAssets = Join-Path $uwcPublish 'assets'
 New-Item -ItemType Directory -Path $uwcPublishAssets -Force | Out-Null
-$uwcFiles = @('index.html', 'styles.css', 'enhancements.css', 'readability.css', 'app.js', 'catalogue.js', 'icons.js', 'pdf.js', 'demo.css', 'demo-config.js', 'track.js', 'admin.js')
+$uwcFiles = @('index.html', 'styles.css', 'enhancements.css', 'readability.css', 'app.js', 'catalogue.js', 'icons.js', 'pdf.js', 'demo.css', 'demo-config.js', 'appointment-rules.js', 'track.js', 'admin.js')
 foreach ($uwcFile in $uwcFiles) {
     Copy-Item -LiteralPath (Join-Path $uwcRoot $uwcFile) -Destination (Join-Path $uwcPublish $uwcFile) -Force
 }

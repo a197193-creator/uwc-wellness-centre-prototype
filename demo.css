@@ -7,3 +7,4 @@
 .demo-credentials{background:#eff4eb;border:1px solid var(--line);border-radius:9px;padding:11px 13px;color:var(--pine);font-size:13px;margin:1px 0 16px}.demo-credentials code{font-weight:700;font-size:13px}.toolbar{grid-template-columns:2fr repeat(5,minmax(110px,1fr))}
 @media(max-width:980px){.toolbar{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:640px){.toolbar{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:360px){.summary-grid,.toolbar{grid-template-columns:minmax(0,1fr)}.toolbar label:first-child{grid-column:auto}.day-row strong{min-width:0;overflow-wrap:anywhere}.day-card .table-heading{flex-wrap:wrap}.pager{flex-wrap:wrap}}

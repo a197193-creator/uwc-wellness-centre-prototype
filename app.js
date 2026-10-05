@@ -20,12 +20,14 @@
   let preferredAppointment = null;
   let submittedBooking = null;
   let submittedSummary = null;
+  let requestSending = false;
   let appointmentDraft = {date: null, time: null};
   let appointmentWeekStart = null;
   let appointmentMonthFocus = null;
   // Replace with a UWC-approved Kuala Lumpur holiday list before live booking.
   const appointmentHolidayDates = new Set();
-  const appointmentTimes = ['08:00', '08:30', '09:00', '09:30', '10:00'];
+  const appointmentRules = window.UWCAppointmentRules;
+  const appointmentTimes = appointmentRules.times;
   const dialogOpeners = new Map();
   const openGroups = new Map();
   const tabNames = {
@@ -260,25 +262,11 @@
     notes: $('#customer-notes'),
     consent: $('#customer-consent')
   };
-  function malaysiaTodayKey() {
-    const parts = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Kuala_Lumpur', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date());
-    const value = type => parts.find(part => part.type === type).value;
-    return `${value('year')}-${value('month')}-${value('day')}`;
-  }
   function appointmentWindow() {
-    const [year, month, day] = malaysiaTodayKey().split('-').map(Number);
-    const first = new Date(Date.UTC(year, month - 1, day + 1, 12));
-    const lastDay = new Date(Date.UTC(year, month + 3, 0, 12)).getUTCDate();
-    const last = new Date(Date.UTC(year, month + 2, Math.min(day, lastDay), 12));
-    return {first: first.toISOString().slice(0, 10), last: last.toISOString().slice(0, 10), firstMonth: year * 12 + month - 1, lastMonth: last.getUTCFullYear() * 12 + last.getUTCMonth()};
+    return appointmentRules.window();
   }
   function validAppointmentDate(key) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(key || '')) return false;
-    const {first, last} = appointmentWindow();
-    if (key < first || key > last || appointmentHolidayDates.has(key)) return false;
-    const date = new Date(`${key}T12:00:00Z`);
-    if (Number.isNaN(date.getTime())) return false;
-    return date.toISOString().slice(0, 10) === key && date.getUTCDay() !== 0 && date.getUTCDay() !== 6;
+    return appointmentRules.validDate(key) && !appointmentHolidayDates.has(key);
   }
   function dateLabel(key) {
     return new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${key}T12:00:00Z`));
@@ -430,7 +418,7 @@
     $('#review-title').focus({preventScroll:true});
   });
   $('#submit-demo-request').addEventListener('click', async () => {
-    if (submittedBooking) return;
+    if (submittedBooking || requestSending) return;
     const summary = model.summarize(plan);
     const status = $('#review-status');
     if (!customerDetails || !summary.count || !preferredAppointment || !validAppointmentDate(preferredAppointment.date) || !appointmentTimes.includes(preferredAppointment.time)) {
@@ -441,15 +429,16 @@
       return;
     }
     const packageItem = summary.items.find(item => item.kind === 'package');
-    const button = $('#submit-demo-request');
     status.hidden = false;
     status.classList.remove('is-error');
     status.textContent = 'Sending your demo request…';
-    button.disabled = true;
+    requestSending = true;
+    $('#review-dialog').setAttribute('aria-busy', 'true');
+    $$('#review-dialog button').forEach(control => { control.disabled = true; });
     try {
       const config = window.UWC_DEMO_CONFIG;
       const response = await fetch(config.gatewayUrl, {
-        method: 'POST', cache: 'no-store',
+        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(20000),
         headers: {'Content-Type':'application/json', apikey:config.publishableKey},
         body: JSON.stringify({action:'create_demo',data:{
           package_id:packageItem?.id || 'custom',
@@ -474,9 +463,13 @@
       $('#copy-appointment-code').focus({preventScroll:true});
     } catch (error) {
       status.classList.add('is-error');
-      status.textContent = error.message || 'Could not save the demo request. Please try again.';
-      button.disabled = false;
+      status.textContent = error.name === 'TimeoutError' || error instanceof TypeError
+        ? 'Could not connect. Please try again.' : error.message || 'Could not save the demo request. Please try again.';
       status.focus({preventScroll:true});
+    } finally {
+      requestSending = false;
+      $('#review-dialog').removeAttribute('aria-busy');
+      $$('#review-dialog button').forEach(control => { control.disabled = false; });
     }
   });
   $('#copy-appointment-code').addEventListener('click', async () => {
@@ -632,6 +625,20 @@
     event.preventDefault();selectPackage(model.packages[next].id,true);
   });
   $$('dialog').forEach(dialog => {
+    dialog.addEventListener('keydown', event => {
+      if (event.key !== 'Tab') return;
+      const controls = $$('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]', dialog)
+        .filter(control => control.getClientRects().length);
+      const first = controls[0], last = controls[controls.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if ((event.shiftKey && document.activeElement === first) ||
+          (!event.shiftKey && document.activeElement === last)) {
+        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      }
+    });
+    dialog.addEventListener('cancel', event => {
+      if (dialog.id === 'review-dialog' && requestSending) event.preventDefault();
+    });
     dialog.addEventListener('close', () => {
       if (dialog.contains($('#toast'))) document.body.append($('#toast'));
       document.body.classList.toggle('modal-open',!!$('dialog[open]'));
