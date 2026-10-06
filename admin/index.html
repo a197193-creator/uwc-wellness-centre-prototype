@@ -3,33 +3,40 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#124f46">
-  <title>UWC admin — demonstration</title>
+  <title>UWC staff — booking management</title>
   <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20261005-1">
+  <link rel="stylesheet" href="../demo.css?v=20261006-1">
+  <script defer src="../vendor/supabase.js"></script>
+  <script defer src="../demo-config.js"></script>
   <script defer src="../appointment-rules.js?v=20261005-1"></script>
-  <script defer src="../admin.js?v=20261005-1"></script>
+  <script defer src="../admin-data.js?v=20261006-1"></script>
+  <script defer src="../admin.js?v=20261006-1"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="demo-header"><div class="demo-wrap header-row">
-    <a class="brand" href="/" aria-label="UWC home"><img src="../assets/uwc-mark.svg" width="42" height="42" alt=""><span><strong>UWC.</strong><small>Staff demo dashboard</small></span></a>
+    <a class="brand" href="/" aria-label="UWC home"><img src="../assets/uwc-mark.svg" width="42" height="42" alt=""><span><strong>UWC.</strong><small>Staff booking dashboard</small></span></a>
     <nav aria-label="Page navigation"><a href="/">Public site</a><button id="sign-out" class="link-button" type="button" hidden>Sign out</button></nav>
   </div></header>
   <main id="main" class="demo-wrap admin-main">
-    <div class="demo-banner"><strong>Dashboard preview</strong> · Fictional records only. This demo login does not access Supabase or real customer requests. Changes reset on reload; no appointment or payment is made.</div>
+    <div class="demo-banner"><strong>Connected prototype</strong> · Approved staff can view and update submitted requests in Supabase. Changes are saved and appear in the booking tracker. Payment is disabled; demonstration requests do not reserve real UWC slots.</div>
     <section id="login-panel" class="card auth-card">
-      <p class="eyebrow">DEMO ACCESS</p><h1 id="auth-title">Demo sign in.</h1>
-      <p id="auth-intro">Explore how appointment management could look. No account, email or verification is needed.</p>
+      <p class="eyebrow">RESTRICTED STAFF ACCESS</p><h1 id="auth-title">Staff sign in.</h1>
+      <p id="auth-intro">Sign in with an approved staff account. The old public demo password cannot access booking records.</p>
       <form id="login-form">
-        <label for="username">Demo username</label><input id="username" type="text" autocomplete="off" required>
-        <label for="password">Demo password</label><input id="password" type="password" autocomplete="off" required>
-        <p class="demo-credentials">Username: <code>demo</code> · Password: <code>uwc-demo</code></p>
-        <button class="button" type="submit">Enter demo dashboard</button>
+        <label for="email">Staff email</label><input id="email" type="email" autocomplete="username" maxlength="254" required>
+        <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" maxlength="128" required>
+        <label id="confirm-password-label" for="confirm-password" hidden>Confirm password<input id="confirm-password" type="password" autocomplete="new-password" maxlength="128" disabled></label>
+        <p id="signup-notice" class="hint" hidden>Use at least 12 characters. New accounts need approval by the project owner before they can see bookings. Email verification may also be required.</p>
+        <button class="button" id="auth-submit" type="submit">Sign in</button>
       </form>
+      <button id="auth-toggle" class="link-button auth-toggle" type="button">Create staff account</button>
+      <details class="staff-help"><summary>First admin setup</summary><p>Create your account here, then the project owner must add its user ID to <code>admin_users</code> in Supabase. An organisation login is not a staff account.</p><a href="https://supabase.com/dashboard/project/fxgzewuwiccmaqayfclm/auth/users" target="_blank" rel="noopener">Open Authentication → Users ↗</a><p>Setup instructions: <a href="https://github.com/a197193-creator/uwc-wellness-centre-prototype/blob/main/docs/STAFF-DASHBOARD-SETUP.md" target="_blank" rel="noopener">read the guide ↗</a></p></details>
       <p id="login-message" class="message" role="status" aria-live="polite"></p>
     </section>
     <section id="dashboard" hidden>
-      <div class="dashboard-title"><div><p class="eyebrow">APPOINTMENT MANAGEMENT PREVIEW</p><h1>Booking overview.</h1><p>Practice reviewing fictional requests and actions. This is not connected to the public booking tracker.</p></div><button id="refresh" class="outline-button" type="button">Refresh view</button></div>
+      <div class="dashboard-title"><div><p class="eyebrow">CONNECTED APPOINTMENT MANAGEMENT</p><h1>Booking overview.</h1><p id="staff-identity"></p></div><button id="refresh" class="outline-button" type="button">Refresh bookings</button></div>
+      <p id="realtime-message" class="muted" role="status" aria-live="polite"></p>
       <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
       <div class="summary-grid" aria-label="Dashboard summary">
         <div class="card metric"><span>Pending review</span><strong id="count-pending">0</strong></div>
@@ -40,13 +47,14 @@
       <section class="card toolbar" aria-label="Appointment filters">
         <label>Search code or contact<input id="search" type="search" placeholder="Code, name, email, phone"></label>
         <label>Status<select id="filter-status"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="changes_requested">Changes Requested</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+        <label>Payment<select id="filter-payment"><option value="">All payment statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select></label>
         <label>Package<select id="filter-package"><option value="">All packages</option></select></label>
         <label>From<input id="filter-from" type="date"></label><label>To<input id="filter-to" type="date"></label>
         <label>Sort<select id="sort"><option value="created_desc">Newest first</option><option value="created_asc">Oldest first</option><option value="scheduled_asc">Appointment soonest</option><option value="scheduled_desc">Appointment latest</option></select></label>
       </section>
       <section class="card table-card" aria-label="Appointments list">
         <div class="table-heading"><h2>Appointments</h2><span id="row-count"></span></div>
-        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Indicative total</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
+        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Payment</th><th>Indicative total</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
         <div class="pager"><button id="previous-page" class="outline-button" type="button">Previous</button><span id="page-label"></span><button id="next-page" class="outline-button" type="button">Next</button></div>
       </section>
       <section class="card day-card"><div class="table-heading"><h2>Schedule day view</h2><label>Choose day<input id="day-date" type="date"></label></div><div id="day-list"></div></section>

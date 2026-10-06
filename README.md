@@ -20,7 +20,7 @@ The project stays within the technologies used in the student's coursework:
 - **JavaScript** for catalogue interaction and the prototype journey
 - **PHP** for a small server-side prototype-status endpoint and, after UWC approval, future booking-side processing
 
-The PHP endpoint does not receive or store customer information. The public journey can submit **demo appointment requests** with test details to Supabase and issue a tracking code, but cannot reserve real UWC appointments or take payment. The admin screen is a separate fictional UI preview; it does not access those submitted requests.
+The PHP endpoint does not receive or store customer information. The public journey can submit **demo appointment requests** with test details to Supabase and issue a tracking code, but cannot reserve real UWC appointments or take payment. The admin dashboard reads and manages those stored requests through Supabase Auth and an owner-approved admin role. Public demo credentials cannot access it.
 
 - `index.html`: page structure and text
 - `styles.css`, `enhancements.css` and `readability.css`: design, responsive styles and larger text
@@ -36,11 +36,14 @@ The PHP endpoint does not receive or store customer information. The public jour
 - `dist/`: built website copy retained for the publishing workflow
 - `vercel.json`: Vercel configuration for the PHP prototype-status endpoint
 - `track/`, `track.js`: guest booking-code lookup for submitted demo requests and fictional samples
-- `admin/`, `admin.js`: standalone fictional staff dashboard preview with public demo credentials
+- `admin/`, `admin.js`, `admin-data.js`: authenticated staff dashboard connected to the booking database
+- `vendor/supabase.js`, `package.json`, `package-lock.json`: pinned, locally bundled Supabase browser client
+- `tests/`: automated staff access and UI checks (`npm test`)
 - `demo.css`, `demo-config.js`: shared demo styling and public-only Supabase configuration
 - `supabase/migrations/`: SQL schema, RLS policies, sample rows, and audited admin functions
 - `supabase/functions/booking-gateway/`: rate-limited, code-based guest lookup and change response
-- `docs/DEMO-SETUP.md`: demo login, security boundaries and end-to-end test instructions
+- `docs/DEMO-SETUP.md`: prototype request flow and security boundaries
+- `docs/STAFF-DASHBOARD-SETUP.md`: first staff account/approval, connected dashboard and test instructions
 - `docs/UWC-REVIEW-2026-10-05.md`: correction list and recorded technical regression results
 
 ## Preview locally
@@ -51,6 +54,6 @@ From this folder, run `npx --yes http-server . -p 8000 -c-1`, then open http://l
 
 Edit the root source files, then run `powershell -ExecutionPolicy Bypass -File .\build.ps1` from this folder to refresh `dist`. Push changes to the connected GitHub `main` branch to update the existing Vercel project and the public URL above. Do not create a separate Vercel project or share a deployment-specific URL for routine updates.
 
-The public journey is package or test selection → customer details → preferred appointment → final review → demo request confirmation and code. Customers can submit another demo request without waiting for the first one to finish. No payment or real appointment is made. Submitted test details are stored in the prototype database; the selected plan is also saved in browser storage. Prices are proposed and subject to UWC confirmation. The code tracker reads submitted demo requests; the admin dashboard uses separate fictional sample records and cannot change the tracker status.
+The public journey is package or test selection → customer details → preferred appointment → final review → demo request confirmation and code. Customers can submit another demo request without waiting for the first one to finish. No payment or real appointment is made. Submitted test details are stored in the prototype database; the selected plan is also saved in browser storage. Prices are proposed and subject to UWC confirmation. The code tracker and approved staff dashboard now use the same stored requests. Staff actions are saved with audit history; customer-visible changes appear in the tracker. New staff accounts need owner approval before they can access bookings.
 
 This shareable copy excludes Git history, hosting account metadata and unused concept images.

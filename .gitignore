@@ -1,5 +1,6 @@
 # Local Vercel metadata
 .vercel/
+node_modules/
 
 # Generated review and verification files
 output/

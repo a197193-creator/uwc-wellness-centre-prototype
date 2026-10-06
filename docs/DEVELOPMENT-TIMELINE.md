@@ -18,7 +18,7 @@
 | 2 October | Deploy and share the feature-complete review version | Review release moved to **5 October** to include the pending appointment/admin corrections. Use the existing public URL: https://uwc-wellness-centre-prototype.vercel.app/ . |
 | 3–4 October | Review buffer for UWC and supervisor comments | **Awaiting review.** No new supervisor feedback was recorded in the sheet comments; the user requested the recorded corrections on 5 October. |
 | 5 October | Implement consolidated feedback and corrections | **Completed 5 October for recorded corrections.** Malaysia-time rules, admin mobile layout, visible conflict warnings, keyboard focus, protected submission and tracker-response wording/state are corrected and tested. |
-| 6 October | Complete final testing, deployment and demonstration preparation | Final deployment, demo script and fallback screenshots/notes. |
+| 6 October | Complete final testing, deployment and demonstration preparation | Added the requested Supabase-connected staff dashboard, private staff sign-in/create-account, stored actions, notes/audit history and live-refresh support. Technical checks recorded in `docs/STAFF-DASHBOARD-SETUP.md`. First staff account creation/approval and the final meeting rehearsal remain outstanding. |
 | 7 October | Present the updated prototype during the UWC meeting | Demonstrate the approved journey and record follow-up decisions. |
 
 ## Review buffer policy

@@ -12,15 +12,15 @@ This is a **prototype demonstration**, not a live booking or payment system. The
 - Row-level security (RLS) on every table. Anonymous and non-admin users have no direct appointment SELECT privilege.
 - The `booking-gateway` Edge Function handles guest demo submission, lookup and responses. Its service credential is server-side only.
 
-The `/admin/` page is now a **standalone UI preview**: its fictional records and actions stay in the browser tab. It does not read or change Supabase appointments. No account, real email, or SMTP configuration is required to use that page. The Supabase admin-role table and RLS remain in place for a future authenticated dashboard.
+As of **6 October 2026**, `/admin/` uses the same stored appointments as the tracker. Supabase Auth and an owner-approved admin role are required. Staff actions, notes and audit history are saved. See `docs/STAFF-DASHBOARD-SETUP.md` for first-account setup and the connected workflow.
 
 The prototype intentionally has no real payment webhook, confirmation email, or live booking submission. A production launch needs those integrations plus UWC approval of slots, durations, retention, and privacy wording.
 
-## Open the admin demo
+## Open the staff dashboard
 
-Visit `/admin/` and sign in with the credentials shown on the page: username `demo`, password `uwc-demo`. They are deliberately public and provide **no security boundary**. The dashboard contains only fictional sample data, not submitted customer details. Use Approve, Reject, Request changes, Reschedule, notes, filters, and the day view to explore the design. Changes reset on page reload or sign-out.
+Visit `/admin/` and create a private staff account or sign in with an existing approved account. New registrations cannot read bookings until the project owner grants the admin role. Approve, Reject, Request changes, Reschedule, notes, filters and the day view now use Supabase records. Changes persist after reload.
 
-Do not use this demo password to protect real records. A future connected staff dashboard must restore Supabase Auth and the database-enforced admin role.
+The former public `demo / uwc-demo` credentials have been removed. No payment is collected, and prototype requests do not reserve real UWC slots.
 
 ## Test the sample flow
 
@@ -35,8 +35,8 @@ order by created_at;
 ```
 
 3. Open `/track/`, enter the code, and confirm only package, appointment, status, payment status, amount paid, customer-visible note, and creation date appear. The browser formats times in the visitor's local timezone with a short label.
-4. Open `/admin/` with the public demo credentials above. Its fictional sample records let you preview staff actions, but they are **not linked** to the public request you just submitted. Dashboard changes do not appear in `/track/`.
-5. For a backend sample booking already in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review in Supabase. The current standalone admin demo will not display that change.
+4. Open `/admin/` with an approved staff account. Find the code from the request you just submitted. Staff status changes and customer-visible notes should appear in `/track/`; internal notes must not.
+5. For a booking in `changes_requested`, use `/track/` to choose a suggested time or send a message. The status returns to Pending Review in Supabase and the connected dashboard can display the response.
 6. A future real paid-booking confirmation remains separate: a server-created real appointment with `payment_status='pending'` has no code until a trusted payment server updates it to `paid`. Do not mark real payments paid manually.
 
 ## Access checks
@@ -50,7 +50,7 @@ select
   has_table_privilege('service_role', 'public.appointments', 'select') as service_can_select;
 ```
 
-The authenticated role has SELECT privilege so RLS can permit a future approved admin, but a non-admin receives no rows. The current demo dashboard makes no appointment-table queries. Guest lookup is not a table SELECT: the Edge Function calls a service-only RPC that returns a strict safe-field JSON projection. It never returns name, email, phone, payment provider reference, or internal notes. Invalid and unknown codes return the same message.
+The authenticated role has SELECT privilege so RLS can permit an approved admin, but a non-admin receives no rows. Staff actions use a role-checked, audited RPC with server slot validation and a stale-version check; direct table/payment writes remain denied. Guest lookup is not a table SELECT: the Edge Function calls a service-only RPC that returns a strict safe-field JSON projection. It never returns name, email, phone, payment provider reference, or internal notes. Invalid and unknown codes return the same message.
 
 ## Deployment
 

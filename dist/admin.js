@@ -1,4 +1,4 @@
-// UI-only dashboard preview. Never connect this public demo login to private appointments.
+// Connected staff dashboard. Supabase Auth + database RLS enforce access.
 const $ = (selector) => document.querySelector(selector);
 const statusNames = {
   pending_review: 'Pending Review', confirmed: 'Confirmed', rejected: 'Rejected',
@@ -24,10 +24,20 @@ const node = (tag, className, content) => {
   if (content !== undefined && content !== null) element.textContent = String(content);
   return element;
 };
-let allBookings = createDemoBookings();
+const database = window.UWCAdminData;
+let allBookings = [];
 let currentPage = 1;
 let selectedBooking = null;
 let pendingAction = null;
+let staffUser = null;
+let signingIn = false;
+let creatingAccount = false;
+let actionSaving = false;
+let loadSequence = 0;
+let detailSequence = 0;
+let stopRealtime = null;
+let refreshTimer = null;
+let pollTimer = null;
 function localDate(value) {
   const parts = Object.fromEntries(malaysiaDateFormatter.formatToParts(new Date(value))
     .filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
@@ -38,48 +48,69 @@ function malaysiaSlot(value) {
   return appointmentRules.slot(value);
 }
 
-function nextWeekday(offset, hour) {
-  const date = new Date(`${localDate(new Date())}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + offset);
-  while ([0, 6].includes(date.getUTCDay())) date.setUTCDate(date.getUTCDate() + 1);
-  return new Date(`${date.toISOString().slice(0, 10)}T${String(hour).padStart(2, '0')}:00:00+08:00`).toISOString();
+function errorMessage(error) {
+  if (error?.name === 'TimeoutError' || error?.name === 'AbortError' || error instanceof TypeError) return 'Could not connect. Please try again.';
+  if (error?.status === 400 && /credentials|password/i.test(error.message || '')) return 'Check your email and password and try again.';
+  return error?.message || 'The booking service is unavailable. Please try again.';
 }
 
-function createDemoBookings() {
-  const packages = [
-    ['Precision Baseline Health Screening', 450, 60],
-    ['Precision Expanded Health Screening', 1800, 90],
-    ['Precision Wellness and Health Status', 4200, 120]
-  ];
-  return packages.map(([packageName, amount, duration], index) => ({
-    id: `demo-${index + 1}`, booking_code: `DEMO-00${index + 1}`,
-    customer_name: `Demo Visitor ${String.fromCharCode(65 + index)}`,
-    customer_email: `visitor-${index + 1}@example.invalid`, customer_phone: 'Demo only',
-    package_name: packageName, scheduled_at: nextWeekday(index, index === 0 ? 9 : 10),
-    duration_minutes: duration, amount_due: amount, amount_paid: 0,
-    status: ['pending_review', 'changes_requested', 'confirmed'][index],
-    customer_visible_note: index === 1 ? 'Please choose another preferred time for this screening.' : null,
-    customer_response: null, customer_requested_at: null,
-    suggested_slots: index === 1 ? [nextWeekday(5, 9), nextWeekday(8, 10)] : [],
-    plan_snapshot: { contact_method: 'Email', first_visit: index === 0 ? 'Yes' : 'No',
-      booking_notes: 'Fictional dashboard sample', items: [{name:packageName,price:amount}] },
-    created_at: new Date(Date.now() - (index + 1) * 86400000).toISOString(),
-    notes: [], events: [{event_type:'demo_record_created',old_status:null,
-      new_status:['pending_review', 'changes_requested', 'confirmed'][index],
-      message:'Fictional sample record',created_at:new Date(Date.now() - (index + 1) * 86400000).toISOString(),actor_type:'system'}]
-  }));
+function lockDashboard(message = '') {
+  staffUser = null; allBookings = []; selectedBooking = null; pendingAction = null;
+  loadSequence++; detailSequence++;
+  stopRealtime?.(); stopRealtime = null;
+  clearTimeout(refreshTimer); clearInterval(pollTimer); pollTimer = null;
+  document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+  $('#appointment-rows').replaceChildren(); $('#details-content').replaceChildren(); $('#day-list').replaceChildren();
+  $('#dashboard').hidden = true; $('#sign-out').hidden = true; $('#login-panel').hidden = false;
+  $('#staff-identity').textContent = ''; $('#password').value = ''; $('#confirm-password').value = '';
+  $('#action-note').value = ''; $('#action-date').value = '';
+  $('#search').value = ''; $('#details-title').textContent = ''; $('#action-description').textContent = '';
+  $('#filter-package').replaceChildren(node('option', '', 'All packages'));
+  $('#login-message').textContent = message;
 }
 
-function enterDashboard() {
+async function enterDashboard(user) {
+  staffUser = user;
   $('#login-panel').hidden = true;
   $('#dashboard').hidden = false;
   $('#sign-out').hidden = false;
-  loadBookings();
+  $('#staff-identity').textContent = `Signed in as ${user.email}. Dates and staff time entry use Malaysia time.`;
+  await loadBookings();
+  if (!staffUser) return;
+  stopRealtime?.();
+  stopRealtime = database.subscribe(() => {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(() => loadBookings(true), 300);
+  }, status => {
+    if (!staffUser) return;
+    $('#realtime-message').textContent = status === 'SUBSCRIBED'
+      ? 'Live updates connected. New requests and customer replies appear automatically.'
+      : 'Live connection reconnecting. Bookings also refresh every 30 seconds.';
+  });
+  clearInterval(pollTimer);
+  pollTimer = setInterval(() => { if (!document.hidden && staffUser && !actionSaving) loadBookings(true); }, 30000);
 }
 
-function loadBookings() {
-  $('#dashboard-message').textContent = 'Fictional records only. Actions are a preview and reset on reload.';
-  fillPackageFilter(); renderSummary(); renderTable(); renderDay();
+async function loadBookings(background = false) {
+  if (!staffUser || (background && actionSaving)) return false;
+  const sequence = ++loadSequence;
+  if (!background) $('#dashboard-message').textContent = 'Loading bookings…';
+  $('#refresh').disabled = true;
+  try {
+    const user = await database.approvedUser();
+    if (!user) { lockDashboard('Please sign in again.'); return false; }
+    const bookings = await database.list();
+    if (!staffUser || sequence !== loadSequence) return false;
+    allBookings = bookings;
+    fillPackageFilter(); renderSummary(); renderTable(); renderDay();
+    if (!background) $('#dashboard-message').textContent = `${bookings.length} stored booking(s) loaded. Changes are saved to Supabase.`;
+    return true;
+  } catch (error) {
+    if (sequence !== loadSequence) return false;
+    // Clear previously loaded personal data on any failed refresh; never show stale records as current.
+    lockDashboard(errorMessage(error));
+    return false;
+  } finally { if (sequence === loadSequence || !staffUser) $('#refresh').disabled = false; }
 }
 
 function fillPackageFilter() {
@@ -108,11 +139,13 @@ function renderSummary() {
 function filteredBookings() {
   const search = $('#search').value.trim().toLowerCase();
   const status = $('#filter-status').value;
+  const payment = $('#filter-payment').value;
   const packageName = $('#filter-package').value, from = $('#filter-from').value, to = $('#filter-to').value;
   const result = allBookings.filter((row) => {
     const haystack = [row.booking_code, row.customer_name, row.customer_email, row.customer_phone].join(' ').toLowerCase();
     const scheduledDay = localDate(row.scheduled_at);
     return (!search || haystack.includes(search)) && (!status || row.status === status) &&
+      (!payment || row.payment_status === payment) &&
       (!packageName || row.package_name === packageName) &&
       (!from || scheduledDay >= from) && (!to || scheduledDay <= to);
   });
@@ -141,14 +174,15 @@ function renderTable() {
       tr.append(node('td', '', content));
     }
     const statusCell = node('td'); statusCell.append(badge(booking.status)); tr.append(statusCell);
-    tr.append(node('td', '', money(booking.amount_due)), node('td', '', dateTime(booking.created_at)));
+    tr.append(node('td', '', booking.is_demo && booking.payment_status === 'pending' ? 'Not collected (prototype)' : booking.payment_status),
+      node('td', '', money(booking.amount_due)), node('td', '', dateTime(booking.created_at)));
     const actionCell = node('td'); const button = node('button', 'outline-button compact', 'View');
     button.type = 'button'; button.addEventListener('click', () => openDetails(booking.id));
     actionCell.append(button); tr.append(actionCell); body.append(tr);
   }
   if (!rows.length) {
     const tr = node('tr'); const cell = node('td', 'empty-table', 'No appointments match these filters.');
-    cell.colSpan = 9; tr.append(cell); body.append(tr);
+    cell.colSpan = 10; tr.append(cell); body.append(tr);
   }
   $('#row-count').textContent = `${rows.length} matching`;
   $('#page-label').textContent = `Page ${currentPage} of ${pages}`;
@@ -189,12 +223,23 @@ function showConflictWarning() {
   const conflicts = selectedBooking && ['approve', 'reschedule'].includes(pendingAction) && proposed
     ? conflictCount(selectedBooking, proposed) : 0;
   warning.hidden = !conflicts;
-  warning.textContent = conflicts ? `This time overlaps ${conflicts} confirmed sample appointment(s). Check the duration before confirming.` : '';
+  warning.textContent = conflicts ? `This time overlaps ${conflicts} confirmed appointment(s). Check the duration before confirming.` : '';
 }
 
-function openDetails(id) {
-  const booking = allBookings.find((row) => row.id === id);
-  if (!booking) return;
+async function openDetails(id) {
+  if (!staffUser) return;
+  const sequence = ++detailSequence;
+  selectedBooking = null;
+  $('#details-title').textContent = 'Loading booking…';
+  $('#details-content').replaceChildren(node('p', 'muted', 'Loading the latest details and history…'));
+  if (!$('#details-dialog').open) $('#details-dialog').showModal();
+  let booking;
+  try { booking = await database.details(id); }
+  catch (error) {
+    if (sequence === detailSequence && staffUser) $('#details-content').replaceChildren(node('p', 'message', errorMessage(error)));
+    return;
+  }
+  if (!staffUser || sequence !== detailSequence || !$('#details-dialog').open) return;
   selectedBooking = booking;
   $('#details-title').textContent = booking.booking_code || 'Booking without code';
   const content = $('#details-content'); content.replaceChildren();
@@ -206,38 +251,43 @@ function openDetails(id) {
     ['Package', booking.package_name], ['Duration', `${booking.duration_minutes} minutes`],
     ['Appointment', dateTime(booking.scheduled_at)], ['Status', statusNames[booking.status]],
     ['Indicative total', money(booking.amount_due)],
+    ['Payment status', booking.is_demo && booking.payment_status === 'pending' ? 'Not collected (prototype)' : booking.payment_status],
+    ['Amount paid', money(booking.amount_paid)], ['Payment method', booking.payment_method],
+    ['Transaction reference', booking.transaction_reference], ['Paid at', dateTime(booking.paid_at)],
+    ['Record type', booking.is_demo ? 'Prototype request / test record' : 'Booking'],
     ['Created', dateTime(booking.created_at)], ['Customer-visible note', booking.customer_visible_note],
     ['Customer response', booking.customer_response], ['New preferred time', dateTime(booking.customer_requested_at)]
   ]) fact(info, label, value);
   content.append(info);
   const overlaps = booking.status === 'confirmed' ? conflictCount(booking) : 0;
-  if (overlaps) content.append(node('p', 'notice', `Schedule warning: overlaps ${overlaps} confirmed sample appointment(s).`));
+  if (overlaps) content.append(node('p', 'notice', `Schedule warning: overlaps ${overlaps} confirmed appointment(s).`));
   if (Array.isArray(booking.plan_snapshot?.items) && booking.plan_snapshot.items.length) {
     content.append(node('h3', '', 'Selected plan'));
     const selection = node('ul', 'history-list');
     for (const item of booking.plan_snapshot.items) selection.append(node('li', '', `${item.name} · indicative ${money(item.price)}`));
     content.append(selection);
   }
-  content.append(node('p', 'muted', 'Preview only. No payment or real appointment is created.'));
+  content.append(node('p', 'muted', 'Staff actions are saved. Prototype requests do not reserve real UWC slots. Payment information is read-only.'));
   const controls = node('div', 'action-grid');
   for (const [key, label] of Object.entries(actions)) {
     const button = node('button', 'outline-button', label); button.type = 'button';
+    const terminal = ['completed','cancelled','rejected'].includes(booking.status);
+    button.disabled = (!key.startsWith('note_') && terminal) || (key === 'complete' && booking.status !== 'confirmed') || (key === 'approve' && booking.status === 'confirmed');
     button.addEventListener('click', () => openAction(key)); controls.append(button);
   }
   content.append(controls);
   const notesTitle = node('h3', '', 'Notes'); content.append(notesTitle);
   const notes = node('ul', 'history-list');
-  for (const note of booking.notes) notes.append(historyItem(`${note.visibility} · ${dateTime(note.created_at)} · by Demo staff`, note.body));
+  for (const note of booking.notes) notes.append(historyItem(`${note.visibility} · ${dateTime(note.created_at)} · staff ${note.author_id || '—'}`, note.body));
   if (!notes.childNodes.length) notes.append(node('li', 'muted', 'No notes yet.'));
   content.append(notes, node('h3', '', 'Audit history'));
   const events = node('ul', 'history-list');
   for (const event of booking.events) {
     const transition = event.old_status === event.new_status ? '' : ` · ${event.old_status || 'new'} → ${event.new_status || '—'}`;
-    events.append(historyItem(`${event.event_type}${transition} · ${dateTime(event.created_at)} · ${event.actor_type}`, event.message));
+    events.append(historyItem(`${event.event_type}${transition} · ${dateTime(event.created_at)} · ${event.actor_type}${event.actor_id ? ` ${event.actor_id}` : ''}`, event.message));
   }
   if (!events.childNodes.length) events.append(node('li', 'muted', 'No events yet.'));
   content.append(events);
-  $('#details-dialog').showModal();
 }
 
 function historyItem(heading, body) {
@@ -248,7 +298,7 @@ function openAction(action) {
   pendingAction = action;
   $('#details-dialog').close();
   $('#action-title').textContent = actions[action];
-  $('#action-description').textContent = `Confirm this action for ${selectedBooking.booking_code || selectedBooking.customer_name}. Changes are logged in the demo audit history.`;
+  $('#action-description').textContent = `Confirm this action for ${selectedBooking.booking_code || selectedBooking.customer_name}. It will be saved to the database and logged under your staff account.${selectedBooking.is_demo ? ' This is a prototype request, not a real slot reservation.' : ''}`;
   $('#action-note').value = ''; $('#action-date').value = ''; $('#action-message').textContent = '';
   $('#action-note-label').hidden = !['reject','request_changes','note_internal','note_customer'].includes(action);
   $('#action-note').required = ['reject','request_changes','note_internal','note_customer'].includes(action);
@@ -269,34 +319,67 @@ function openAction(action) {
 }
 $('#action-date').addEventListener('input', showConflictWarning);
 
-$('#login-form').addEventListener('submit', (event) => {
+$('#auth-toggle').addEventListener('click', () => {
+  creatingAccount = !creatingAccount;
+  $('#auth-title').textContent = creatingAccount ? 'Create staff account.' : 'Staff sign in.';
+  $('#auth-intro').textContent = creatingAccount ? 'Create your private login. Booking access stays locked until the project owner approves you.' : 'Sign in with an approved staff account. The old public demo password cannot access booking records.';
+  $('#auth-submit').textContent = creatingAccount ? 'Create account' : 'Sign in';
+  $('#auth-toggle').textContent = creatingAccount ? 'Back to sign in' : 'Create staff account';
+  $('#confirm-password-label').hidden = !creatingAccount;
+  $('#confirm-password').disabled = !creatingAccount;
+  $('#confirm-password').required = creatingAccount;
+  $('#signup-notice').hidden = !creatingAccount;
+  $('#password').minLength = creatingAccount ? 12 : 1;
+  $('#password').autocomplete = creatingAccount ? 'new-password' : 'current-password';
+  $('#password').value = ''; $('#confirm-password').value = ''; $('#login-message').textContent = '';
+});
+
+$('#login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
-  const username = $('#username').value.trim().toLowerCase();
-  if (username !== 'demo' || $('#password').value !== 'uwc-demo') {
-    $('#login-message').textContent = 'Use the demo username and password shown above.';
-    return;
+  if (signingIn) return;
+  const email = $('#email').value.trim();
+  const password = $('#password').value;
+  if (creatingAccount && (password.length < 12 || password !== $('#confirm-password').value)) {
+    $('#login-message').textContent = 'Use at least 12 characters and make sure both passwords match.'; return;
   }
-  $('#password').value = '';
-  sessionStorage.setItem('uwc-admin-preview', 'open');
-  enterDashboard();
+  signingIn = true; $('#auth-submit').disabled = true; $('#auth-toggle').disabled = true;
+  $('#login-message').textContent = creatingAccount ? 'Creating your account…' : 'Checking staff access…';
+  try {
+    if (creatingAccount) {
+      const active = await database.signUp(email, password);
+      $('#login-message').textContent = active ? 'Account created. Ask the project owner to approve your admin access, then sign in.' : 'If this address is eligible, a confirmation email has been sent. Verify it, then ask the project owner to approve admin access.';
+    } else {
+      const user = await database.signIn(email, password);
+      if (user) await enterDashboard(user);
+    }
+  } catch (error) { $('#login-message').textContent = errorMessage(error); }
+  finally {
+    $('#password').value = ''; $('#confirm-password').value = '';
+    signingIn = false; $('#auth-submit').disabled = false; $('#auth-toggle').disabled = false;
+  }
 });
 
-$('#sign-out').addEventListener('click', () => {
+$('#sign-out').addEventListener('click', async () => {
+  if (actionSaving) return;
   sessionStorage.removeItem('uwc-admin-preview');
-  allBookings = createDemoBookings();
-  $('#dashboard').hidden = true; $('#sign-out').hidden = true; $('#login-panel').hidden = false;
-  $('#password').value = ''; $('#login-message').textContent = 'Demo closed.';
+  lockDashboard('Signed out.');
+  try { await database.signOut(); }
+  catch { $('#login-message').textContent = 'The local dashboard is locked. Reload before signing in again.'; }
 });
 
-$('#refresh').addEventListener('click', loadBookings);
-for (const selector of ['#search','#filter-status','#filter-package','#filter-from','#filter-to','#sort']) {
+$('#refresh').addEventListener('click', () => loadBookings());
+for (const selector of ['#search','#filter-status','#filter-payment','#filter-package','#filter-from','#filter-to','#sort']) {
   $(selector).addEventListener(selector === '#search' ? 'input' : 'change', () => { currentPage = 1; renderSummary(); renderTable(); });
 }
 $('#day-date').value = localDate(new Date());
 $('#day-date').addEventListener('change', renderDay);
 $('#previous-page').addEventListener('click', () => { currentPage--; renderTable(); });
 $('#next-page').addEventListener('click', () => { currentPage++; renderTable(); });
-document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => $(`#${button.dataset.close}`).close()));
+document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => {
+  if (actionSaving) return;
+  $(`#${button.dataset.close}`).close(); detailSequence++;
+}));
+$('#action-dialog').addEventListener('cancel', event => { if (actionSaving) event.preventDefault(); });
 document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('keydown', event => {
   if (event.key !== 'Tab') return;
   const controls = [...dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href]')]
@@ -307,8 +390,8 @@ document.querySelectorAll('dialog').forEach(dialog => dialog.addEventListener('k
   }
 }));
 
-$('#action-form').addEventListener('submit', (event) => {
-  event.preventDefault(); if (!selectedBooking || !pendingAction) return;
+$('#action-form').addEventListener('submit', async (event) => {
+  event.preventDefault(); if (!staffUser || !selectedBooking || !pendingAction || actionSaving) return;
   const booking = selectedBooking;
   const action = pendingAction;
   const note = $('#action-note').value.trim();
@@ -326,26 +409,31 @@ $('#action-form').addEventListener('submit', (event) => {
   if (action === 'request_changes' && (suggestions.includes(null) || new Set(suggestions).size !== suggestions.length)) {
     $('#action-message').textContent = 'Suggested times must be distinct weekdays from tomorrow through the next three months at a listed morning time (Malaysia time).'; return;
   }
-  const oldStatus = booking.status;
-  const nextStatus = {
-    approve:'confirmed',reject:'rejected',request_changes:'changes_requested',
-    complete:'completed',cancel:'cancelled'
-  }[action];
-  if (nextStatus) booking.status = nextStatus;
-  if (action === 'reschedule') booking.scheduled_at = scheduledAt;
-  if (action === 'request_changes') booking.suggested_slots = suggestions;
-  if (note) {
-    const visibility = ['reject','request_changes','note_customer'].includes(action) ? 'customer' : 'internal';
-    booking.notes.unshift({body:note,visibility,created_at:new Date().toISOString()});
-    if (visibility === 'customer') booking.customer_visible_note = note;
+  actionSaving = true;
+  const controls = [...$('#action-form').querySelectorAll('input,textarea,button')];
+  controls.forEach(control => { control.disabled = true; });
+  $('#sign-out').disabled = true; $('#action-form').setAttribute('aria-busy', 'true');
+  $('#action-message').textContent = 'Saving to Supabase…';
+  try {
+    const result = await database.save(booking, action, note, scheduledAt, suggestions);
+    $('#action-dialog').close();
+    const refreshed = await loadBookings();
+    if (refreshed) {
+      await openDetails(booking.id);
+      $('#dashboard-message').textContent = result.conflicts
+        ? `Saved. Warning: overlaps ${result.conflicts} confirmed appointment(s).`
+        : 'Saved to Supabase. Customer-visible updates are available in the booking tracker.';
+    } else $('#login-message').textContent = 'Your action was saved, but the latest view could not refresh. Sign in again to check it.';
+  } catch (error) {
+    $('#action-message').textContent = `${errorMessage(error)} Refresh and check the booking before retrying.`;
+  } finally {
+    actionSaving = false; controls.forEach(control => { control.disabled = false; });
+    $('#sign-out').disabled = false; $('#action-form').removeAttribute('aria-busy');
   }
-  booking.events.unshift({event_type:action,old_status:oldStatus,new_status:booking.status,
-    message:note || `Demo ${actions[action].toLowerCase()}`,created_at:new Date().toISOString(),actor_type:'demo staff'});
-  const conflicts = booking.status === 'confirmed' ? conflictCount(booking) : 0;
-  $('#action-dialog').close(); loadBookings(); openDetails(booking.id);
-  $('#dashboard-message').textContent = conflicts
-    ? `Demo change shown until reload. Warning: time overlaps ${conflicts} confirmed sample appointment(s).`
-    : 'Demo change shown until reload. No real booking changed.';
 });
 
-if (sessionStorage.getItem('uwc-admin-preview') === 'open') enterDashboard();
+sessionStorage.removeItem('uwc-admin-preview');
+if (database) {
+  database.onAuthChange((event) => { if (event === 'SIGNED_OUT' && staffUser) lockDashboard('Your session ended. Please sign in again.'); });
+  database.approvedUser().then(user => { if (user && !signingIn) enterDashboard(user); }).catch(error => lockDashboard(errorMessage(error)));
+}

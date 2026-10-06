@@ -227,3 +227,14 @@ The journey must work at common mobile and desktop widths, with keyboard access,
 ### Review corrections — 5 October 2026
 
 The pending 1 October fixes have been incorporated into the review release. Public, tracker and admin date-entry controls now share the rolling three-month weekday and morning-time rules. Admin date entry uses Malaysia time; tracker results retain the visitor's local timezone label. Conflict warnings are visible in the action and details dialogs. Tab/Shift+Tab cycle inside the dialogs. Request review controls are protected during submission and restored after a network failure or timeout. Tracker responses clear old drafts when switching codes and correctly describe updates to the prototype tracker rather than the separate fictional admin preview. Technical regression evidence is recorded in `docs/UWC-REVIEW-2026-10-05.md`. Final UWC acceptance and the 6 October demonstration preparation remain scheduled separately.
+
+## 6 October: connected staff dashboard
+
+At the user's request, the standalone sample dashboard has been replaced by
+Supabase-backed reads/actions on the same appointments used by guest tracking.
+Supabase Auth and an owner-approved `admin_users` membership are required. A
+create-account option is available, but it never grants itself the admin role.
+The old public demo password is removed. Notes, status history and staff actions
+are persisted and customer-visible updates appear in the tracker. Payment stays
+disabled/read-only. Initial staff account creation and approval are documented
+in `docs/STAFF-DASHBOARD-SETUP.md`; they must be completed before staff can log in.
