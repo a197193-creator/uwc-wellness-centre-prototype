@@ -37,6 +37,15 @@
     longevity:'Precision<br>Longevity'
   };
   const icons = window.UWCIcons;
+  // Font wrapping and mobile navigation can change the sticky header's height.
+  // Keep section links below it rather than relying on one fixed pixel offset.
+  const siteHeader = $('.site-header');
+  function updateHeaderOffset() {
+    document.documentElement.style.setProperty('--site-header-offset', Math.ceil(siteHeader.getBoundingClientRect().height + 18) + 'px');
+  }
+  updateHeaderOffset();
+  if (window.ResizeObserver) new ResizeObserver(updateHeaderOffset).observe(siteHeader);
+  else window.addEventListener('resize', updateHeaderOffset);
   const fallbackIcon = '<span class="test-row-icon test-icon--teal" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20s-8-4.7-8-10a4.5 4.5 0 0 1 8-2.7A4.5 4.5 0 0 1 20 10c0 5.3-8 10-8 10Z"/><path d="M7 12h3l1-3 2 6 1-3h3"/></svg></span>';
 
   async function loadPrototypeStatus() {
@@ -76,13 +85,22 @@
     return icons && icons.has(test.id) ? icons.render(test.id) : fallbackIcon;
   }
   function renderTabs() {
-    $('#package-tabs').innerHTML = model.packages.map(pkg => `<button class="package-tab" role="tab" id="tab-${pkg.id}" aria-controls="package-panel" aria-selected="${pkg.id === activePackage}" tabindex="${pkg.id === activePackage ? 0 : -1}" data-package-tab="${pkg.id}"><span class="tab-top"><span class="tab-number">PACKAGE 0${pkg.number}</span><span class="tab-arrow" aria-hidden="true">↗</span></span><span class="tab-name">${tabNames[pkg.id]}</span><span class="tab-price">${pkg.pricePrefix ? `<small>${escapeHTML(pkg.pricePrefix)}</small> ` : ''}<strong>${money(pkg.price)}</strong> <span>/ package</span></span></button>`).join('');
+    $('#package-tabs').innerHTML = model.packages.map(pkg => `<button class="package-tab" role="tab" id="tab-${pkg.id}" aria-controls="package-panel" aria-selected="${pkg.id === activePackage}" tabindex="${pkg.id === activePackage ? 0 : -1}" data-package-tab="${pkg.id}"><span class="tab-top"><span class="tab-number">PACKAGE 0${pkg.number}</span><span class="tab-arrow" aria-hidden="true">↗</span></span><span class="tab-name">${tabNames[pkg.id]}</span><span class="tab-price"><strong>${money(pkg.price)}</strong> <span>/ package</span></span></button>`).join('');
   }
   function saveGroupState() {
     $$('.test-group').forEach(group => openGroups.set(group.dataset.group, group.open));
   }
   function testRow(test) {
     return `<div class="test-row">${testIcon(test)}<div class="test-row-content"><button class="test-name" data-detail="${test.id}">${escapeHTML(test.name)}</button><small>${escapeHTML(test.category)}${test.provisional ? ' · working price' : ''}${test.optional ? ' · optional pathway' : ''}</small></div><span class="test-row-price">${testPriceLabel(test)}</span>${actionButton(test)}</div>`;
+  }
+  function packagePriceSummary(pkg) {
+    // One template for every package: only the amount and range change.
+    // Starting-pathway/add-on qualifications remain in the package notes.
+    return `<div class="package-price-summary">
+      <p class="eyebrow">YOUR PACKAGE AT A GLANCE</p>
+      <p class="package-price">${money(pkg.price)}</p>
+      <p class="price-caption"><span class="price-caption-label">Proposed package price</span><span class="price-range">Current range <strong>${escapeHTML(pkg.priceRange)}</strong></span></p>
+    </div>`;
   }
   function renderPackage() {
     const pkg = model.packages.find(p => p.id === activePackage);
@@ -94,9 +112,8 @@
     groups.push({key:pkg.id + '-direct', label:pkg.number === 1 ? 'Included in Package 1' : 'Additional components in this package', tests:directTests, defaultOpen:true});
     const selected = plan.some(item => item.kind === 'package' && item.id === pkg.id);
     const savingClass = pkg.saving < 0 ? 'comparison-negative' : '';
-    const priceHeading = pkg.pricePrefix ? `<small>${escapeHTML(pkg.pricePrefix)}</small>${money(pkg.price)}` : money(pkg.price);
     $('#package-panel').setAttribute('aria-labelledby', 'tab-' + pkg.id);
-    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary"><p class="eyebrow">YOUR PACKAGE AT A GLANCE</p><div class="package-price">${priceHeading}</div><p class="price-caption">Proposed package price · current range ${escapeHTML(pkg.priceRange)}</p><div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${pkg.pricePrefix ? 'From ' : ''}${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul>${selected ? '<p class="package-selected-status"><span aria-hidden="true">✓</span> Added to your plan</p>' : `<button class="button primary full" data-add-package="${pkg.id}">Choose this package <span aria-hidden="true">+</span></button>`}<p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
+    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary">${packagePriceSummary(pkg)}<div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul>${selected ? '<p class="package-selected-status"><span aria-hidden="true">✓</span> Added to your plan</p>' : `<button class="button primary full" data-add-package="${pkg.id}">Choose this package <span aria-hidden="true">+</span></button>`}<p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
   }
   function renderTests() {
     const query = $('#test-search').value.trim().toLowerCase();
@@ -129,7 +146,7 @@
     const differenceCopy = fullMatch.saving >= 0
       ? `The supplied comparison shows ${money(fullMatch.saving)} below the listed à la carte total.`
       : `The supplied comparison makes this package ${money(Math.abs(fullMatch.saving))} more than the listed components. Confirm the price before commercial use.`;
-    offer.innerHTML = `<aside class="package-match package-match-complete"><p class="eyebrow">PACKAGE COMPARISON FOUND</p><h3>Your custom selection matches Package ${fullMatch.packageNumber}.</h3><div class="comparison-prices"><span><small>Listed à la carte total</small><strong>${money(fullMatch.individualTotal)}</strong></span><span><small>Package price</small><strong>${fullMatch.pricePrefix ? 'From ' : ''}${money(fullMatch.packagePrice)}</strong></span><span><small>Saving / difference</small><strong>${fullMatch.saving < 0 ? '-' : ''}${money(Math.abs(fullMatch.saving))}</strong></span></div><p>${escapeHTML(differenceCopy)}</p><button class="button light full" data-switch-package="${fullMatch.packageId}">Choose Package ${fullMatch.packageNumber}</button></aside>`;
+    offer.innerHTML = `<aside class="package-match package-match-complete"><p class="eyebrow">PACKAGE COMPARISON FOUND</p><h3>Your custom selection matches Package ${fullMatch.packageNumber}.</h3><div class="comparison-prices"><span><small>Listed à la carte total</small><strong>${money(fullMatch.individualTotal)}</strong></span><span><small>Package price</small><strong>${money(fullMatch.packagePrice)}</strong></span><span><small>Saving / difference</small><strong>${fullMatch.saving < 0 ? '-' : ''}${money(Math.abs(fullMatch.saving))}</strong></span></div><p>${escapeHTML(differenceCopy)}</p><button class="button light full" data-switch-package="${fullMatch.packageId}">Choose Package ${fullMatch.packageNumber}</button></aside>`;
   }
   function renderPlan() {
     const summary = model.summarize(plan);

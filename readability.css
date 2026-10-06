@@ -372,3 +372,63 @@
     width: 100%;
   }
 }
+
+/* Shared package presentation: different amounts, identical layout and type. */
+@media screen {
+  .package-tabs { grid-auto-rows: 1fr; }
+  .package-tab { display: flex; flex-direction: column; align-items: stretch; }
+  .tab-name { max-width: none; min-height: 2.4em; margin-bottom: 20px; }
+  .tab-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; margin-top: auto; }
+  .tab-price strong { font-size: 18px; line-height: 1.5; font-weight: 650; }
+  .package-detail-header { flex-wrap: wrap; }
+  .package-detail, .package-sidebar { min-width: 0; }
+  .package-price-summary {
+    background: #f9fbf5;
+    border: 1px solid #d4dfcf;
+    border-radius: 13px;
+    padding: 18px 16px;
+    width: 100%;
+  }
+  .package-price-summary .eyebrow { font-size: 13px; letter-spacing: .045em; margin: 0 0 12px; }
+  .package-price-summary .package-price { font-size: 40px; font-weight: 650; letter-spacing: -.035em; line-height: 1.15; margin: 0; white-space: nowrap; }
+  .package-price-summary .price-caption { font-size: 13px; line-height: 1.6; margin-top: 10px; }
+  .price-caption-label, .price-range { display: block; }
+  .price-range { margin-top: 4px; }
+  .price-range strong { color: var(--ink); display: block; font-size: inherit; font-weight: 600; white-space: nowrap; }
+  .package-comparison-summary,
+  .package-comparison-summary.comparison-negative {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    margin: 18px 0 0;
+    padding: 8px 12px;
+    width: 100%;
+  }
+  .package-comparison-summary span { min-width: 0; }
+  .package-comparison-summary strong { flex-shrink: 0; }
+  .package-rationale, .sidebar-note { overflow-wrap: anywhere; }
+  .test-row .add-test, .test-card .add-test { min-width: 90px; }
+  .package-price, .price-range strong, .tab-price strong, .test-row-price,
+  .test-card-price, .package-comparison-summary strong, .comparison-prices strong,
+  .plan-item-price, .subtotal-row b, .header-plan-total, .detail-pricing strong,
+  .review-item strong, .review-total strong { font-variant-numeric: lining-nums tabular-nums; }
+}
+
+@media screen and (min-width: 641px) and (max-width: 1000px) {
+  .site-header nav { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media screen and (max-width: 640px) {
+  .site-header nav { gap: 6px; }
+  .site-header nav a { font-size: 13px; min-height: 44px; }
+  .site-header nav a[href="/track/"] { grid-column: 1 / -1; }
+}
+
+@media screen and (max-width: 380px) {
+  .site-header .brand small { display: none; }
+}
+
+@media screen {
+  html { scroll-padding-top: var(--site-header-offset, 150px); }
+  .about-section { scroll-margin-top: 0; }
+}
