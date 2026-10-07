@@ -12,16 +12,16 @@ The website now uses the same Supabase database as submitted booking requests.
 The old public `demo / uwc-demo` credentials no longer work. Your Supabase
 organisation login is separate from a staff account in Supabase Auth.
 
-1. Open the staff dashboard and choose **Create staff account**. Enter your email,
-   choose a private password of at least 12 characters, and confirm it. Verify your
-   email if Supabase sends a confirmation message. Never send your password in chat.
-2. As the project owner, open **Authentication → Users**:
+1. As the project owner, open **Authentication → Users**:
    https://supabase.com/dashboard/project/fxgzewuwiccmaqayfclm/auth/users
-   Find your account and check that its email is confirmed.
+   Choose **Add user → Create new user**, enter the staff email and a private
+   password of at least 12 characters. Never send the password in chat.
+2. Confirm the account email, or select **Auto Confirm User** for a trusted staff
+   member when offered. An existing confirmed staff account can be reused.
 3. Open **SQL Editor** in the same project and run the snippet below. Replace
    `YOUR_STAFF_EMAIL` with the exact account email. This explicitly grants access
    to all booking/customer records, notes and staff actions. Only approve trusted staff.
-4. Return to the staff dashboard, choose **Back to sign in**, and use that email
+4. Return to the staff dashboard and sign in using that email
    and the password you chose. The stored booking requests should now appear.
 
 ```sql
@@ -42,11 +42,10 @@ begin
 end $$;
 ```
 
-If you prefer not to use confirmation emails, the project owner can instead
-create the user manually in **Authentication → Users → Add user → Create new
-user**, enter the private password personally, and select **Auto Confirm User**
-when offered. Then run the same approval SQL. This does not disable project-wide
-email security or make new signups admins.
+The website is sign-in only; it does not create staff accounts. Account creation
+and approval stay with the project owner in Supabase. These steps do not disable
+project-wide email security or grant admin access automatically. A text-only
+copy of the setup steps is kept in an HTML comment in `admin/index.html`.
 
 To remove staff access, delete only the matching `admin_users` membership. Do not
 delete appointments or disable RLS. The UI rechecks membership on refresh, and
@@ -87,7 +86,7 @@ fields. Indicative plan totals are not revenue.
 7. Try saving an old details view after another staff member changes that record:
    the server refuses the stale edit. Refresh and review before retrying.
 
-Automated checks: `npm ci`, then `npm test` (18 code/UI tests).
+Automated checks: `npm ci`, then `npm test`.
 `supabase/tests/staff_dashboard.sql` contains rollback-only database checks.
 All its temporary accounts, notes, events and bookings are rolled back.
 
@@ -104,10 +103,11 @@ one-time metadata step. Security and performance advisors showed zero errors
 and warnings. The private rate-limit table intentionally has no public policy;
 informational unused-index suggestions were left unchanged for this small dataset.
 
-The backend checks and browser sign-in/create-account layout were verified on
-6 October 2026. Initial staff login and live Realtime delivery still require
-the first real staff account to be created and approved by the owner; temporary
-database test identities are not usable login accounts.
+The backend permission checks were verified on 6 October 2026. On 7 October,
+on-site staff registration and visible setup help were removed. Existing
+approved accounts still use the same sign-in flow; new staff accounts must be
+created and approved by the project owner in Supabase. Temporary database test
+identities are not usable login accounts.
 
 The site remains plain HTML, CSS and JavaScript with the existing PHP endpoint.
 The Supabase client is pinned to `2.117.2`, bundled locally in `vendor/`, with

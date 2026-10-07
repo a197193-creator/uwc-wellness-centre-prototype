@@ -11,7 +11,6 @@ function harness({ admin = true, anonymous = false, session = true, fail = null 
       getSession: async () => ({ data: { session: session ? { user } : null }, error: null }),
       getUser: async () => ({ data: { user }, error: null }),
       signInWithPassword: async payload => { requests.push(['signIn',payload]); return { data: {}, error: null }; },
-      signUp: async () => ({ data: { session: session ? { user } : null }, error: null }),
       signOut: async () => { signedOut = true; return { data: {}, error: null }; },
       startAutoRefresh() {}, stopAutoRefresh() {}, onAuthStateChange: () => ({data:{subscription:{unsubscribe(){}}}})
     },
@@ -59,9 +58,9 @@ test('anonymous auth identity cannot become staff',async()=>{
   const h=harness({anonymous:true}); await assert.rejects(h.data.approvedUser(),/approved staff/);
   assert.equal(h.requests.some(r=>r.table==='appointments'),false);
 });
-test('creating an account never writes an admin role',async()=>{
-  const h=harness(); assert.equal(await h.data.signUp('staff@example.invalid','private password'),true);
-  assert.equal(h.signedOut(),true); assert.equal(h.requests.some(r=>r.table==='admin_users'),false);
+test('staff data client exposes sign-in but no account creation method',()=>{
+  const h=harness(); assert.equal(typeof h.data.signIn,'function');
+  assert.equal(h.data.signUp,undefined);
 });
 test('list selects real appointment fields with deterministic pagination',async()=>{
   const h=harness(); assert.equal((await h.data.list()).length,1);

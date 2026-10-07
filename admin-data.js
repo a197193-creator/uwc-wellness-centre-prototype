@@ -30,12 +30,6 @@
       client.auth.startAutoRefresh();
       return approvedUser();
     },
-    async signUp(email, password) {
-      ready(); const data = check(await client.auth.signUp({ email, password }));
-      // A new account never inserts itself into admin_users or unlocks bookings.
-      if (data.session) await client.auth.signOut({ scope: 'local' });
-      return Boolean(data.session);
-    },
     approvedUser,
     async signOut() {
       ready();

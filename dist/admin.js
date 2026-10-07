@@ -31,7 +31,6 @@ let selectedBooking = null;
 let pendingAction = null;
 let staffUser = null;
 let signingIn = false;
-let creatingAccount = false;
 let actionSaving = false;
 let loadSequence = 0;
 let detailSequence = 0;
@@ -62,7 +61,7 @@ function lockDashboard(message = '') {
   document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
   $('#appointment-rows').replaceChildren(); $('#details-content').replaceChildren(); $('#day-list').replaceChildren();
   $('#dashboard').hidden = true; $('#sign-out').hidden = true; $('#login-panel').hidden = false;
-  $('#staff-identity').textContent = ''; $('#password').value = ''; $('#confirm-password').value = '';
+  $('#staff-identity').textContent = ''; $('#password').value = '';
   $('#action-note').value = ''; $('#action-date').value = '';
   $('#search').value = ''; $('#details-title').textContent = ''; $('#action-description').textContent = '';
   $('#filter-package').replaceChildren(node('option', '', 'All packages'));
@@ -319,43 +318,20 @@ function openAction(action) {
 }
 $('#action-date').addEventListener('input', showConflictWarning);
 
-$('#auth-toggle').addEventListener('click', () => {
-  creatingAccount = !creatingAccount;
-  $('#auth-title').textContent = creatingAccount ? 'Create staff account.' : 'Staff sign in.';
-  $('#auth-intro').textContent = creatingAccount ? 'Create your private login. Booking access stays locked until the project owner approves you.' : 'Sign in with an approved staff account. The old public demo password cannot access booking records.';
-  $('#auth-submit').textContent = creatingAccount ? 'Create account' : 'Sign in';
-  $('#auth-toggle').textContent = creatingAccount ? 'Back to sign in' : 'Create staff account';
-  $('#confirm-password-label').hidden = !creatingAccount;
-  $('#confirm-password').disabled = !creatingAccount;
-  $('#confirm-password').required = creatingAccount;
-  $('#signup-notice').hidden = !creatingAccount;
-  $('#password').minLength = creatingAccount ? 12 : 1;
-  $('#password').autocomplete = creatingAccount ? 'new-password' : 'current-password';
-  $('#password').value = ''; $('#confirm-password').value = ''; $('#login-message').textContent = '';
-});
-
 $('#login-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (signingIn) return;
   const email = $('#email').value.trim();
   const password = $('#password').value;
-  if (creatingAccount && (password.length < 12 || password !== $('#confirm-password').value)) {
-    $('#login-message').textContent = 'Use at least 12 characters and make sure both passwords match.'; return;
-  }
-  signingIn = true; $('#auth-submit').disabled = true; $('#auth-toggle').disabled = true;
-  $('#login-message').textContent = creatingAccount ? 'Creating your account…' : 'Checking staff access…';
+  signingIn = true; $('#auth-submit').disabled = true;
+  $('#login-message').textContent = 'Checking staff access…';
   try {
-    if (creatingAccount) {
-      const active = await database.signUp(email, password);
-      $('#login-message').textContent = active ? 'Account created. Ask the project owner to approve your admin access, then sign in.' : 'If this address is eligible, a confirmation email has been sent. Verify it, then ask the project owner to approve admin access.';
-    } else {
-      const user = await database.signIn(email, password);
-      if (user) await enterDashboard(user);
-    }
+    const user = await database.signIn(email, password);
+    if (user) await enterDashboard(user);
   } catch (error) { $('#login-message').textContent = errorMessage(error); }
   finally {
-    $('#password').value = ''; $('#confirm-password').value = '';
-    signingIn = false; $('#auth-submit').disabled = false; $('#auth-toggle').disabled = false;
+    $('#password').value = '';
+    signingIn = false; $('#auth-submit').disabled = false;
   }
 });
 

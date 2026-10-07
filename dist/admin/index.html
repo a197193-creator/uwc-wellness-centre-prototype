@@ -9,8 +9,8 @@
   <script defer src="../vendor/supabase.js"></script>
   <script defer src="../demo-config.js"></script>
   <script defer src="../appointment-rules.js?v=20261005-1"></script>
-  <script defer src="../admin-data.js?v=20261006-1"></script>
-  <script defer src="../admin.js?v=20261006-1"></script>
+  <script defer src="../admin-data.js?v=20261007-1"></script>
+  <script defer src="../admin.js?v=20261007-1"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -26,12 +26,19 @@
       <form id="login-form">
         <label for="email">Staff email</label><input id="email" type="email" autocomplete="username" maxlength="254" required>
         <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" maxlength="128" required>
-        <label id="confirm-password-label" for="confirm-password" hidden>Confirm password<input id="confirm-password" type="password" autocomplete="new-password" maxlength="128" disabled></label>
-        <p id="signup-notice" class="hint" hidden>Use at least 12 characters. New accounts need approval by the project owner before they can see bookings. Email verification may also be required.</p>
         <button class="button" id="auth-submit" type="submit">Sign in</button>
       </form>
-      <button id="auth-toggle" class="link-button auth-toggle" type="button">Create staff account</button>
-      <details class="staff-help"><summary>First admin setup</summary><p>Create your account here, then the project owner must add its user ID to <code>admin_users</code> in Supabase. An organisation login is not a staff account.</p><a href="https://supabase.com/dashboard/project/fxgzewuwiccmaqayfclm/auth/users" target="_blank" rel="noopener">Open Authentication → Users ↗</a><p>Setup instructions: <a href="https://github.com/a197193-creator/uwc-wellness-centre-prototype/blob/main/docs/STAFF-DASHBOARD-SETUP.md" target="_blank" rel="noopener">read the guide ↗</a></p></details>
+      <!--
+        Staff account setup steps (project owner only; not displayed on the page):
+        1. Open the Supabase project: https://supabase.com/dashboard/project/fxgzewuwiccmaqayfclm/auth/users
+        2. In Authentication > Users, choose Add user > Create new user.
+        3. Enter the staff email and a private password, then confirm the email
+           or use Auto Confirm User for a trusted staff member when offered.
+        4. In SQL Editor, use docs/STAFF-DASHBOARD-SETUP.md to approve that
+           user's ID with the admin role in public.admin_users. Only approve trusted staff.
+        5. Return to /admin/ and sign in with the approved email and password.
+        Never put staff passwords or service-role keys in the website code.
+      -->
       <p id="login-message" class="message" role="status" aria-live="polite"></p>
     </section>
     <section id="dashboard" hidden>
