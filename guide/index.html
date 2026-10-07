@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Static guide: no login scripts, customer records or database requests are needed. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#124f46" />
+    <meta
+      name="description"
+      content="A short guide to the UWC prototype pages and their code files."
+    />
+    <title>Website guide — UWC</title>
+    <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../demo.css?v=20261007-2" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="demo-header">
+      <div class="demo-wrap header-row">
+        <a class="brand" href="/" aria-label="UWC home">
+          <img src="../assets/uwc-mark.svg" width="42" height="42" alt="" />
+          <span><strong>UWC.</strong><small>Website guide</small></span>
+        </a>
+        <nav aria-label="Page navigation">
+          <a href="/">Public site</a>
+          <a href="/track/">Track my booking</a>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="demo-wrap guide-main">
+      <p class="eyebrow">QUICK PAGE GUIDE</p>
+      <h1>What each page contains.</h1>
+      <p class="intro">A short guide for reviewing the website and finding the right code file.</p>
+      <div class="demo-banner">
+        <strong>Prototype only.</strong> Demo requests are saved for review. No payment is taken,
+        and no real UWC appointment is reserved. Use test contact details.
+      </div>
+
+      <!-- Each card maps a real route to its visible purpose and first-party source files. -->
+      <div class="guide-grid">
+        <section class="card guide-card" aria-labelledby="public-guide-title">
+          <p class="eyebrow">01 / PUBLIC WEBSITE</p>
+          <h2 id="public-guide-title"><a href="/">Explore UWC &amp; packages ↗</a></h2>
+          <ul>
+            <li>About UWC: background, services and contact information.</li>
+            <li>Four screening packages: price, inclusions and comparisons.</li>
+            <li>Build your own: search and select individual components.</li>
+            <li>My plan: view totals, remove items and continue to details.</li>
+          </ul>
+          <p class="guide-files">
+            <strong>Files:</strong> <code>index.html</code>, <code>app.js</code>,
+            <code>catalogue.js</code>, <code>icons.js</code>.
+          </p>
+        </section>
+
+        <section class="card guide-card" aria-labelledby="booking-guide-title">
+          <p class="eyebrow">02 / BOOKING STEPS</p>
+          <h2 id="booking-guide-title">Inside the public website</h2>
+          <ul>
+            <li>Customer details: name, contact, email and consent.</li>
+            <li>Appointment: choose a weekday/morning time within three months.</li>
+            <li>Review: check everything before sending the demo request.</li>
+            <li>Confirmation: save/copy the code, download PDF or print.</li>
+          </ul>
+          <p class="guide-files">
+            <strong>Files:</strong> dialogs in <code>index.html</code>, <code>app.js</code>,
+            <code>appointment-rules.js</code>, <code>pdf.js</code>.
+          </p>
+        </section>
+
+        <section class="card guide-card" aria-labelledby="track-guide-title">
+          <p class="eyebrow">03 / GUEST TRACKER</p>
+          <h2 id="track-guide-title"><a href="/track/">Track my booking ↗</a></h2>
+          <ul>
+            <li>Enter a booking code; no customer login is needed.</li>
+            <li>See the package, appointment time and request status.</li>
+            <li>Read messages marked customer-visible by staff.</li>
+            <li>Reply or suggest a new time when changes are requested.</li>
+          </ul>
+          <p class="guide-files">
+            <strong>Files:</strong> <code>track/index.html</code>, <code>track.js</code>, shared
+            <code>demo.css</code>.
+          </p>
+        </section>
+
+        <section class="card guide-card" aria-labelledby="admin-guide-title">
+          <p class="eyebrow">04 / STAFF DASHBOARD</p>
+          <h2 id="admin-guide-title"><a href="/admin/">Admin dashboard ↗</a></h2>
+          <ul>
+            <li>Sign in with an owner-approved staff account.</li>
+            <li>Search, filter and sort submitted requests.</li>
+            <li>Approve, reject, request changes or reschedule.</li>
+            <li>View the day schedule, notes and action history.</li>
+          </ul>
+          <p class="guide-files">
+            <strong>Files:</strong> <code>admin/index.html</code>, <code>admin.js</code>,
+            <code>admin-data.js</code>, shared <code>demo.css</code>.
+          </p>
+        </section>
+      </div>
+
+      <!-- Short ownership map; detailed explanations live in docs/CODE-GUIDE.md in the repository. -->
+      <section class="card guide-card guide-editing" aria-labelledby="editing-guide-title">
+        <p class="eyebrow">CODE QUICK REFERENCE</p>
+        <h2 id="editing-guide-title">Where to make changes</h2>
+        <ul>
+          <li><strong>Page text/structure:</strong> the relevant <code>index.html</code> file.</li>
+          <li>
+            <strong>Packages/prices:</strong> <code>catalogue.js</code>, not copied price text.
+          </li>
+          <li>
+            <strong>Public design:</strong> <code>styles.css</code> →
+            <code>enhancements.css</code> → <code>readability.css</code>, in that order.
+          </li>
+          <li>
+            <strong>Booking rules:</strong> <code>appointment-rules.js</code>; server rules must
+            agree.
+          </li>
+          <li>
+            <strong>Database security:</strong> <code>supabase/</code>; keep credentials private and
+            do not edit applied migrations.
+          </li>
+          <li>
+            <strong>This guide:</strong> <code>guide/index.html</code>. More detail:
+            <code>docs/CODE-GUIDE.md</code> in the project folder.
+          </li>
+        </ul>
+      </section>
+      <p class="footnote">
+        Edit source files, test, run <code>build.ps1</code>, then push to GitHub. Updates use the
+        same public Vercel address.
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,2 +1,4 @@
 [functions.booking-gateway]
+# Guests have no Auth session. The gateway and its SQL RPCs validate code/data and rate limits.
+# Staff access is separate and still requires Auth plus an approved admin_users role.
 verify_jwt = false

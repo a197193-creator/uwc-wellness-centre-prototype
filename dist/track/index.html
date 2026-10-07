@@ -1,52 +1,125 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#124f46">
-  <title>Track my booking — UWC demo</title>
-  <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20261005-1">
-  <script src="../demo-config.js?v=20260930-1" defer></script>
-  <script src="../appointment-rules.js?v=20261005-1" defer></script>
-  <script src="../track.js?v=20261005-1" defer></script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="demo-header"><div class="demo-wrap header-row">
-    <a class="brand" href="/" aria-label="UWC home"><img src="../assets/uwc-mark.svg" width="42" height="42" alt=""><span><strong>UWC.</strong><small>UMBI Wellness Centre</small></span></a>
-    <nav aria-label="Page navigation"><a href="/">Explore packages</a><a href="/track/" aria-current="page">Track my booking</a></nav>
-  </div></header>
-  <main id="main" class="demo-wrap narrow">
-    <p class="eyebrow">BOOKING DEMONSTRATION</p>
-    <h1>Track my booking.</h1>
-    <p class="intro">Enter your code to see the status of a demo request. Save it somewhere private. This prototype does not confirm a real appointment or take payment.</p>
-    <form id="lookup-form" class="card lookup-card" novalidate>
-      <label for="booking-code">Booking code</label>
-      <div class="input-row"><input id="booking-code" name="booking-code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="BK-XXXXXXXXXXXX" maxlength="80" required><button class="button" type="submit">Find booking</button></div>
-      <p class="hint">Spaces and letter case are handled automatically.</p>
-    </form>
-    <p id="lookup-message" class="message" role="status" aria-live="polite"></p>
-    <section id="booking-result" class="card result-card" aria-label="Booking result" hidden>
-      <div class="result-top"><div><p class="eyebrow">YOUR BOOKING</p><h2 id="result-package"></h2></div><span id="result-status" class="badge"></span></div>
-      <div class="code-panel"><div><span>Booking code · save this</span><strong id="result-code"></strong></div><button id="copy-code" class="outline-button" type="button">Copy code</button></div>
-      <dl class="facts"><div><dt>Appointment</dt><dd id="result-date"></dd></div><div><dt>Payment status</dt><dd id="result-payment"></dd></div><div><dt>Amount paid</dt><dd id="result-amount"></dd></div><div><dt>Created</dt><dd id="result-created"></dd></div></dl>
-      <div id="customer-note-wrap" class="notice" hidden><h3>Message from UWC</h3><p id="customer-note"></p></div>
-      <div id="response-wrap" class="response-wrap" hidden>
-        <h3>Respond to the change request</h3>
-        <p>Choose one suggested time or send a new preference. This demo does not reserve a live slot.</p>
-        <form id="response-form">
-          <fieldset id="suggestions"><legend>Suggested times</legend></fieldset>
-          <label for="requested-at">Or choose another preferred date and time</label><input id="requested-at" type="datetime-local" aria-describedby="response-time-hint">
-          <p id="response-time-hint" class="hint">Enter Malaysia time: a weekday from tomorrow through the next three months, at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m.</p>
-          <label for="response-message">Your message (optional if a time is selected)</label><textarea id="response-message" maxlength="1000" rows="3" placeholder="Tell UWC what works for you"></textarea>
-          <button class="button" type="submit">Send response</button>
-        </form>
-        <p id="response-message-status" class="message" role="status" aria-live="polite"></p>
+  <head>
+    <!-- No Auth SDK needed: track.js uses the restricted guest gateway, never public table SELECT. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#124f46" />
+    <title>Track my booking — UWC demo</title>
+    <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../demo.css?v=20261007-2" />
+    <script src="../demo-config.js?v=20261007-2" defer></script>
+    <script src="../appointment-rules.js?v=20261007-2" defer></script>
+    <script src="../track.js?v=20261007-2" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="demo-header">
+      <div class="demo-wrap header-row">
+        <a class="brand" href="/" aria-label="UWC home"
+          ><img src="../assets/uwc-mark.svg" width="42" height="42" alt="" /><span
+            ><strong>UWC.</strong><small>UMBI Wellness Centre</small></span
+          ></a
+        >
+        <nav aria-label="Page navigation">
+          <a href="/">Explore packages</a><a href="/track/" aria-current="page">Track my booking</a>
+        </nav>
       </div>
-    </section>
-    <p class="footnote">For an actual UWC booking or payment question, please contact UWC directly. This tracker is a demonstration.</p>
-  </main>
-</body>
+    </header>
+    <main id="main" class="demo-wrap narrow">
+      <p class="eyebrow">BOOKING DEMONSTRATION</p>
+      <h1>Track my booking.</h1>
+      <p class="intro">
+        Enter your code to see the status of a demo request. Save it somewhere private. This
+        prototype does not confirm a real appointment or take payment.
+      </p>
+      <!-- Client normalises codes; the server enforces validation and rate limits. -->
+      <form id="lookup-form" class="card lookup-card" novalidate>
+        <label for="booking-code">Booking code</label>
+        <div class="input-row">
+          <input
+            id="booking-code"
+            name="booking-code"
+            type="text"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+            placeholder="BK-XXXXXXXXXXXX"
+            maxlength="80"
+            required
+          /><button class="button" type="submit">Find booking</button>
+        </div>
+        <p class="hint">Spaces and letter case are handled automatically.</p>
+      </form>
+      <!-- Announce loading/errors; only safe returned fields populate the initially hidden result. -->
+      <p id="lookup-message" class="message" role="status" aria-live="polite"></p>
+      <section id="booking-result" class="card result-card" aria-label="Booking result" hidden>
+        <div class="result-top">
+          <div>
+            <p class="eyebrow">YOUR BOOKING</p>
+            <h2 id="result-package"></h2>
+          </div>
+          <span id="result-status" class="badge"></span>
+        </div>
+        <div class="code-panel">
+          <div><span>Booking code · save this</span><strong id="result-code"></strong></div>
+          <button id="copy-code" class="outline-button" type="button">Copy code</button>
+        </div>
+        <dl class="facts">
+          <div>
+            <dt>Appointment</dt>
+            <dd id="result-date"></dd>
+          </div>
+          <div>
+            <dt>Payment status</dt>
+            <dd id="result-payment"></dd>
+          </div>
+          <div>
+            <dt>Amount paid</dt>
+            <dd id="result-amount"></dd>
+          </div>
+          <div>
+            <dt>Created</dt>
+            <dd id="result-created"></dd>
+          </div>
+        </dl>
+        <!-- Customer-visible notes only. Private staff notes must never be returned here. -->
+        <div id="customer-note-wrap" class="notice" hidden>
+          <h3>Message from UWC</h3>
+          <p id="customer-note"></p>
+        </div>
+        <!-- Changes Requested only: a secure reply returns the request to Pending Review. -->
+        <div id="response-wrap" class="response-wrap" hidden>
+          <h3>Respond to the change request</h3>
+          <p>
+            Choose one suggested time or send a new preference. This demo does not reserve a live
+            slot.
+          </p>
+          <form id="response-form">
+            <fieldset id="suggestions"><legend>Suggested times</legend></fieldset>
+            <label for="requested-at">Or choose another preferred date and time</label
+            ><input id="requested-at" type="datetime-local" aria-describedby="response-time-hint" />
+            <p id="response-time-hint" class="hint">
+              Enter Malaysia time: a weekday from tomorrow through the next three months, at 8:00,
+              8:30, 9:00, 9:30 or 10:00 a.m.
+            </p>
+            <label for="response-message">Your message (optional if a time is selected)</label
+            ><textarea
+              id="response-message"
+              maxlength="1000"
+              rows="3"
+              placeholder="Tell UWC what works for you"
+            ></textarea>
+            <button class="button" type="submit">Send response</button>
+          </form>
+          <p id="response-message-status" class="message" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+      <p class="footnote">
+        For an actual UWC booking or payment question, please contact UWC directly. This tracker is
+        a demonstration.
+      </p>
+    </main>
+  </body>
 </html>

@@ -1,225 +1,1016 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore the UMBI Wellness Centre screening catalogue and build your personal screening plan. A prototype for review.">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#124f46">
-  <title>UWC — A clearer picture of your wellbeing</title>
-  <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20260928-2">
-  <link rel="stylesheet" href="enhancements.css?v=20260930-3">
-  <link rel="stylesheet" href="readability.css?v=20261006-2">
-  <script src="catalogue.js?v=20260928-2" defer></script>
-  <script src="icons.js?v=20260928-2" defer></script>
-  <script src="pdf.js?v=20260930-2" defer></script>
-  <script src="demo-config.js?v=20260930-2" defer></script>
-  <script src="appointment-rules.js?v=20261005-1" defer></script>
-  <script src="app.js?v=20261006-2" defer></script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <div class="topline"><div class="container"><span>A new perspective on wellbeing.</span><span id="prototype-status"><i class="status-dot"></i><span>Website prototype · For review</span></span></div></div>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="#home" aria-label="UWC — UMBI Wellness Centre home"><img src="assets/uwc-mark.svg" width="44" height="44" alt=""><span><b>UWC<span class="brand-dot">.</span></b><small>UMBI Wellness Centre</small></span></a>
-      <nav aria-label="Main navigation"><a href="#about">About UWC</a><a href="#packages">Screening package</a><a href="#tests">Build your own</a><a href="#how-it-works">How it works</a><a href="/track/">Track my booking</a></nav>
-      <button class="plan-trigger" data-action="open-plan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0 1 10 0v1M5 7h14l1 14H4L5 7Z"/></svg><span>My plan</span><strong class="header-plan-total plan-total-live">RM0</strong><b class="plan-count">0</b></button>
-    </div>
-  </header>
-  <main id="main">
-    <section class="hero container" id="home" aria-label="Wellness introduction carousel" aria-roledescription="carousel">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="mini-star">✳</span> HEALTH, WITH YOU AT THE CENTRE</p>
-        <div id="hero-text" aria-live="polite" aria-atomic="true"><h1>A clearer picture.<br><em>A healthier you.</em></h1><p class="hero-description">Explore four proposed precision-screening packages, compare their listed components and build a personal selection.</p></div>
-        <div class="hero-actions"><a class="button primary" href="#packages">Explore packages <span aria-hidden="true">↗</span></a><a class="text-link" href="#tests">Build your own <span aria-hidden="true">→</span></a></div>
-        <div class="hero-bottom"><span class="hero-caption">Your wellbeing.<br><b>Your starting point.</b></span><div class="slide-controls"><button class="icon-button" data-slide="previous" aria-label="Previous introduction slide">←</button><div class="slide-dots"><button aria-label="Introduction slide 1" aria-current="true" data-slide="0"></button><button aria-label="Introduction slide 2" aria-current="false" data-slide="1"></button></div><button class="icon-button" data-slide="next" aria-label="Next introduction slide">→</button></div></div>
-      </div>
-      <div class="hero-visual">
-        <img src="assets/uwc-official-reception.jpg" alt="UWC reception staff welcoming a visitor at the screening registration counter" width="1536" height="1024" fetchpriority="high">
-        <span class="visual-label"><i class="status-dot"></i> WELLNESS STARTS WITH UNDERSTANDING</span>
-        <div class="hero-float"><span class="float-icon" aria-hidden="true">✳</span><div><b>Small steps. A bigger picture.</b><span>Accessible screening, guided by UMBI.</span></div></div>
-        <span class="photo-note">UMBI Wellness Centre · Reception</span>
-      </div>
-    </section>
-    <div class="feature-strip"><div class="container"><div><b>04</b><span>Precision package options</span></div><div><b>RM450</b><span>Entry proposed package price</span></div><div><b>28</b><span>Listed services and pathways</span></div><div><span class="strip-icon" aria-hidden="true">↗</span><span>Package or custom selection</span></div></div></div>
-
-    <section class="about-section" id="about" aria-labelledby="about-title">
+  <head>
+    <!-- Metadata identifies a review prototype; search engines should not index it. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore the UMBI Wellness Centre screening catalogue and build your personal screening plan. A prototype for review."
+    />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#124f46" />
+    <title>UWC — A clearer picture of your wellbeing</title>
+    <link rel="icon" href="assets/uwc-mark.svg" type="image/svg+xml" />
+    <!-- CSS order: base layout, feature additions, then readability overrides. -->
+    <link rel="stylesheet" href="styles.css?v=20261007-2" />
+    <link rel="stylesheet" href="enhancements.css?v=20261007-2" />
+    <link rel="stylesheet" href="readability.css?v=20261007-2" />
+    <!-- defer runs scripts after parsing, in this order; app.js uses the shared modules above it. -->
+    <script src="catalogue.js?v=20261007-2" defer></script>
+    <script src="icons.js?v=20261007-2" defer></script>
+    <script src="pdf.js?v=20261007-2" defer></script>
+    <script src="demo-config.js?v=20261007-2" defer></script>
+    <script src="appointment-rules.js?v=20261007-2" defer></script>
+    <script src="app.js?v=20261007-2" defer></script>
+  </head>
+  <body>
+    <!-- Keyboard users can skip repeated navigation and go directly to the content. -->
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="topline">
       <div class="container">
-        <details class="about-disclosure">
-          <summary class="about-summary">
-            <span class="about-summary-copy">
-              <span class="eyebrow">ABOUT UMBI WELLNESS CENTRE</span>
-              <span class="about-summary-title" id="about-title" role="heading" aria-level="2">Discover UWC.</span>
-              <span class="about-summary-description">Background, screening services, laboratory quality and contact information.</span>
-            </span>
-            <span class="about-toggle" aria-hidden="true"><span class="about-toggle-closed">Open section</span><span class="about-toggle-open">Close section</span><span class="about-toggle-icon">+</span></span>
-          </summary>
-
-          <div class="section about-expanded-content">
-            <div class="about-layout">
-              <div class="about-intro">
-                <p class="eyebrow">UMBI WELLNESS CENTRE</p>
-                <h2>Accessible screening, guided by UMBI.</h2>
-                <p class="about-lead">UMBI Wellness Centre (UWC), also known as Pusat Saringan Kesihatan UMBI, is a health-screening centre operated by the UKM Medical Molecular Biology Institute (UMBI), Universiti Kebangsaan Malaysia.</p>
-                <p>UWC provides accessible and affordable health-screening services to support the early detection of health risks and help individuals better understand and monitor their health. Its services include laboratory investigations, physical and body-composition measurements, cardiovascular and respiratory assessments, and optional health-screening tests.</p>
-                <p>Guided by the principle <strong>“Detect Early, Stay Healthy,”</strong> UWC encourages regular health screening as a step towards early intervention, informed health decisions and improved quality of life.</p>
-                <div class="about-audience" aria-label="Who UWC serves"><span>UKM staff</span><span>Students</span><span>Members of the public</span></div>
-              </div>
-
-              <div class="about-information">
-                <article class="about-service-card">
-                  <p class="eyebrow">SCREENING AT UWC</p>
-                  <h3>One centre, several views of your health.</h3>
-                  <ul>
-                    <li>Laboratory investigations</li>
-                    <li>Body-composition and physical measurements</li>
-                    <li>Cardiovascular and respiratory assessments</li>
-                    <li>Optional health-screening tests</li>
-                  </ul>
-                  <p class="appointment-note">Services are available by prior appointment and subject to the applicable service arrangements.</p>
-                </article>
-
-                <aside class="accreditation-note" aria-labelledby="accreditation-title">
-                  <span class="accreditation-mark" aria-hidden="true">✓</span>
-                  <div><p class="eyebrow">LABORATORY QUALITY</p><h3 id="accreditation-title">MS ISO 15189-accredited quality system</h3><p>Laboratory analyses associated with UWC health-screening services are performed using the laboratory facilities supporting The Malaysian Cohort project at UMBI, UKM. The laboratory operates under an MS ISO 15189-accredited medical laboratory quality system, supporting the quality, reliability and competency of the laboratory testing processes <strong>within its accredited scope</strong>.</p></div>
-                </aside>
-              </div>
-            </div>
-
-            <div class="about-contact" aria-labelledby="contact-title">
-              <div class="about-contact-heading"><p class="eyebrow">CONTACT &amp; LOCATION</p><h3 id="contact-title">Reach UWC directly.</h3></div>
-              <address>
-                <a href="tel:1800882007"><span>Appointment hotline</span><strong>1-800-88-2007</strong></a>
-                <a href="https://wa.me/60103156405" target="_blank" rel="noopener noreferrer"><span>Mobile / WhatsApp</span><strong>010-315 6405</strong></a>
-                <a href="mailto:umbiwellness@gmail.com"><span>Email</span><strong>umbiwellness@gmail.com</strong></a>
-                <p><span>Visit UWC</span><strong>UMBI, UKM, Jalan Yaacob Latiff, Bandar Tun Razak, 56000 Cheras, Kuala Lumpur</strong></p>
-              </address>
-              <div class="about-socials" aria-label="Official UWC links"><a href="https://www.ukm.my/umbi/wellness/" target="_blank" rel="noopener noreferrer">Official website ↗</a><a href="https://www.facebook.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Facebook ↗</a><a href="https://www.instagram.com/umbi.wellness/" target="_blank" rel="noopener noreferrer">Instagram ↗</a></div>
-            </div>
-          </div>
-        </details>
+        <span>A new perspective on wellbeing.</span
+        ><span id="prototype-status"
+          ><i class="status-dot"></i><span>Website prototype · For review</span></span
+        >
       </div>
-    </section>
-
-    <section class="section container" id="packages" aria-labelledby="packages-title">
-      <div class="section-heading"><div><p class="eyebrow">FIND YOUR STARTING POINT</p><h2 id="packages-title">Four paths to explore.</h2></div><p>Press a package to see its proposed price,<br class="desktop-only"> supplied comparison and included components.</p></div>
-      <div class="package-tabs" role="tablist" aria-label="Screening packages" id="package-tabs"></div>
-      <div id="package-panel" role="tabpanel" tabindex="0"></div>
-      <p class="source-note"><span aria-hidden="true">ⓘ</span> Package information uses the supplied UWC proposal, comparison workbook and supporting laboratory materials. Asterisks identify working prices. All packages, pathways, services and prices remain subject to UWC costing, clinical review and confirmation.</p>
-    </section>
-
-    <section class="individual-section" id="tests" aria-labelledby="tests-title"><div class="container section">
-      <div class="section-heading"><div><p class="eyebrow">BUILD YOUR OWN</p><h2 id="tests-title">Choose only what you need.</h2></div><p>Select listed components individually.<br>We will compare matching selections with the four packages.</p></div>
-      <div class="catalogue-toolbar"><label class="search-field"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span class="sr-only">Search individual tests</span><input id="test-search" type="search" placeholder="Search tests, e.g. vitamin, heart, DEXA…" autocomplete="off"></label><label class="category-field"><span class="sr-only">Filter tests by category</span><select id="test-category"><option value="all">All categories</option></select></label></div>
-      <div class="results-line"><span id="results-count" role="status"></span><button class="text-link" id="reset-filters" hidden>Clear filters ×</button></div>
-      <div class="test-grid" id="test-grid"></div>
-      <div class="load-more"><button class="button secondary" id="show-all-tests">View all tests <span aria-hidden="true">↓</span></button></div>
-      <p class="source-note">À la carte prices and package totals are proposed comparison figures. Items marked with an asterisk are working prices pending quotations or final service definitions. Package 2 currently shows a negative RM140 saving and requires review.</p>
-    </div></section>
-
-    <section class="care-section" aria-labelledby="care-title"><div class="container section">
-      <div class="section-heading"><div><p class="eyebrow">SCREENING, UP CLOSE</p><h2 id="care-title">Real care. Real facilities.</h2></div><p>Get to know UWC through its screening activities<br class="desktop-only"> and the people guiding every step.</p></div>
-      <div class="care-gallery">
-        <figure class="care-card"><img src="assets/uwc-official-inbody.jpg" alt="A visitor using the InBody body composition equipment at UWC" width="1024" height="752" loading="lazy"><figcaption><b>Body composition</b><span>InBody assessment at UWC</span></figcaption></figure>
-        <figure class="care-card"><img src="assets/uwc-official-blood.jpg" alt="UWC staff collecting a blood sample from a seated visitor" width="1024" height="683" loading="lazy"><figcaption><b>Blood collection</b><span>Laboratory screening at UWC</span></figcaption></figure>
-        <figure class="care-card care-spirometry"><img src="assets/uwc-official-spirometry.jpg" alt="A visitor completing a spirometry breathing assessment at UWC" width="683" height="1024" loading="lazy"><figcaption><b>Spirometry</b><span>Lung function assessment at UWC</span></figcaption></figure>
-        <figure class="care-card"><img src="assets/uwc-official-ecg.jpg" alt="A visitor undergoing an electrocardiogram at UWC" width="651" height="433" loading="lazy"><figcaption><b>Electrocardiogram</b><span>ECG assessment at UWC</span></figcaption></figure>
-        <figure class="care-card"><img src="assets/uwc-dexa.jpg" alt="Participant undergoing a DEXA body composition assessment at UMBI" width="2730" height="1536" loading="lazy"><figcaption><b>DEXA assessment</b><span>Body composition and bone health insight</span></figcaption></figure>
-        <figure class="care-card"><img src="assets/uwc-retinal.jpg" alt="Participant receiving retinal imaging at UMBI" width="2730" height="1536" loading="lazy"><figcaption><b>Retinal imaging</b><span>A closer view of eye health</span></figcaption></figure>
-      </div>
-      <p class="source-note">Reception, InBody, blood collection, ECG and spirometry photographs are from the <a href="https://www.ukm.my/umbi/wellness/" target="_blank" rel="noopener noreferrer">official UWC website</a>. DEXA and retinal images show UMBI/TMC screening activities.</p>
-    </div></section>
-
-    <section class="section container" id="how-it-works" aria-labelledby="how-title">
-      <div class="section-heading"><div><p class="eyebrow">THOUGHTFULLY SIMPLE</p><h2 id="how-title">Your next step, made clearer.</h2></div><p>Explore at your own pace.<br>Choose a plan, enter test details, select a time and review before sending.</p></div>
-      <div class="steps"><article><span class="step-number">01 / EXPLORE</span><span class="step-symbol" aria-hidden="true">⌕</span><h3>Review four packages</h3><p>Open each precision package to see its proposed price, supplied comparison and cumulative inclusions.</p></article><article><span class="step-number">02 / PERSONALISE</span><span class="step-symbol" aria-hidden="true">⊕</span><h3>Build your own selection</h3><p>Choose individual components. If your selection matches a package, the proposed price comparison appears automatically.</p></article><article><span class="step-number">03 / REQUEST</span><span class="step-symbol" aria-hidden="true">↗</span><h3>Details, time and final review</h3><p>Enter test contact details, choose a preferred appointment and review the request before sending. Save the tracking code; no real appointment or payment is made.</p></article></div>
-    </section>
-
-    <section class="faq-section container" aria-labelledby="faq-title"><div><p class="eyebrow">GOOD TO KNOW</p><h2 id="faq-title">A few helpful answers.</h2><p>Still exploring? That's exactly<br>what this catalogue is here for.</p></div><div class="faq-list">
-      <details><summary>Can I choose individual services without a package?</summary><p>Yes. Use the Build Your Own catalogue or the Add buttons within each package breakdown. When the custom selection matches a package’s cumulative components, the supplied package comparison appears automatically.</p></details>
-      <details><summary>Are these final prices and available services?</summary><p>No. This is a review prototype using proposed UWC pricing. Asterisks mark working estimates. Genomic pathways and services with overlapping scope need confirmation before a final quotation. No savings claims are made from the draft comparison totals.</p></details>
-      <details><summary>How does the package comparison work?</summary><p>The prototype matches selected components against Packages 1–4 and shows the supplied à la carte total, package price and difference. Package 2 currently has a negative RM140 saving, and Package 4 is a starting-price pathway; both require UWC review before commercial use.</p></details>
-      <details><summary>Can I book or pay through this website?</summary><p>You can submit a demo appointment request and track its status with a code. This does not reserve a live UWC slot. No payment is requested or charged. Please use test contact details while the service is a prototype.</p></details>
-    </div></section>
-  </main>
-  <footer class="container"><div class="footer-top"><a class="brand" href="#home"><img src="assets/uwc-mark.svg" alt="" width="42" height="42"><span><b>UWC<span class="brand-dot">.</span></b><small>UMBI Wellness Centre</small></span></a><p>A clearer picture of your wellbeing.</p><a class="text-link" href="#about">About &amp; contact ↗</a></div><div class="footer-bottom"><span>© 2026 UMBI Wellness Centre · Design concept for review</span><span>Prototype only. Not medical advice or a confirmed service offer.</span></div></footer>
-  <dialog id="plan-dialog" class="plan-dialog" aria-labelledby="plan-title"><div class="drawer-shell"><div class="dialog-header"><div><p class="eyebrow">MADE FOR YOU</p><h2 id="plan-title">Your screening plan<span class="brand-dot">.</span></h2></div><button class="icon-button" data-close="plan-dialog" aria-label="Close screening plan">×</button></div><div class="drawer-body"><p class="drawer-intro">A starting point for your next health conversation.</p><div id="package-offer" aria-live="polite"></div><div id="plan-items"></div><div id="plan-warnings"></div></div><div class="drawer-footer"><div class="subtotal-row"><span id="total-label">Indicative total</span><b id="plan-total">RM0</b></div><p class="total-note" id="plan-total-note"></p><button class="button primary full pay-button" data-action="open-details">Continue to details · <span class="plan-total-live">RM0</span> <span aria-hidden="true">→</span></button><div class="drawer-secondary"><button class="text-link" id="clear-plan">Clear plan</button></div><p class="privacy-note">Your plan is saved in this browser. Submitting a demo appointment sends your entered details to the prototype database. No payment is taken.</p></div></div></dialog>
-  <dialog id="test-dialog" class="detail-dialog" aria-labelledby="test-detail-title"><button class="icon-button detail-close" data-close="test-dialog" aria-label="Close test details">×</button><div id="test-detail"></div></dialog>
-  <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title"><h2 id="confirm-title">Update your plan?</h2><p id="confirm-message"></p><div class="confirm-actions"><button class="button secondary" data-close="confirm-dialog">Cancel</button><button class="button primary" id="confirm-action">Continue</button></div></dialog>
-  <dialog id="customer-dialog" class="customer-dialog" aria-labelledby="customer-title">
-    <div class="customer-shell">
-      <div class="customer-heading"><div><p class="eyebrow">STEP 02 / CUSTOMER DETAILS</p><h2 id="customer-title">A few details, then your appointment.</h2><p>Enter contact information for this booking demonstration. Required fields are marked <span aria-hidden="true">*</span>.</p></div><button class="icon-button" data-close="customer-dialog" aria-label="Close customer details">×</button></div>
-      <div class="customer-plan-strip"><span>Indicative plan total</span><strong class="plan-total-live">RM0</strong><button class="text-link" type="button" data-action="details-to-plan">Edit plan</button></div>
-      <form id="customer-form" method="dialog" novalidate autocomplete="on">
-        <div class="customer-fields">
-          <div class="customer-field"><label for="customer-name">Full name <span aria-hidden="true">*</span></label><input id="customer-name" name="name" type="text" autocomplete="name" maxlength="100" required aria-describedby="customer-name-hint customer-name-error"><p class="field-hint" id="customer-name-hint">Letters only. Spaces, apostrophes and hyphens are allowed.</p><p class="field-error" id="customer-name-error"></p></div>
-          <div class="customer-field"><label for="customer-phone">Contact number <span aria-hidden="true">*</span></label><input id="customer-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" maxlength="16" pattern="\+?[0-9]{7,15}" placeholder="e.g. +6012346567" required aria-describedby="customer-phone-hint customer-phone-error"><p class="field-hint" id="customer-phone-hint">Digits only, with an optional + at the beginning.</p><p class="field-error" id="customer-phone-error"></p></div>
-          <div class="customer-field customer-field-wide"><label for="customer-email">Email address <span aria-hidden="true">*</span></label><input id="customer-email" name="email" type="email" autocomplete="email" maxlength="254" required aria-describedby="customer-email-error"><p class="field-error" id="customer-email-error"></p></div>
-          <fieldset class="customer-choice" id="customer-contact-group" aria-describedby="customer-contact-error"><legend>Preferred contact method <span aria-hidden="true">*</span></legend><div class="customer-options"><label><input type="radio" name="contactMethod" value="Phone call" required> Phone call</label><label><input type="radio" name="contactMethod" value="WhatsApp"> WhatsApp</label><label><input type="radio" name="contactMethod" value="Email"> Email</label></div><p class="field-error" id="customer-contact-error"></p></fieldset>
-          <fieldset class="customer-choice" id="customer-first-time-group" aria-describedby="customer-first-time-error"><legend>Is this your first visit to UWC? <span aria-hidden="true">*</span></legend><div class="customer-options"><label><input type="radio" name="firstTime" value="Yes" required> Yes</label><label><input type="radio" name="firstTime" value="No"> No</label></div><p class="field-error" id="customer-first-time-error"></p></fieldset>
-          <div class="customer-field customer-field-wide"><label for="customer-notes">Booking notes <span class="optional-label">Optional</span></label><textarea id="customer-notes" name="notes" rows="3" maxlength="500" aria-describedby="customer-notes-hint customer-notes-error"></textarea><div class="field-meta"><span id="customer-notes-hint">Please do not enter identification numbers or medical history.</span><span id="customer-notes-count">0 / 500</span></div><p class="field-error" id="customer-notes-error"></p></div>
-        </div>
-        <div class="customer-privacy"><h3>Demo request and privacy notice</h3><p id="customer-privacy-notice">If I confirm a demo appointment request, my entered contact details, screening selection, preferred time and notes will be stored in the UWC prototype database for staff to review. This is not a real appointment or payment. I will use test details and will not enter identification numbers or medical history.</p><label class="customer-consent" for="customer-consent"><input id="customer-consent" name="consent" type="checkbox" required aria-describedby="customer-privacy-notice customer-consent-error"><span>I have read and agree to the demo request and privacy notice.</span></label><p class="field-error" id="customer-consent-error"></p></div>
-        <p class="customer-demo-note">Saving details here does not submit them. You will review the full request before sending it to the prototype database.</p>
-        <p id="customer-form-status" class="customer-form-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
-        <div class="customer-actions"><button class="button secondary" type="button" data-action="details-to-plan">Back to plan</button><button class="button primary" type="submit" id="save-customer-details">Save details &amp; choose appointment <span aria-hidden="true">→</span></button></div>
-      </form>
     </div>
-  </dialog>
-  <dialog id="appointment-dialog" class="appointment-dialog" aria-labelledby="appointment-title">
-    <div class="appointment-shell">
-      <div class="customer-heading"><div><p class="eyebrow">STEP 03 / PREFERRED APPOINTMENT</p><h2 id="appointment-title">Choose a date and time.</h2><p>Select a preferred time for your screening visit. This is a demonstration, not a live availability calendar.</p></div><button class="icon-button" data-close="appointment-dialog" aria-label="Close appointment selection">×</button></div>
-      <div class="customer-plan-strip"><span>Indicative plan total</span><strong class="plan-total-live">RM0</strong><button class="text-link" type="button" data-action="appointment-to-details">Edit details</button></div>
-      <fieldset class="appointment-choice" id="appointment-date-group" aria-describedby="appointment-date-hint appointment-window-hint appointment-date-error">
-        <legend>Preferred date <span aria-hidden="true">*</span></legend>
-        <p class="appointment-hint" id="appointment-date-hint">Browse by week or jump to a month. Weekends are unavailable; public-holiday exclusions are pending UWC confirmation.</p>
-        <div class="appointment-schedule-card">
-          <div class="appointment-schedule-header">
-            <h3>Schedule</h3>
-            <div class="appointment-schedule-controls">
-              <select id="appointment-month-select" aria-label="Jump to month"></select>
-              <button id="appointment-prev-week" type="button" aria-label="Previous week">‹</button>
-              <button id="appointment-next-week" type="button" aria-label="Next week">›</button>
-            </div>
+    <!-- data-action connects the plan button to the delegated click handler in app.js. -->
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#home" aria-label="UWC — UMBI Wellness Centre home"
+          ><img src="assets/uwc-mark.svg" width="44" height="44" alt="" /><span
+            ><b>UWC<span class="brand-dot">.</span></b
+            ><small>UMBI Wellness Centre</small></span
+          ></a
+        >
+        <nav aria-label="Main navigation">
+          <a href="#about">About UWC</a><a href="#packages">Screening package</a
+          ><a href="#tests">Build your own</a><a href="#how-it-works">How it works</a
+          ><a href="/track/">Track my booking</a>
+        </nav>
+        <button class="plan-trigger" data-action="open-plan">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 7V6a5 5 0 0 1 10 0v1M5 7h14l1 14H4L5 7Z" /></svg
+          ><span>My plan</span><strong class="header-plan-total plan-total-live">RM0</strong
+          ><b class="plan-count">0</b>
+        </button>
+      </div>
+    </header>
+    <main id="main">
+      <!-- Introduction carousel: app.js changes the text/photo without reloading the page. -->
+      <section
+        class="hero container"
+        id="home"
+        aria-label="Wellness introduction carousel"
+        aria-roledescription="carousel"
+      >
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="mini-star">✳</span> HEALTH, WITH YOU AT THE CENTRE</p>
+          <div id="hero-text" aria-live="polite" aria-atomic="true">
+            <h1>A clearer picture.<br /><em>A healthier you.</em></h1>
+            <p class="hero-description">
+              Explore four proposed precision-screening packages, compare their listed components
+              and build a personal selection.
+            </p>
           </div>
-          <p id="appointment-week-range" class="appointment-week-range" aria-live="polite"></p>
-          <div id="appointment-week" class="appointment-week" role="group"></div>
-          <div class="appointment-selected-card">
-            <span class="appointment-selected-icon" aria-hidden="true">▦</span>
-            <div><span class="appointment-selected-label">Your preferred date</span><strong id="appointment-selection-summary" aria-live="polite">No date selected yet</strong><small>Request only · UWC has not confirmed a booking</small></div>
+          <div class="hero-actions">
+            <a class="button primary" href="#packages"
+              >Explore packages <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#tests">Build your own <span aria-hidden="true">→</span></a>
+          </div>
+          <div class="hero-bottom">
+            <span class="hero-caption">Your wellbeing.<br /><b>Your starting point.</b></span>
+            <div class="slide-controls">
+              <button
+                class="icon-button"
+                data-slide="previous"
+                aria-label="Previous introduction slide"
+              >
+                ←
+              </button>
+              <div class="slide-dots">
+                <button
+                  aria-label="Introduction slide 1"
+                  aria-current="true"
+                  data-slide="0"
+                ></button
+                ><button
+                  aria-label="Introduction slide 2"
+                  aria-current="false"
+                  data-slide="1"
+                ></button>
+              </div>
+              <button class="icon-button" data-slide="next" aria-label="Next introduction slide">
+                →
+              </button>
+            </div>
           </div>
         </div>
-        <p id="appointment-window-hint" class="appointment-window-hint"></p>
-        <p class="field-error" id="appointment-date-error"></p>
-      </fieldset>
-      <fieldset class="appointment-choice" id="appointment-time-group" aria-describedby="appointment-time-hint appointment-time-error"><legend>Preferred time <span aria-hidden="true">*</span></legend><p class="appointment-hint" id="appointment-time-hint">Morning demonstration times; the final slot interval and 10:00 a.m. start require UWC confirmation.</p><div class="appointment-time-grid"><label><input type="radio" name="preferredTime" value="08:00"><span>8:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="08:30"><span>8:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:00"><span>9:00 a.m.</span></label><label><input type="radio" name="preferredTime" value="09:30"><span>9:30 a.m.</span></label><label><input type="radio" name="preferredTime" value="10:00"><span>10:00 a.m.</span></label></div><p class="field-error" id="appointment-time-error"></p></fieldset>
-      <div class="appointment-notes"><p>Please allow approximately 30 minutes to 2 hours for your visit, depending on the selected screening package or services.</p><p>Customers may request to cancel or reschedule their appointment at any time. However, customers are encouraged to notify UWC at least a day before the scheduled appointment date, whenever possible.</p></div>
-      <p class="appointment-prototype-note">This is a preferred time only. You can review everything before sending a demo request. Times do not show live availability; no payment is taken.</p>
-      <p id="appointment-status" class="customer-form-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
-      <div class="customer-actions"><button class="button secondary" type="button" data-action="appointment-to-details">Back to details</button><button class="button primary" type="button" id="save-appointment">Review demo request <span aria-hidden="true">→</span></button></div>
-    </div>
-  </dialog>
-  <dialog id="review-dialog" class="appointment-dialog" aria-labelledby="review-title">
-    <div class="appointment-shell">
-      <div class="customer-heading"><div><p class="eyebrow">STEP 04 / FINAL REVIEW</p><h2 id="review-title" tabindex="-1">Check your request.</h2><p>Confirm your plan, contact details and preferred appointment before sending this demo request.</p></div><button class="icon-button" data-close="review-dialog" aria-label="Close request review">×</button></div>
-      <div class="review-section"><div class="review-section-heading"><h3>Screening plan</h3><button class="text-link" type="button" data-action="review-to-plan">Edit plan</button></div><div id="review-items"></div><p id="review-total" class="review-total"></p><div id="review-warnings"></div></div>
-      <div class="review-section"><div class="review-section-heading"><h3>Customer details</h3><button class="text-link" type="button" data-action="review-to-details">Edit details</button></div><dl id="review-customer" class="review-facts"></dl></div>
-      <div class="review-section"><div class="review-section-heading"><h3>Preferred appointment</h3><button class="text-link" type="button" data-action="review-to-appointment">Edit date or time</button></div><p id="review-appointment" class="review-appointment"></p></div>
-      <p class="review-prototype-note"><strong>Prototype request only.</strong> This will store your test details in the prototype database and issue a tracking code. It does not reserve a real UWC slot or take payment.</p>
-      <p id="review-status" class="customer-form-status" role="status" aria-live="polite" tabindex="-1" hidden></p>
-      <div class="customer-actions"><button class="button secondary" type="button" data-action="review-to-appointment">Back to appointment</button><button class="button primary" type="button" id="submit-demo-request">Send demo request <span aria-hidden="true">→</span></button></div>
-    </div>
-  </dialog>
-  <dialog id="booking-confirmation-dialog" class="appointment-dialog" aria-labelledby="booking-confirmation-title">
-    <div class="appointment-shell"><div class="customer-heading"><div><p class="eyebrow">STEP 05 / REQUEST RECEIVED</p><h2 id="booking-confirmation-title">Save your booking code.</h2><p>Your demo request is recorded for review. This is not a confirmed appointment.</p></div><button class="icon-button" data-close="booking-confirmation-dialog" aria-label="Close booking confirmation">×</button></div>
-      <div id="appointment-export" class="appointment-export"><p><strong>Keep this code.</strong> You can use it to track your request. No payment has been taken.</p><div class="demo-code-row"><strong id="appointment-code"></strong><button class="button secondary" type="button" id="copy-appointment-code">Copy code</button></div><p id="confirmation-appointment"></p><p id="confirmation-total"></p><p><a href="/track/">Track my booking →</a></p><div class="appointment-export-actions"><button class="button secondary" type="button" id="download-plan">Download PDF summary <span aria-hidden="true">↓</span></button><button class="button secondary" type="button" id="print-plan">Print summary</button></div></div>
-      <p class="customer-demo-note">You may make another demo request without waiting for this one to be completed. Save the code above first; your existing request will remain recorded.</p><div class="customer-actions"><button class="button secondary" type="button" id="another-request">Create another demo request</button></div>
-    </div>
-  </dialog>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <div id="print-summary"></div>
-  <noscript><div class="noscript">Please enable JavaScript to browse packages and submit a demo appointment request. This prototype does not take real bookings or payments.</div></noscript>
-</body>
+        <div class="hero-visual">
+          <img
+            src="assets/uwc-official-reception.jpg"
+            alt="UWC reception staff welcoming a visitor at the screening registration counter"
+            width="1536"
+            height="1024"
+            fetchpriority="high"
+          />
+          <span class="visual-label"
+            ><i class="status-dot"></i> WELLNESS STARTS WITH UNDERSTANDING</span
+          >
+          <div class="hero-float">
+            <span class="float-icon" aria-hidden="true">✳</span>
+            <div>
+              <b>Small steps. A bigger picture.</b
+              ><span>Accessible screening, guided by UMBI.</span>
+            </div>
+          </div>
+          <span class="photo-note">UMBI Wellness Centre · Reception</span>
+        </div>
+      </section>
+      <div class="feature-strip">
+        <div class="container">
+          <div><b>04</b><span>Precision package options</span></div>
+          <div><b>RM450</b><span>Entry proposed package price</span></div>
+          <div><b>28</b><span>Listed services and pathways</span></div>
+          <div>
+            <span class="strip-icon" aria-hidden="true">↗</span
+            ><span>Package or custom selection</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Native details/summary keeps About UWC collapsed initially and works without JavaScript. -->
+      <section class="about-section" id="about" aria-labelledby="about-title">
+        <div class="container">
+          <details class="about-disclosure">
+            <summary class="about-summary">
+              <span class="about-summary-copy">
+                <span class="eyebrow">ABOUT UMBI WELLNESS CENTRE</span>
+                <span class="about-summary-title" id="about-title" role="heading" aria-level="2"
+                  >Discover UWC.</span
+                >
+                <span class="about-summary-description"
+                  >Background, screening services, laboratory quality and contact information.</span
+                >
+              </span>
+              <span class="about-toggle" aria-hidden="true"
+                ><span class="about-toggle-closed">Open section</span
+                ><span class="about-toggle-open">Close section</span
+                ><span class="about-toggle-icon">+</span></span
+              >
+            </summary>
+
+            <div class="section about-expanded-content">
+              <div class="about-layout">
+                <div class="about-intro">
+                  <p class="eyebrow">UMBI WELLNESS CENTRE</p>
+                  <h2>Accessible screening, guided by UMBI.</h2>
+                  <p class="about-lead">
+                    UMBI Wellness Centre (UWC), also known as Pusat Saringan Kesihatan UMBI, is a
+                    health-screening centre operated by the UKM Medical Molecular Biology Institute
+                    (UMBI), Universiti Kebangsaan Malaysia.
+                  </p>
+                  <p>
+                    UWC provides accessible and affordable health-screening services to support the
+                    early detection of health risks and help individuals better understand and
+                    monitor their health. Its services include laboratory investigations, physical
+                    and body-composition measurements, cardiovascular and respiratory assessments,
+                    and optional health-screening tests.
+                  </p>
+                  <p>
+                    Guided by the principle <strong>“Detect Early, Stay Healthy,”</strong> UWC
+                    encourages regular health screening as a step towards early intervention,
+                    informed health decisions and improved quality of life.
+                  </p>
+                  <div class="about-audience" aria-label="Who UWC serves">
+                    <span>UKM staff</span><span>Students</span><span>Members of the public</span>
+                  </div>
+                </div>
+
+                <div class="about-information">
+                  <article class="about-service-card">
+                    <p class="eyebrow">SCREENING AT UWC</p>
+                    <h3>One centre, several views of your health.</h3>
+                    <ul>
+                      <li>Laboratory investigations</li>
+                      <li>Body-composition and physical measurements</li>
+                      <li>Cardiovascular and respiratory assessments</li>
+                      <li>Optional health-screening tests</li>
+                    </ul>
+                    <p class="appointment-note">
+                      Services are available by prior appointment and subject to the applicable
+                      service arrangements.
+                    </p>
+                  </article>
+
+                  <aside class="accreditation-note" aria-labelledby="accreditation-title">
+                    <span class="accreditation-mark" aria-hidden="true">✓</span>
+                    <div>
+                      <p class="eyebrow">LABORATORY QUALITY</p>
+                      <h3 id="accreditation-title">MS ISO 15189-accredited quality system</h3>
+                      <p>
+                        Laboratory analyses associated with UWC health-screening services are
+                        performed using the laboratory facilities supporting The Malaysian Cohort
+                        project at UMBI, UKM. The laboratory operates under an MS ISO
+                        15189-accredited medical laboratory quality system, supporting the quality,
+                        reliability and competency of the laboratory testing processes
+                        <strong>within its accredited scope</strong>.
+                      </p>
+                    </div>
+                  </aside>
+                </div>
+              </div>
+
+              <div class="about-contact" aria-labelledby="contact-title">
+                <div class="about-contact-heading">
+                  <p class="eyebrow">CONTACT &amp; LOCATION</p>
+                  <h3 id="contact-title">Reach UWC directly.</h3>
+                </div>
+                <address>
+                  <a href="tel:1800882007"
+                    ><span>Appointment hotline</span><strong>1-800-88-2007</strong></a
+                  >
+                  <a href="https://wa.me/60103156405" target="_blank" rel="noopener noreferrer"
+                    ><span>Mobile / WhatsApp</span><strong>010-315 6405</strong></a
+                  >
+                  <a href="mailto:umbiwellness@gmail.com"
+                    ><span>Email</span><strong>umbiwellness@gmail.com</strong></a
+                  >
+                  <p>
+                    <span>Visit UWC</span
+                    ><strong
+                      >UMBI, UKM, Jalan Yaacob Latiff, Bandar Tun Razak, 56000 Cheras, Kuala
+                      Lumpur</strong
+                    >
+                  </p>
+                </address>
+                <div class="about-socials" aria-label="Official UWC links">
+                  <a
+                    href="https://www.ukm.my/umbi/wellness/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Official website ↗</a
+                  ><a
+                    href="https://www.facebook.com/umbi.wellness/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Facebook ↗</a
+                  ><a
+                    href="https://www.instagram.com/umbi.wellness/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Instagram ↗</a
+                  >
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Package tabs/inclusions are rendered from catalogue.js; do not duplicate prices here. -->
+      <section class="section container" id="packages" aria-labelledby="packages-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">FIND YOUR STARTING POINT</p>
+            <h2 id="packages-title">Four paths to explore.</h2>
+          </div>
+          <p>
+            Press a package to see its proposed price,<br class="desktop-only" />
+            supplied comparison and included components.
+          </p>
+        </div>
+        <div
+          class="package-tabs"
+          role="tablist"
+          aria-label="Screening packages"
+          id="package-tabs"
+        ></div>
+        <div id="package-panel" role="tabpanel" tabindex="0"></div>
+        <p class="source-note">
+          <span aria-hidden="true">ⓘ</span> Package information uses the supplied UWC proposal,
+          comparison workbook and supporting laboratory materials. Asterisks identify working
+          prices. All packages, pathways, services and prices remain subject to UWC costing,
+          clinical review and confirmation.
+        </p>
+      </section>
+
+      <!-- Build-your-own catalogue: app.js handles search, categories and adding components. -->
+      <section class="individual-section" id="tests" aria-labelledby="tests-title">
+        <div class="container section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">BUILD YOUR OWN</p>
+              <h2 id="tests-title">Choose only what you need.</h2>
+            </div>
+            <p>
+              Select listed components individually.<br />We will compare matching selections with
+              the four packages.
+            </p>
+          </div>
+          <div class="catalogue-toolbar">
+            <label class="search-field"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 5 5" /></svg
+              ><span class="sr-only">Search individual tests</span
+              ><input
+                id="test-search"
+                type="search"
+                placeholder="Search tests, e.g. vitamin, heart, DEXA…"
+                autocomplete="off" /></label
+            ><label class="category-field"
+              ><span class="sr-only">Filter tests by category</span
+              ><select id="test-category">
+                <option value="all">All categories</option>
+              </select></label
+            >
+          </div>
+          <div class="results-line">
+            <span id="results-count" role="status"></span
+            ><button class="text-link" id="reset-filters" hidden>Clear filters ×</button>
+          </div>
+          <div class="test-grid" id="test-grid"></div>
+          <div class="load-more">
+            <button class="button secondary" id="show-all-tests">
+              View all tests <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+          <p class="source-note">
+            À la carte prices and package totals are proposed comparison figures. Items marked with
+            an asterisk are working prices pending quotations or final service definitions. Package
+            2 currently shows a negative RM140 saving and requires review.
+          </p>
+        </div>
+      </section>
+
+      <!-- Centre photographs; PHOTO-SOURCES.md records their provenance. -->
+      <section class="care-section" aria-labelledby="care-title">
+        <div class="container section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">SCREENING, UP CLOSE</p>
+              <h2 id="care-title">Real care. Real facilities.</h2>
+            </div>
+            <p>
+              Get to know UWC through its screening activities<br class="desktop-only" />
+              and the people guiding every step.
+            </p>
+          </div>
+          <div class="care-gallery">
+            <figure class="care-card">
+              <img
+                src="assets/uwc-official-inbody.jpg"
+                alt="A visitor using the InBody body composition equipment at UWC"
+                width="1024"
+                height="752"
+                loading="lazy"
+              />
+              <figcaption><b>Body composition</b><span>InBody assessment at UWC</span></figcaption>
+            </figure>
+            <figure class="care-card">
+              <img
+                src="assets/uwc-official-blood.jpg"
+                alt="UWC staff collecting a blood sample from a seated visitor"
+                width="1024"
+                height="683"
+                loading="lazy"
+              />
+              <figcaption>
+                <b>Blood collection</b><span>Laboratory screening at UWC</span>
+              </figcaption>
+            </figure>
+            <figure class="care-card care-spirometry">
+              <img
+                src="assets/uwc-official-spirometry.jpg"
+                alt="A visitor completing a spirometry breathing assessment at UWC"
+                width="683"
+                height="1024"
+                loading="lazy"
+              />
+              <figcaption><b>Spirometry</b><span>Lung function assessment at UWC</span></figcaption>
+            </figure>
+            <figure class="care-card">
+              <img
+                src="assets/uwc-official-ecg.jpg"
+                alt="A visitor undergoing an electrocardiogram at UWC"
+                width="651"
+                height="433"
+                loading="lazy"
+              />
+              <figcaption><b>Electrocardiogram</b><span>ECG assessment at UWC</span></figcaption>
+            </figure>
+            <figure class="care-card">
+              <img
+                src="assets/uwc-dexa.jpg"
+                alt="Participant undergoing a DEXA body composition assessment at UMBI"
+                width="2730"
+                height="1536"
+                loading="lazy"
+              />
+              <figcaption>
+                <b>DEXA assessment</b><span>Body composition and bone health insight</span>
+              </figcaption>
+            </figure>
+            <figure class="care-card">
+              <img
+                src="assets/uwc-retinal.jpg"
+                alt="Participant receiving retinal imaging at UMBI"
+                width="2730"
+                height="1536"
+                loading="lazy"
+              />
+              <figcaption>
+                <b>Retinal imaging</b><span>A closer view of eye health</span>
+              </figcaption>
+            </figure>
+          </div>
+          <p class="source-note">
+            Reception, InBody, blood collection, ECG and spirometry photographs are from the
+            <a href="https://www.ukm.my/umbi/wellness/" target="_blank" rel="noopener noreferrer"
+              >official UWC website</a
+            >. DEXA and retinal images show UMBI/TMC screening activities.
+          </p>
+        </div>
+      </section>
+
+      <!-- Explain the customer journey before requesting contact information. -->
+      <section class="section container" id="how-it-works" aria-labelledby="how-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THOUGHTFULLY SIMPLE</p>
+            <h2 id="how-title">Your next step, made clearer.</h2>
+          </div>
+          <p>
+            Explore at your own pace.<br />Choose a plan, enter test details, select a time and
+            review before sending.
+          </p>
+        </div>
+        <div class="steps">
+          <article>
+            <span class="step-number">01 / EXPLORE</span
+            ><span class="step-symbol" aria-hidden="true">⌕</span>
+            <h3>Review four packages</h3>
+            <p>
+              Open each precision package to see its proposed price, supplied comparison and
+              cumulative inclusions.
+            </p>
+          </article>
+          <article>
+            <span class="step-number">02 / PERSONALISE</span
+            ><span class="step-symbol" aria-hidden="true">⊕</span>
+            <h3>Build your own selection</h3>
+            <p>
+              Choose individual components. If your selection matches a package, the proposed price
+              comparison appears automatically.
+            </p>
+          </article>
+          <article>
+            <span class="step-number">03 / REQUEST</span
+            ><span class="step-symbol" aria-hidden="true">↗</span>
+            <h3>Details, time and final review</h3>
+            <p>
+              Enter test contact details, choose a preferred appointment and review the request
+              before sending. Save the tracking code; no real appointment or payment is made.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Expandable answers clarify proposed pricing and the no-payment prototype boundary. -->
+      <section class="faq-section container" aria-labelledby="faq-title">
+        <div>
+          <p class="eyebrow">GOOD TO KNOW</p>
+          <h2 id="faq-title">A few helpful answers.</h2>
+          <p>Still exploring? That's exactly<br />what this catalogue is here for.</p>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>Can I choose individual services without a package?</summary>
+            <p>
+              Yes. Use the Build Your Own catalogue or the Add buttons within each package
+              breakdown. When the custom selection matches a package’s cumulative components, the
+              supplied package comparison appears automatically.
+            </p>
+          </details>
+          <details>
+            <summary>Are these final prices and available services?</summary>
+            <p>
+              No. This is a review prototype using proposed UWC pricing. Asterisks mark working
+              estimates. Genomic pathways and services with overlapping scope need confirmation
+              before a final quotation. No savings claims are made from the draft comparison totals.
+            </p>
+          </details>
+          <details>
+            <summary>How does the package comparison work?</summary>
+            <p>
+              The prototype matches selected components against Packages 1–4 and shows the supplied
+              à la carte total, package price and difference. Package 2 currently has a negative
+              RM140 saving, and Package 4 is a starting-price pathway; both require UWC review
+              before commercial use.
+            </p>
+          </details>
+          <details>
+            <summary>Can I book or pay through this website?</summary>
+            <p>
+              You can submit a demo appointment request and track its status with a code. This does
+              not reserve a live UWC slot. No payment is requested or charged. Please use test
+              contact details while the service is a prototype.
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+    <!-- Public links, prototype disclaimer and a short guide to the pages/source files. -->
+    <footer class="container">
+      <div class="footer-top">
+        <a class="brand" href="#home"
+          ><img src="assets/uwc-mark.svg" alt="" width="42" height="42" /><span
+            ><b>UWC<span class="brand-dot">.</span></b
+            ><small>UMBI Wellness Centre</small></span
+          ></a
+        >
+        <p>A clearer picture of your wellbeing.</p>
+        <a class="text-link" href="#about">About &amp; contact ↗</a>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 UMBI Wellness Centre · Design concept for review</span
+        ><span>Prototype only. Not medical advice or a confirmed service offer.</span>
+        <a class="text-link" href="/guide/">Website guide ↗</a>
+      </div>
+    </footer>
+    <!-- Step 1: chosen items. Only their IDs are stored locally, not customer details. -->
+    <dialog id="plan-dialog" class="plan-dialog" aria-labelledby="plan-title">
+      <div class="drawer-shell">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">MADE FOR YOU</p>
+            <h2 id="plan-title">Your screening plan<span class="brand-dot">.</span></h2>
+          </div>
+          <button class="icon-button" data-close="plan-dialog" aria-label="Close screening plan">
+            ×
+          </button>
+        </div>
+        <div class="drawer-body">
+          <p class="drawer-intro">A starting point for your next health conversation.</p>
+          <div id="package-offer" aria-live="polite"></div>
+          <div id="plan-items"></div>
+          <div id="plan-warnings"></div>
+        </div>
+        <div class="drawer-footer">
+          <div class="subtotal-row">
+            <span id="total-label">Indicative total</span><b id="plan-total">RM0</b>
+          </div>
+          <p class="total-note" id="plan-total-note"></p>
+          <button class="button primary full pay-button" data-action="open-details">
+            Continue to details · <span class="plan-total-live">RM0</span>
+            <span aria-hidden="true">→</span>
+          </button>
+          <div class="drawer-secondary">
+            <button class="text-link" id="clear-plan">Clear plan</button>
+          </div>
+          <p class="privacy-note">
+            Your plan is saved in this browser. Submitting a demo appointment sends your entered
+            details to the prototype database. No payment is taken.
+          </p>
+        </div>
+      </div>
+    </dialog>
+    <!-- Component information; app.js fills this modal with escaped catalogue content. -->
+    <dialog id="test-dialog" class="detail-dialog" aria-labelledby="test-detail-title">
+      <button
+        class="icon-button detail-close"
+        data-close="test-dialog"
+        aria-label="Close test details"
+      >
+        ×
+      </button>
+      <div id="test-detail"></div>
+    </dialog>
+    <!-- Ask before replacing/clearing a plan. Outside clicks do not discard customer drafts. -->
+    <dialog id="confirm-dialog" class="confirm-dialog" aria-labelledby="confirm-title">
+      <h2 id="confirm-title">Update your plan?</h2>
+      <p id="confirm-message"></p>
+      <div class="confirm-actions">
+        <button class="button secondary" data-close="confirm-dialog">Cancel</button
+        ><button class="button primary" id="confirm-action">Continue</button>
+      </div>
+    </dialog>
+    <!-- Step 2: contact fields, inline validation and consent. Nothing is submitted at this step. -->
+    <dialog id="customer-dialog" class="customer-dialog" aria-labelledby="customer-title">
+      <div class="customer-shell">
+        <div class="customer-heading">
+          <div>
+            <p class="eyebrow">STEP 02 / CUSTOMER DETAILS</p>
+            <h2 id="customer-title">A few details, then your appointment.</h2>
+            <p>
+              Enter contact information for this booking demonstration. Required fields are marked
+              <span aria-hidden="true">*</span>.
+            </p>
+          </div>
+          <button
+            class="icon-button"
+            data-close="customer-dialog"
+            aria-label="Close customer details"
+          >
+            ×
+          </button>
+        </div>
+        <div class="customer-plan-strip">
+          <span>Indicative plan total</span><strong class="plan-total-live">RM0</strong
+          ><button class="text-link" type="button" data-action="details-to-plan">Edit plan</button>
+        </div>
+        <form id="customer-form" method="dialog" novalidate autocomplete="on">
+          <div class="customer-fields">
+            <div class="customer-field">
+              <label for="customer-name">Full name <span aria-hidden="true">*</span></label
+              ><input
+                id="customer-name"
+                name="name"
+                type="text"
+                autocomplete="name"
+                maxlength="100"
+                required
+                aria-describedby="customer-name-hint customer-name-error"
+              />
+              <p class="field-hint" id="customer-name-hint">
+                Letters only. Spaces, apostrophes and hyphens are allowed.
+              </p>
+              <p class="field-error" id="customer-name-error"></p>
+            </div>
+            <div class="customer-field">
+              <label for="customer-phone">Contact number <span aria-hidden="true">*</span></label
+              ><input
+                id="customer-phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                maxlength="16"
+                pattern="\+?[0-9]{7,15}"
+                placeholder="e.g. +6012346567"
+                required
+                aria-describedby="customer-phone-hint customer-phone-error"
+              />
+              <p class="field-hint" id="customer-phone-hint">
+                Digits only, with an optional + at the beginning.
+              </p>
+              <p class="field-error" id="customer-phone-error"></p>
+            </div>
+            <div class="customer-field customer-field-wide">
+              <label for="customer-email">Email address <span aria-hidden="true">*</span></label
+              ><input
+                id="customer-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                maxlength="254"
+                required
+                aria-describedby="customer-email-error"
+              />
+              <p class="field-error" id="customer-email-error"></p>
+            </div>
+            <fieldset
+              class="customer-choice"
+              id="customer-contact-group"
+              aria-describedby="customer-contact-error"
+            >
+              <legend>Preferred contact method <span aria-hidden="true">*</span></legend>
+              <div class="customer-options">
+                <label
+                  ><input type="radio" name="contactMethod" value="Phone call" required /> Phone
+                  call</label
+                ><label><input type="radio" name="contactMethod" value="WhatsApp" /> WhatsApp</label
+                ><label><input type="radio" name="contactMethod" value="Email" /> Email</label>
+              </div>
+              <p class="field-error" id="customer-contact-error"></p>
+            </fieldset>
+            <fieldset
+              class="customer-choice"
+              id="customer-first-time-group"
+              aria-describedby="customer-first-time-error"
+            >
+              <legend>Is this your first visit to UWC? <span aria-hidden="true">*</span></legend>
+              <div class="customer-options">
+                <label><input type="radio" name="firstTime" value="Yes" required /> Yes</label
+                ><label><input type="radio" name="firstTime" value="No" /> No</label>
+              </div>
+              <p class="field-error" id="customer-first-time-error"></p>
+            </fieldset>
+            <div class="customer-field customer-field-wide">
+              <label for="customer-notes"
+                >Booking notes <span class="optional-label">Optional</span></label
+              ><textarea
+                id="customer-notes"
+                name="notes"
+                rows="3"
+                maxlength="500"
+                aria-describedby="customer-notes-hint customer-notes-error"
+              ></textarea>
+              <div class="field-meta">
+                <span id="customer-notes-hint"
+                  >Please do not enter identification numbers or medical history.</span
+                ><span id="customer-notes-count">0 / 500</span>
+              </div>
+              <p class="field-error" id="customer-notes-error"></p>
+            </div>
+          </div>
+          <div class="customer-privacy">
+            <h3>Demo request and privacy notice</h3>
+            <p id="customer-privacy-notice">
+              If I confirm a demo appointment request, my entered contact details, screening
+              selection, preferred time and notes will be stored in the UWC prototype database for
+              staff to review. This is not a real appointment or payment. I will use test details
+              and will not enter identification numbers or medical history.
+            </p>
+            <label class="customer-consent" for="customer-consent"
+              ><input
+                id="customer-consent"
+                name="consent"
+                type="checkbox"
+                required
+                aria-describedby="customer-privacy-notice customer-consent-error"
+              /><span>I have read and agree to the demo request and privacy notice.</span></label
+            >
+            <p class="field-error" id="customer-consent-error"></p>
+          </div>
+          <p class="customer-demo-note">
+            Saving details here does not submit them. You will review the full request before
+            sending it to the prototype database.
+          </p>
+          <p
+            id="customer-form-status"
+            class="customer-form-status"
+            role="status"
+            aria-live="polite"
+            tabindex="-1"
+            hidden
+          ></p>
+          <div class="customer-actions">
+            <button class="button secondary" type="button" data-action="details-to-plan">
+              Back to plan</button
+            ><button class="button primary" type="submit" id="save-customer-details">
+              Save details &amp; choose appointment <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+    <!-- Step 3: weekly calendar and morning times, governed by appointment-rules.js. -->
+    <dialog id="appointment-dialog" class="appointment-dialog" aria-labelledby="appointment-title">
+      <div class="appointment-shell">
+        <div class="customer-heading">
+          <div>
+            <p class="eyebrow">STEP 03 / PREFERRED APPOINTMENT</p>
+            <h2 id="appointment-title">Choose a date and time.</h2>
+            <p>
+              Select a preferred time for your screening visit. This is a demonstration, not a live
+              availability calendar.
+            </p>
+          </div>
+          <button
+            class="icon-button"
+            data-close="appointment-dialog"
+            aria-label="Close appointment selection"
+          >
+            ×
+          </button>
+        </div>
+        <div class="customer-plan-strip">
+          <span>Indicative plan total</span><strong class="plan-total-live">RM0</strong
+          ><button class="text-link" type="button" data-action="appointment-to-details">
+            Edit details
+          </button>
+        </div>
+        <fieldset
+          class="appointment-choice"
+          id="appointment-date-group"
+          aria-describedby="appointment-date-hint appointment-window-hint appointment-date-error"
+        >
+          <legend>Preferred date <span aria-hidden="true">*</span></legend>
+          <p class="appointment-hint" id="appointment-date-hint">
+            Browse by week or jump to a month. Weekends are unavailable; public-holiday exclusions
+            are pending UWC confirmation.
+          </p>
+          <div class="appointment-schedule-card">
+            <div class="appointment-schedule-header">
+              <h3>Schedule</h3>
+              <div class="appointment-schedule-controls">
+                <select id="appointment-month-select" aria-label="Jump to month"></select>
+                <button id="appointment-prev-week" type="button" aria-label="Previous week">
+                  ‹
+                </button>
+                <button id="appointment-next-week" type="button" aria-label="Next week">›</button>
+              </div>
+            </div>
+            <p id="appointment-week-range" class="appointment-week-range" aria-live="polite"></p>
+            <div id="appointment-week" class="appointment-week" role="group"></div>
+            <div class="appointment-selected-card">
+              <span class="appointment-selected-icon" aria-hidden="true">▦</span>
+              <div>
+                <span class="appointment-selected-label">Your preferred date</span
+                ><strong id="appointment-selection-summary" aria-live="polite"
+                  >No date selected yet</strong
+                ><small>Request only · UWC has not confirmed a booking</small>
+              </div>
+            </div>
+          </div>
+          <p id="appointment-window-hint" class="appointment-window-hint"></p>
+          <p class="field-error" id="appointment-date-error"></p>
+        </fieldset>
+        <fieldset
+          class="appointment-choice"
+          id="appointment-time-group"
+          aria-describedby="appointment-time-hint appointment-time-error"
+        >
+          <legend>Preferred time <span aria-hidden="true">*</span></legend>
+          <p class="appointment-hint" id="appointment-time-hint">
+            Morning demonstration times; the final slot interval and 10:00 a.m. start require UWC
+            confirmation.
+          </p>
+          <div class="appointment-time-grid">
+            <label
+              ><input type="radio" name="preferredTime" value="08:00" /><span
+                >8:00 a.m.</span
+              ></label
+            ><label
+              ><input type="radio" name="preferredTime" value="08:30" /><span
+                >8:30 a.m.</span
+              ></label
+            ><label
+              ><input type="radio" name="preferredTime" value="09:00" /><span
+                >9:00 a.m.</span
+              ></label
+            ><label
+              ><input type="radio" name="preferredTime" value="09:30" /><span
+                >9:30 a.m.</span
+              ></label
+            ><label
+              ><input type="radio" name="preferredTime" value="10:00" /><span
+                >10:00 a.m.</span
+              ></label
+            >
+          </div>
+          <p class="field-error" id="appointment-time-error"></p>
+        </fieldset>
+        <div class="appointment-notes">
+          <p>
+            Please allow approximately 30 minutes to 2 hours for your visit, depending on the
+            selected screening package or services.
+          </p>
+          <p>
+            Customers may request to cancel or reschedule their appointment at any time. However,
+            customers are encouraged to notify UWC at least a day before the scheduled appointment
+            date, whenever possible.
+          </p>
+        </div>
+        <p class="appointment-prototype-note">
+          This is a preferred time only. You can review everything before sending a demo request.
+          Times do not show live availability; no payment is taken.
+        </p>
+        <p
+          id="appointment-status"
+          class="customer-form-status"
+          role="status"
+          aria-live="polite"
+          tabindex="-1"
+          hidden
+        ></p>
+        <div class="customer-actions">
+          <button class="button secondary" type="button" data-action="appointment-to-details">
+            Back to details</button
+          ><button class="button primary" type="button" id="save-appointment">
+            Review demo request <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <!-- Step 4: final review. Send demo request is the action that writes through the secure gateway. -->
+    <dialog id="review-dialog" class="appointment-dialog" aria-labelledby="review-title">
+      <div class="appointment-shell">
+        <div class="customer-heading">
+          <div>
+            <p class="eyebrow">STEP 04 / FINAL REVIEW</p>
+            <h2 id="review-title" tabindex="-1">Check your request.</h2>
+            <p>
+              Confirm your plan, contact details and preferred appointment before sending this demo
+              request.
+            </p>
+          </div>
+          <button class="icon-button" data-close="review-dialog" aria-label="Close request review">
+            ×
+          </button>
+        </div>
+        <div class="review-section">
+          <div class="review-section-heading">
+            <h3>Screening plan</h3>
+            <button class="text-link" type="button" data-action="review-to-plan">Edit plan</button>
+          </div>
+          <div id="review-items"></div>
+          <p id="review-total" class="review-total"></p>
+          <div id="review-warnings"></div>
+        </div>
+        <div class="review-section">
+          <div class="review-section-heading">
+            <h3>Customer details</h3>
+            <button class="text-link" type="button" data-action="review-to-details">
+              Edit details
+            </button>
+          </div>
+          <dl id="review-customer" class="review-facts"></dl>
+        </div>
+        <div class="review-section">
+          <div class="review-section-heading">
+            <h3>Preferred appointment</h3>
+            <button class="text-link" type="button" data-action="review-to-appointment">
+              Edit date or time
+            </button>
+          </div>
+          <p id="review-appointment" class="review-appointment"></p>
+        </div>
+        <p class="review-prototype-note">
+          <strong>Prototype request only.</strong> This will store your test details in the
+          prototype database and issue a tracking code. It does not reserve a real UWC slot or take
+          payment.
+        </p>
+        <p
+          id="review-status"
+          class="customer-form-status"
+          role="status"
+          aria-live="polite"
+          tabindex="-1"
+          hidden
+        ></p>
+        <div class="customer-actions">
+          <button class="button secondary" type="button" data-action="review-to-appointment">
+            Back to appointment</button
+          ><button class="button primary" type="button" id="submit-demo-request">
+            Send demo request <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <!-- Step 5: server-issued code, tracking link and local PDF/print controls. -->
+    <dialog
+      id="booking-confirmation-dialog"
+      class="appointment-dialog"
+      aria-labelledby="booking-confirmation-title"
+    >
+      <div class="appointment-shell">
+        <div class="customer-heading">
+          <div>
+            <p class="eyebrow">STEP 05 / REQUEST RECEIVED</p>
+            <h2 id="booking-confirmation-title">Save your booking code.</h2>
+            <p>Your demo request is recorded for review. This is not a confirmed appointment.</p>
+          </div>
+          <button
+            class="icon-button"
+            data-close="booking-confirmation-dialog"
+            aria-label="Close booking confirmation"
+          >
+            ×
+          </button>
+        </div>
+        <div id="appointment-export" class="appointment-export">
+          <p>
+            <strong>Keep this code.</strong> You can use it to track your request. No payment has
+            been taken.
+          </p>
+          <div class="demo-code-row">
+            <strong id="appointment-code"></strong
+            ><button class="button secondary" type="button" id="copy-appointment-code">
+              Copy code
+            </button>
+          </div>
+          <p id="confirmation-appointment"></p>
+          <p id="confirmation-total"></p>
+          <p><a href="/track/">Track my booking →</a></p>
+          <div class="appointment-export-actions">
+            <button class="button secondary" type="button" id="download-plan">
+              Download PDF summary <span aria-hidden="true">↓</span></button
+            ><button class="button secondary" type="button" id="print-plan">Print summary</button>
+          </div>
+        </div>
+        <p class="customer-demo-note">
+          You may make another demo request without waiting for this one to be completed. Save the
+          code above first; your existing request will remain recorded.
+        </p>
+        <div class="customer-actions">
+          <button class="button secondary" type="button" id="another-request">
+            Create another demo request
+          </button>
+        </div>
+      </div>
+    </dialog>
+    <!-- Accessible short announcements; the print area is filled only when printing a summary. -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="print-summary"></div>
+    <noscript
+      ><div class="noscript">
+        Please enable JavaScript to browse packages and submit a demo appointment request. This
+        prototype does not take real bookings or payments.
+      </div></noscript
+    >
+  </body>
 </html>

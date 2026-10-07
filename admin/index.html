@@ -1,34 +1,64 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow"><meta name="theme-color" content="#124f46">
-  <title>UWC staff — booking management</title>
-  <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="../demo.css?v=20261006-1">
-  <script defer src="../vendor/supabase.js"></script>
-  <script defer src="../demo-config.js"></script>
-  <script defer src="../appointment-rules.js?v=20261005-1"></script>
-  <script defer src="../admin-data.js?v=20261007-1"></script>
-  <script defer src="../admin.js?v=20261007-1"></script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Skip to content</a>
-  <header class="demo-header"><div class="demo-wrap header-row">
-    <a class="brand" href="/" aria-label="UWC home"><img src="../assets/uwc-mark.svg" width="42" height="42" alt=""><span><strong>UWC.</strong><small>Staff booking dashboard</small></span></a>
-    <nav aria-label="Page navigation"><a href="/">Public site</a><button id="sign-out" class="link-button" type="button" hidden>Sign out</button></nav>
-  </div></header>
-  <main id="main" class="demo-wrap admin-main">
-    <div class="demo-banner"><strong>Connected prototype</strong> · Approved staff can view and update submitted requests in Supabase. Changes are saved and appear in the booking tracker. Payment is disabled; demonstration requests do not reserve real UWC slots.</div>
-    <section id="login-panel" class="card auth-card">
-      <p class="eyebrow">RESTRICTED STAFF ACCESS</p><h1 id="auth-title">Staff sign in.</h1>
-      <p id="auth-intro">Sign in with an approved staff account. The old public demo password cannot access booking records.</p>
-      <form id="login-form">
-        <label for="email">Staff email</label><input id="email" type="email" autocomplete="username" maxlength="254" required>
-        <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" maxlength="128" required>
-        <button class="button" id="auth-submit" type="submit">Sign in</button>
-      </form>
-      <!--
+  <head>
+    <!-- Shared styling does not grant access: Supabase Auth and database RLS protect staff data. -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#124f46" />
+    <title>UWC staff — booking management</title>
+    <link rel="icon" href="../assets/uwc-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../demo.css?v=20261007-2" />
+    <!-- Load SDK, configuration/rules, authorised data layer, then dashboard controller. -->
+    <script defer src="../vendor/supabase.js"></script>
+    <script defer src="../demo-config.js?v=20261007-2"></script>
+    <script defer src="../appointment-rules.js?v=20261007-2"></script>
+    <script defer src="../admin-data.js?v=20261007-2"></script>
+    <script defer src="../admin.js?v=20261007-2"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="demo-header">
+      <div class="demo-wrap header-row">
+        <a class="brand" href="/" aria-label="UWC home"
+          ><img src="../assets/uwc-mark.svg" width="42" height="42" alt="" /><span
+            ><strong>UWC.</strong><small>Staff booking dashboard</small></span
+          ></a
+        >
+        <nav aria-label="Page navigation">
+          <a href="/">Public site</a
+          ><button id="sign-out" class="link-button" type="button" hidden>Sign out</button>
+        </nav>
+      </div>
+    </header>
+    <main id="main" class="demo-wrap admin-main">
+      <div class="demo-banner">
+        <strong>Connected prototype</strong> · Approved staff can view and update submitted requests
+        in Supabase. Changes are saved and appear in the booking tracker. Payment is disabled;
+        demonstration requests do not reserve real UWC slots.
+      </div>
+      <!-- Sign-in only. Creating/approving staff is an owner task; setup steps remain below as text. -->
+      <section id="login-panel" class="card auth-card">
+        <p class="eyebrow">RESTRICTED STAFF ACCESS</p>
+        <h1 id="auth-title">Staff sign in.</h1>
+        <p id="auth-intro">
+          Sign in with an approved staff account. The old public demo password cannot access booking
+          records.
+        </p>
+        <form id="login-form">
+          <label for="email">Staff email</label
+          ><input id="email" type="email" autocomplete="username" maxlength="254" required />
+          <label for="password">Password</label
+          ><input
+            id="password"
+            type="password"
+            autocomplete="current-password"
+            maxlength="128"
+            required
+          />
+          <button class="button" id="auth-submit" type="submit">Sign in</button>
+        </form>
+        <!--
         Staff account setup steps (project owner only; not displayed on the page):
         1. Open the Supabase project: https://supabase.com/dashboard/project/fxgzewuwiccmaqayfclm/auth/users
         2. In Authentication > Users, choose Add user > Create new user.
@@ -39,35 +69,177 @@
         5. Return to /admin/ and sign in with the approved email and password.
         Never put staff passwords or service-role keys in the website code.
       -->
-      <p id="login-message" class="message" role="status" aria-live="polite"></p>
-    </section>
-    <section id="dashboard" hidden>
-      <div class="dashboard-title"><div><p class="eyebrow">CONNECTED APPOINTMENT MANAGEMENT</p><h1>Booking overview.</h1><p id="staff-identity"></p></div><button id="refresh" class="outline-button" type="button">Refresh bookings</button></div>
-      <p id="realtime-message" class="muted" role="status" aria-live="polite"></p>
-      <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
-      <div class="summary-grid" aria-label="Dashboard summary">
-        <div class="card metric"><span>Pending review</span><strong id="count-pending">0</strong></div>
-        <div class="card metric"><span>Today's appointments</span><strong id="count-today">0</strong></div>
-        <div class="card metric"><span>Indicative plan total</span><strong id="count-revenue">RM0</strong></div>
-        <div class="card metric"><span>Changes requested</span><strong id="count-changes">0</strong></div>
+        <p id="login-message" class="message" role="status" aria-live="polite"></p>
+      </section>
+      <!-- Reveal only after approval checks. Hidden UI is not a substitute for database RLS. -->
+      <section id="dashboard" hidden>
+        <div class="dashboard-title">
+          <div>
+            <p class="eyebrow">CONNECTED APPOINTMENT MANAGEMENT</p>
+            <h1>Booking overview.</h1>
+            <p id="staff-identity"></p>
+          </div>
+          <button id="refresh" class="outline-button" type="button">Refresh bookings</button>
+        </div>
+        <p id="realtime-message" class="muted" role="status" aria-live="polite"></p>
+        <p id="dashboard-message" class="message" role="status" aria-live="polite"></p>
+        <!-- Metrics use the filtered records; indicative totals are not collected revenue. -->
+        <div class="summary-grid" aria-label="Dashboard summary">
+          <div class="card metric">
+            <span>Pending review</span><strong id="count-pending">0</strong>
+          </div>
+          <div class="card metric">
+            <span>Today's appointments</span><strong id="count-today">0</strong>
+          </div>
+          <div class="card metric">
+            <span>Indicative plan total</span><strong id="count-revenue">RM0</strong>
+          </div>
+          <div class="card metric">
+            <span>Changes requested</span><strong id="count-changes">0</strong>
+          </div>
+        </div>
+        <!-- Search/filter/sort only operate on records already authorised by the database. -->
+        <section class="card toolbar" aria-label="Appointment filters">
+          <label
+            >Search code or contact<input
+              id="search"
+              type="search"
+              placeholder="Code, name, email, phone"
+          /></label>
+          <label
+            >Status<select id="filter-status">
+              <option value="">All statuses</option>
+              <option value="pending_review">Pending Review</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="rejected">Rejected</option>
+              <option value="changes_requested">Changes Requested</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select></label
+          >
+          <label
+            >Payment<select id="filter-payment">
+              <option value="">All payment statuses</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="failed">Failed</option>
+              <option value="refunded">Refunded</option>
+            </select></label
+          >
+          <label
+            >Package<select id="filter-package">
+              <option value="">All packages</option>
+            </select></label
+          >
+          <label>From<input id="filter-from" type="date" /></label
+          ><label>To<input id="filter-to" type="date" /></label>
+          <label
+            >Sort<select id="sort">
+              <option value="created_desc">Newest first</option>
+              <option value="created_asc">Oldest first</option>
+              <option value="scheduled_asc">Appointment soonest</option>
+              <option value="scheduled_desc">Appointment latest</option>
+            </select></label
+          >
+        </section>
+        <!-- Paginated list; admin.js inserts safe text, not untrusted customer HTML. -->
+        <section class="card table-card" aria-label="Appointments list">
+          <div class="table-heading">
+            <h2>Appointments</h2>
+            <span id="row-count"></span>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Customer</th>
+                  <th>Contact</th>
+                  <th>Package</th>
+                  <th>Appointment</th>
+                  <th>Status</th>
+                  <th>Payment</th>
+                  <th>Indicative total</th>
+                  <th>Created</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="appointment-rows"></tbody>
+            </table>
+          </div>
+          <div class="pager">
+            <button id="previous-page" class="outline-button" type="button">Previous</button
+            ><span id="page-label"></span
+            ><button id="next-page" class="outline-button" type="button">Next</button>
+          </div>
+        </section>
+        <!-- Duration-aware day view. Scheduling conflicts are also checked on the server. -->
+        <section class="card day-card">
+          <div class="table-heading">
+            <h2>Schedule day view</h2>
+            <label>Choose day<input id="day-date" type="date" /></label>
+          </div>
+          <div id="day-list"></div>
+        </section>
+      </section>
+    </main>
+    <!-- Staff-only full details, read-only payment facts, notes and timestamped action history. -->
+    <dialog id="details-dialog" class="details-dialog" aria-labelledby="details-title">
+      <div class="dialog-head">
+        <div>
+          <p class="eyebrow">BOOKING DETAILS</p>
+          <h2 id="details-title"></h2>
+        </div>
+        <button
+          class="icon-close"
+          type="button"
+          data-close="details-dialog"
+          aria-label="Close details"
+        >
+          ×
+        </button>
       </div>
-      <section class="card toolbar" aria-label="Appointment filters">
-        <label>Search code or contact<input id="search" type="search" placeholder="Code, name, email, phone"></label>
-        <label>Status<select id="filter-status"><option value="">All statuses</option><option value="pending_review">Pending Review</option><option value="confirmed">Confirmed</option><option value="rejected">Rejected</option><option value="changes_requested">Changes Requested</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
-        <label>Payment<select id="filter-payment"><option value="">All payment statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select></label>
-        <label>Package<select id="filter-package"><option value="">All packages</option></select></label>
-        <label>From<input id="filter-from" type="date"></label><label>To<input id="filter-to" type="date"></label>
-        <label>Sort<select id="sort"><option value="created_desc">Newest first</option><option value="created_asc">Oldest first</option><option value="scheduled_asc">Appointment soonest</option><option value="scheduled_desc">Appointment latest</option></select></label>
-      </section>
-      <section class="card table-card" aria-label="Appointments list">
-        <div class="table-heading"><h2>Appointments</h2><span id="row-count"></span></div>
-        <div class="table-scroll"><table><thead><tr><th>Code</th><th>Customer</th><th>Contact</th><th>Package</th><th>Appointment</th><th>Status</th><th>Payment</th><th>Indicative total</th><th>Created</th><th></th></tr></thead><tbody id="appointment-rows"></tbody></table></div>
-        <div class="pager"><button id="previous-page" class="outline-button" type="button">Previous</button><span id="page-label"></span><button id="next-page" class="outline-button" type="button">Next</button></div>
-      </section>
-      <section class="card day-card"><div class="table-heading"><h2>Schedule day view</h2><label>Choose day<input id="day-date" type="date"></label></div><div id="day-list"></div></section>
-    </section>
-  </main>
-  <dialog id="details-dialog" class="details-dialog" aria-labelledby="details-title"><div class="dialog-head"><div><p class="eyebrow">BOOKING DETAILS</p><h2 id="details-title"></h2></div><button class="icon-close" type="button" data-close="details-dialog" aria-label="Close details">×</button></div><div id="details-content"></div></dialog>
-  <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title"><form id="action-form"><div class="dialog-head"><h2 id="action-title"></h2><button class="icon-close" type="button" data-close="action-dialog" aria-label="Close action">×</button></div><p id="action-description"></p><label id="action-note-label" for="action-note">Reason or note<textarea id="action-note" rows="3" maxlength="2000"></textarea></label><label id="action-date-label" for="action-date">New appointment time<input id="action-date" type="datetime-local"></label><div id="suggested-inputs"><p>Suggested alternative times (up to three)</p><input type="datetime-local" aria-label="Alternative time 1"><input type="datetime-local" aria-label="Alternative time 2"><input type="datetime-local" aria-label="Alternative time 3"></div><p id="action-slot-hint" class="muted" hidden>Choose a weekday from tomorrow through the next three months, at 8:00, 8:30, 9:00, 9:30 or 10:00 a.m. Malaysia time.</p><p id="action-conflict-warning" class="notice" role="status" hidden></p><p id="action-message" class="message" role="status"></p><div class="dialog-actions"><button class="outline-button" type="button" data-close="action-dialog">Keep unchanged</button><button class="button" id="confirm-action" type="submit">Confirm</button></div></form></dialog>
-</body>
+      <div id="details-content"></div>
+    </dialog>
+    <!-- Confirm an action; the server validates it and records its author/audit event. -->
+    <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title">
+      <form id="action-form">
+        <div class="dialog-head">
+          <h2 id="action-title"></h2>
+          <button
+            class="icon-close"
+            type="button"
+            data-close="action-dialog"
+            aria-label="Close action"
+          >
+            ×
+          </button>
+        </div>
+        <p id="action-description"></p>
+        <label id="action-note-label" for="action-note"
+          >Reason or note<textarea id="action-note" rows="3" maxlength="2000"></textarea></label
+        ><label id="action-date-label" for="action-date"
+          >New appointment time<input id="action-date" type="datetime-local"
+        /></label>
+        <div id="suggested-inputs">
+          <p>Suggested alternative times (up to three)</p>
+          <input type="datetime-local" aria-label="Alternative time 1" /><input
+            type="datetime-local"
+            aria-label="Alternative time 2"
+          /><input type="datetime-local" aria-label="Alternative time 3" />
+        </div>
+        <p id="action-slot-hint" class="muted" hidden>
+          Choose a weekday from tomorrow through the next three months, at 8:00, 8:30, 9:00, 9:30 or
+          10:00 a.m. Malaysia time.
+        </p>
+        <p id="action-conflict-warning" class="notice" role="status" hidden></p>
+        <p id="action-message" class="message" role="status"></p>
+        <div class="dialog-actions">
+          <button class="outline-button" type="button" data-close="action-dialog">
+            Keep unchanged</button
+          ><button class="button" id="confirm-action" type="submit">Confirm</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
 </html>

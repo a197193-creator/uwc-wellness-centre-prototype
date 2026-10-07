@@ -10,6 +10,8 @@ This Desktop folder is the main working project. Make future edits here and publ
 
 - `docs/UWC-PROTOTYPE-REQUIREMENTS.md`: confirmed scope, approved content, booking rules and acceptance criteria as of 22 September 2026
 - `docs/DEVELOPMENT-TIMELINE.md`: dated implementation, review and meeting timetable
+- `docs/CODE-GUIDE.md`: beginner-friendly page/file map, comments, styling order, data boundaries and editing commands
+- `/guide/` (`guide/index.html`): short website guide, linked from the public footer
 
 ## Technology used
 
@@ -39,6 +41,7 @@ The PHP endpoint does not receive or store customer information. The public jour
 - `admin/`, `admin.js`, `admin-data.js`: authenticated staff dashboard connected to the booking database
 - `vendor/supabase.js`, `package.json`, `package-lock.json`: pinned, locally bundled Supabase browser client
 - `tests/`: automated staff access and UI checks (`npm test`)
+- `.prettierrc.json`, `.prettierignore`: consistent source formatting (`npm run format`, `npm run format:check`)
 - `demo.css`, `demo-config.js`: shared demo styling and public-only Supabase configuration
 - `supabase/migrations/`: SQL schema, RLS policies, sample rows, and audited admin functions
 - `supabase/functions/booking-gateway/`: rate-limited, code-based guest lookup and change response

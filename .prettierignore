@@ -1,0 +1,15 @@
+# Generated copies are refreshed by build.ps1, not edited separately.
+dist/
+# Third-party code and machine-generated files stay unchanged.
+vendor/
+node_modules/
+package-lock.json
+# Historical database migrations must remain replayable and unchanged.
+supabase/migrations/
+supabase/record-staff-migration.sql
+supabase/tests/
+# Local review artifacts and hosting metadata are not source pages.
+output/
+tmp/
+.vercel/
+assets/

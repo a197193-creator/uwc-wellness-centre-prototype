@@ -1,13 +1,24 @@
+/* Public-page controller: package selection -> details -> appointment -> review -> demo code.
+   HTML supplies the page structure; catalogue.js supplies prices and selection rules.
+   Only the final request button sends customer details to the prototype database. */
 (function () {
   'use strict';
+  // Small helpers keep DOM selection, HTML escaping and RM price formatting consistent.
   const model = window.UWC;
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
-  const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const money = value => 'RM' + value.toLocaleString('en-MY', {maximumFractionDigits: 0});
-  const priceLabel = value => Number.isFinite(value) ? money(value) : 'Price to confirm';
-  const testPriceLabel = test => `${priceLabel(test.price)}${test.provisional ? '*' : ''}${test.optional ? ' · optional' : ''}`;
+  const escapeHTML = (value) =>
+    String(value).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    );
+  const money = (value) => 'RM' + value.toLocaleString('en-MY', { maximumFractionDigits: 0 });
+  const priceLabel = (value) => (Number.isFinite(value) ? money(value) : 'Price to confirm');
+  const testPriceLabel = (test) =>
+    `${priceLabel(test.price)}${test.provisional ? '*' : ''}${test.optional ? ' · optional' : ''}`;
+  // Persist package/test IDs only. Contact details and appointment drafts stay in page memory.
   const storageKey = 'uwc-screening-plan-v4';
+  // Current UI state: selected package/tab, plan, open dialogs and unsent form drafts.
   let activePackage = 'baseline';
   let activeSlide = 0;
   let showingAll = false;
@@ -21,7 +32,7 @@
   let submittedBooking = null;
   let submittedSummary = null;
   let requestSending = false;
-  let appointmentDraft = {date: null, time: null};
+  let appointmentDraft = { date: null, time: null };
   let appointmentWeekStart = null;
   let appointmentMonthFocus = null;
   // Replace with a UWC-approved Kuala Lumpur holiday list before live booking.
@@ -31,28 +42,35 @@
   const dialogOpeners = new Map();
   const openGroups = new Map();
   const tabNames = {
-    baseline:'Precision Baseline<br>Health Screening',
-    expanded:'Precision Expanded<br>Health Screening',
-    'wellness-status':'Precision Wellness<br>and Health Status',
-    longevity:'Precision<br>Longevity'
+    baseline: 'Precision Baseline<br>Health Screening',
+    expanded: 'Precision Expanded<br>Health Screening',
+    'wellness-status': 'Precision Wellness<br>and Health Status',
+    longevity: 'Precision<br>Longevity',
   };
   const icons = window.UWCIcons;
   // Font wrapping and mobile navigation can change the sticky header's height.
   // Keep section links below it rather than relying on one fixed pixel offset.
   const siteHeader = $('.site-header');
   function updateHeaderOffset() {
-    document.documentElement.style.setProperty('--site-header-offset', Math.ceil(siteHeader.getBoundingClientRect().height + 18) + 'px');
+    document.documentElement.style.setProperty(
+      '--site-header-offset',
+      Math.ceil(siteHeader.getBoundingClientRect().height + 18) + 'px',
+    );
   }
   updateHeaderOffset();
   if (window.ResizeObserver) new ResizeObserver(updateHeaderOffset).observe(siteHeader);
   else window.addEventListener('resize', updateHeaderOffset);
-  const fallbackIcon = '<span class="test-row-icon test-icon--teal" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20s-8-4.7-8-10a4.5 4.5 0 0 1 8-2.7A4.5 4.5 0 0 1 20 10c0 5.3-8 10-8 10Z"/><path d="M7 12h3l1-3 2 6 1-3h3"/></svg></span>';
+  const fallbackIcon =
+    '<span class="test-row-icon test-icon--teal" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 20s-8-4.7-8-10a4.5 4.5 0 0 1 8-2.7A4.5 4.5 0 0 1 20 10c0 5.3-8 10-8 10Z"/><path d="M7 12h3l1-3 2 6 1-3h3"/></svg></span>';
 
+  // Read the PHP information endpoint; keep the HTML notice if a static preview cannot run PHP.
   async function loadPrototypeStatus() {
     const statusText = $('#prototype-status span');
     if (!statusText) return;
     try {
-      const response = await fetch('/api/prototype-status.php', { headers: { Accept: 'application/json' } });
+      const response = await fetch('/api/prototype-status.php', {
+        headers: { Accept: 'application/json' },
+      });
       if (!response.ok) return;
       const status = await response.json();
       if (status && status.mode === 'prototype' && status.acceptsBookings === false) {
@@ -62,34 +80,52 @@
       // Static and local previews keep the useful HTML fallback above.
     }
   }
+  // Rebuild a saved plan through catalogue rules instead of trusting browser storage directly.
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) || '[]');
     const valid = model.summarize(saved).items;
-    const savedPackage = valid.find(item => item.kind === 'package');
+    const savedPackage = valid.find((item) => item.kind === 'package');
     if (savedPackage) plan = model.addPackage(plan, savedPackage.id);
-    valid.filter(item => item.kind === 'test').forEach(item => { plan = model.addTest(plan, item.id); });
-  } catch (_) { storageAvailable = false; }
+    valid
+      .filter((item) => item.kind === 'test')
+      .forEach((item) => {
+        plan = model.addTest(plan, item.id);
+      });
+  } catch (_) {
+    storageAvailable = false;
+  }
 
+  // A service is available, individually selected, or already covered by the chosen package.
   function getStatus(id) {
-    if (plan.some(item => item.kind === 'test' && item.id === id)) return 'selected';
-    const pkg = plan.find(item => item.kind === 'package');
+    if (plan.some((item) => item.kind === 'test' && item.id === id)) return 'selected';
+    const pkg = plan.find((item) => item.kind === 'package');
     if (pkg && model.coveredIds(pkg.id).includes(id)) return 'covered';
     return 'available';
   }
+  // Generate one consistent Add/Added/Included button, with a descriptive accessible label.
   function actionButton(test, extraClass = '') {
     const status = getStatus(test.id);
     const label = status === 'covered' ? 'Included' : status === 'selected' ? 'Added ✓' : '+ Add';
     return `<button class="add-test ${status === 'selected' ? 'selected' : ''} ${extraClass}" data-test="${test.id}" ${status === 'covered' ? 'disabled' : ''} aria-label="${status === 'covered' ? 'Included in package: ' : status === 'selected' ? 'Remove from plan: ' : 'Add to plan: '}${escapeHTML(test.name)}">${label}</button>`;
   }
+  // Use a decorative local SVG icon, or the generic wellness icon when no mapping exists.
   function testIcon(test) {
     return icons && icons.has(test.id) ? icons.render(test.id) : fallbackIcon;
   }
+  // Render the four package tabs; only the active tab is in the keyboard Tab sequence.
   function renderTabs() {
-    $('#package-tabs').innerHTML = model.packages.map(pkg => `<button class="package-tab" role="tab" id="tab-${pkg.id}" aria-controls="package-panel" aria-selected="${pkg.id === activePackage}" tabindex="${pkg.id === activePackage ? 0 : -1}" data-package-tab="${pkg.id}"><span class="tab-top"><span class="tab-number">PACKAGE 0${pkg.number}</span><span class="tab-arrow" aria-hidden="true">↗</span></span><span class="tab-name">${tabNames[pkg.id]}</span><span class="tab-price"><strong>${money(pkg.price)}</strong> <span>/ package</span></span></button>`).join('');
+    $('#package-tabs').innerHTML = model.packages
+      .map(
+        (pkg) =>
+          `<button class="package-tab" role="tab" id="tab-${pkg.id}" aria-controls="package-panel" aria-selected="${pkg.id === activePackage}" tabindex="${pkg.id === activePackage ? 0 : -1}" data-package-tab="${pkg.id}"><span class="tab-top"><span class="tab-number">PACKAGE 0${pkg.number}</span><span class="tab-arrow" aria-hidden="true">↗</span></span><span class="tab-name">${tabNames[pkg.id]}</span><span class="tab-price"><strong>${money(pkg.price)}</strong> <span>/ package</span></span></button>`,
+      )
+      .join('');
   }
+  // Remember expanded inclusion groups so re-rendering does not unexpectedly collapse them.
   function saveGroupState() {
-    $$('.test-group').forEach(group => openGroups.set(group.dataset.group, group.open));
+    $$('.test-group').forEach((group) => openGroups.set(group.dataset.group, group.open));
   }
+  // Build a package inclusion row: icon, service details, proposed price and selection button.
   function testRow(test) {
     return `<div class="test-row">${testIcon(test)}<div class="test-row-content"><button class="test-name" data-detail="${test.id}">${escapeHTML(test.name)}</button><small>${escapeHTML(test.category)}${test.provisional ? ' · working price' : ''}${test.optional ? ' · optional pathway' : ''}</small></div><span class="test-row-price">${testPriceLabel(test)}</span>${actionButton(test)}</div>`;
   }
@@ -102,38 +138,74 @@
       <p class="price-caption"><span class="price-caption-label">Proposed package price</span><span class="price-range">Current range <strong>${escapeHTML(pkg.priceRange)}</strong></span></p>
     </div>`;
   }
+  // Split inherited and newly introduced services, then render the package and price sidebar.
   function renderPackage() {
-    const pkg = model.packages.find(p => p.id === activePackage);
+    const pkg = model.packages.find((p) => p.id === activePackage);
     const coveredCount = model.coveredIds(pkg.id).length;
     const directTests = model.getDirectTests(pkg.id);
-    const inheritedTests = model.getTests(pkg.id).filter(test => test.introducedIn < pkg.number);
+    const inheritedTests = model.getTests(pkg.id).filter((test) => test.introducedIn < pkg.number);
     const groups = [];
-    if (inheritedTests.length) groups.push({key:pkg.id + '-inherited', label:`Included from Package${pkg.number > 2 ? 's' : ''} 1${pkg.number > 2 ? '–' + (pkg.number - 1) : ''}`, tests:inheritedTests, defaultOpen:false});
-    groups.push({key:pkg.id + '-direct', label:pkg.number === 1 ? 'Included in Package 1' : 'Additional components in this package', tests:directTests, defaultOpen:true});
-    const selected = plan.some(item => item.kind === 'package' && item.id === pkg.id);
+    if (inheritedTests.length)
+      groups.push({
+        key: pkg.id + '-inherited',
+        label: `Included from Package${pkg.number > 2 ? 's' : ''} 1${pkg.number > 2 ? '–' + (pkg.number - 1) : ''}`,
+        tests: inheritedTests,
+        defaultOpen: false,
+      });
+    groups.push({
+      key: pkg.id + '-direct',
+      label: pkg.number === 1 ? 'Included in Package 1' : 'Additional components in this package',
+      tests: directTests,
+      defaultOpen: true,
+    });
+    const selected = plan.some((item) => item.kind === 'package' && item.id === pkg.id);
     const savingClass = pkg.saving < 0 ? 'comparison-negative' : '';
     $('#package-panel').setAttribute('aria-labelledby', 'tab-' + pkg.id);
-    $('#package-panel').innerHTML = `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map(group => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary">${packagePriceSummary(pkg)}<div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map(h => `<li>${escapeHTML(h)}</li>`).join('')}</ul>${selected ? '<p class="package-selected-status"><span aria-hidden="true">✓</span> Added to your plan</p>' : `<button class="button primary full" data-add-package="${pkg.id}">Choose this package <span aria-hidden="true">+</span></button>`}<p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
+    $('#package-panel').innerHTML =
+      `<div class="package-layout"><div class="package-detail"><p class="eyebrow">${escapeHTML(pkg.tagline)}</p><div class="package-detail-header"><h3>${escapeHTML(pkg.name)}</h3><span class="component-label">${coveredCount} cumulative components</span></div><p class="package-description">${escapeHTML(pkg.description)}</p><div class="test-groups">${groups.map((group) => `<details class="test-group" data-group="${group.key}" ${(openGroups.has(group.key) ? openGroups.get(group.key) : group.defaultOpen) ? 'open' : ''}><summary><span>${escapeHTML(group.label)}<span class="group-count">${group.tests.length} components</span></span></summary>${group.tests.map(testRow).join('')}</details>`).join('')}</div><p class="working-price-note">* Working/prototype price pending a specific quotation or final service definition.</p></div><aside class="package-sidebar" aria-label="${escapeHTML(pkg.name)} summary">${packagePriceSummary(pkg)}<div class="package-comparison-summary ${savingClass}"><span><small>À la carte total</small><strong>${money(pkg.aLaCarteTotal)}</strong></span><span><small>Package price</small><strong>${money(pkg.price)}</strong></span><span><small>Saving / difference</small><strong>${pkg.saving < 0 ? '-' : ''}${money(Math.abs(pkg.saving))}</strong></span></div><p class="package-rationale">${escapeHTML(pkg.rationale)}</p><ul class="package-highlights">${pkg.highlights.map((h) => `<li>${escapeHTML(h)}</li>`).join('')}</ul>${selected ? '<p class="package-selected-status"><span aria-hidden="true">✓</span> Added to your plan</p>' : `<button class="button primary full" data-add-package="${pkg.id}">Choose this package <span aria-hidden="true">+</span></button>`}<p class="sidebar-note">${escapeHTML(pkg.note)}</p></aside></div>`;
   }
+  // Apply search/category filters and show six services initially, or all matching services.
   function renderTests() {
     const query = $('#test-search').value.trim().toLowerCase();
     const category = $('#test-category').value;
-    const matches = model.tests.filter(test => (category === 'all' || test.category === category) && `${test.name} ${test.category} ${test.description}`.toLowerCase().includes(query));
-    const visible = showingAll || query || category !== 'all' ? matches : matches.slice(0,6);
-    $('#results-count').textContent = `${visible.length === matches.length ? matches.length : visible.length + ' of ' + matches.length} services${query || category !== 'all' ? ' found' : ''}`;
+    const matches = model.tests.filter(
+      (test) =>
+        (category === 'all' || test.category === category) &&
+        `${test.name} ${test.category} ${test.description}`.toLowerCase().includes(query),
+    );
+    const visible = showingAll || query || category !== 'all' ? matches : matches.slice(0, 6);
+    $('#results-count').textContent =
+      `${visible.length === matches.length ? matches.length : visible.length + ' of ' + matches.length} services${query || category !== 'all' ? ' found' : ''}`;
     $('#reset-filters').hidden = !query && category === 'all';
     $('#show-all-tests').hidden = visible.length === matches.length;
-    $('#test-grid').innerHTML = matches.length ? visible.map(test => `<article class="test-card"><div class="test-card-top">${testIcon(test)}<span class="category-pill">${escapeHTML(test.category)}</span></div><h3><button data-detail="${test.id}">${escapeHTML(test.name)}</button></h3><p>${escapeHTML(test.description.split('. ')[0])}${test.description.includes('. ') ? '.' : ''}</p><div class="test-card-bottom"><span class="test-card-price">${testPriceLabel(test)}<small>Listed from Package ${test.introducedIn}${test.provisional ? ' · working price' : ''}${test.optional ? ' · optional pathway' : ''}</small></span>${actionButton(test)}</div></article>`).join('') : '<div class="empty-results"><h3>No matching services.</h3><p>Try another word or clear the filters to explore all available services.</p></div>';
+    $('#test-grid').innerHTML = matches.length
+      ? visible
+          .map(
+            (test) =>
+              `<article class="test-card"><div class="test-card-top">${testIcon(test)}<span class="category-pill">${escapeHTML(test.category)}</span></div><h3><button data-detail="${test.id}">${escapeHTML(test.name)}</button></h3><p>${escapeHTML(test.description.split('. ')[0])}${test.description.includes('. ') ? '.' : ''}</p><div class="test-card-bottom"><span class="test-card-price">${testPriceLabel(test)}<small>Listed from Package ${test.introducedIn}${test.provisional ? ' · working price' : ''}${test.optional ? ' · optional pathway' : ''}</small></span>${actionButton(test)}</div></article>`,
+          )
+          .join('')
+      : '<div class="empty-results"><h3>No matching services.</h3><p>Try another word or clear the filters to explore all available services.</p></div>';
   }
+  // Compare custom selections with package coverage; show progress or the supplied price difference.
+  // A negative saving is kept negative, not presented as an offer or silently recalculated.
   function renderPackageOffer() {
     const offer = $('#package-offer');
-    if (plan.some(item => item.kind === 'package')) {
+    if (plan.some((item) => item.kind === 'package')) {
       offer.innerHTML = '';
       return;
     }
-    const comparisons = model.packages.map(pkg => model.comparePackage(plan, pkg.id));
-    const fullMatch = comparisons.filter(item => item.fullMatch).sort((a,b) => b.packageNumber - a.packageNumber)[0];
-    const progressMatch = comparisons.filter(item => item.matchedCount > 0).sort((a,b) => (b.matchedCount / b.componentCount) - (a.matchedCount / a.componentCount) || a.packageNumber - b.packageNumber)[0];
+    const comparisons = model.packages.map((pkg) => model.comparePackage(plan, pkg.id));
+    const fullMatch = comparisons
+      .filter((item) => item.fullMatch)
+      .sort((a, b) => b.packageNumber - a.packageNumber)[0];
+    const progressMatch = comparisons
+      .filter((item) => item.matchedCount > 0)
+      .sort(
+        (a, b) =>
+          b.matchedCount / b.componentCount - a.matchedCount / a.componentCount ||
+          a.packageNumber - b.packageNumber,
+      )[0];
     if (!fullMatch && !progressMatch) {
       offer.innerHTML = '';
       return;
@@ -143,44 +215,90 @@
       offer.innerHTML = `<aside class="package-match package-match-progress"><p class="eyebrow">PACKAGE COMPARISON</p><strong>${escapeHTML(progress)}</strong><p>Complete the remaining listed components to compare your custom selection with ${escapeHTML(progressMatch.packageName)}.</p></aside>`;
       return;
     }
-    const differenceCopy = fullMatch.saving >= 0
-      ? `The supplied comparison shows ${money(fullMatch.saving)} below the listed à la carte total.`
-      : `The supplied comparison makes this package ${money(Math.abs(fullMatch.saving))} more than the listed components. Confirm the price before commercial use.`;
+    const differenceCopy =
+      fullMatch.saving >= 0
+        ? `The supplied comparison shows ${money(fullMatch.saving)} below the listed à la carte total.`
+        : `The supplied comparison makes this package ${money(Math.abs(fullMatch.saving))} more than the listed components. Confirm the price before commercial use.`;
     offer.innerHTML = `<aside class="package-match package-match-complete"><p class="eyebrow">PACKAGE COMPARISON FOUND</p><h3>Your custom selection matches Package ${fullMatch.packageNumber}.</h3><div class="comparison-prices"><span><small>Listed à la carte total</small><strong>${money(fullMatch.individualTotal)}</strong></span><span><small>Package price</small><strong>${money(fullMatch.packagePrice)}</strong></span><span><small>Saving / difference</small><strong>${fullMatch.saving < 0 ? '-' : ''}${money(Math.abs(fullMatch.saving))}</strong></span></div><p>${escapeHTML(differenceCopy)}</p><button class="button light full" data-switch-package="${fullMatch.packageId}">Choose Package ${fullMatch.packageNumber}</button></aside>`;
   }
+  // Update the drawer, header totals, warnings and next-step buttons from the same plan summary.
   function renderPlan() {
     const summary = model.summarize(plan);
-    $$('.plan-count').forEach(count => { count.textContent = summary.count; });
-    $$('.plan-total-live').forEach(total => { total.textContent = money(summary.subtotal); });
-    $('.plan-trigger').setAttribute('aria-label', `My screening plan, ${summary.count} selected ${summary.count === 1 ? 'item' : 'items'}, indicative total ${money(summary.subtotal)}`);
+    $$('.plan-count').forEach((count) => {
+      count.textContent = summary.count;
+    });
+    $$('.plan-total-live').forEach((total) => {
+      total.textContent = money(summary.subtotal);
+    });
+    $('.plan-trigger').setAttribute(
+      'aria-label',
+      `My screening plan, ${summary.count} selected ${summary.count === 1 ? 'item' : 'items'}, indicative total ${money(summary.subtotal)}`,
+    );
     renderPackageOffer();
-    $('#plan-items').innerHTML = summary.count ? summary.items.map(item => `<article class="plan-item"><div><span class="plan-item-kind">${item.kind === 'package' ? 'Precision screening package' : 'Individual package component'}</span><h3>${escapeHTML(item.name)}</h3>${item.note ? `<small>${escapeHTML(item.note)}</small>` : ''}<button class="remove-item" data-remove="${item.key}" aria-label="Remove ${escapeHTML(item.name)} from plan">Remove</button></div><div class="plan-item-price">${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</div></article>`).join('') : `<div class="empty-plan"><span class="step-symbol" aria-hidden="true">⊕</span><h3>A fresh starting point.</h3><p>Your plan is empty. Choose a precision package or individual components to begin.</p><button class="button primary" data-action="browse-packages">Explore packages ↗</button></div>`;
-    $('#plan-warnings').innerHTML = summary.warnings.map(warning => `<p class="plan-warning">${escapeHTML(warning)}</p>`).join('');
+    $('#plan-items').innerHTML = summary.count
+      ? summary.items
+          .map(
+            (item) =>
+              `<article class="plan-item"><div><span class="plan-item-kind">${item.kind === 'package' ? 'Precision screening package' : 'Individual package component'}</span><h3>${escapeHTML(item.name)}</h3>${item.note ? `<small>${escapeHTML(item.note)}</small>` : ''}<button class="remove-item" data-remove="${item.key}" aria-label="Remove ${escapeHTML(item.name)} from plan">Remove</button></div><div class="plan-item-price">${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</div></article>`,
+          )
+          .join('')
+      : `<div class="empty-plan"><span class="step-symbol" aria-hidden="true">⊕</span><h3>A fresh starting point.</h3><p>Your plan is empty. Choose a precision package or individual components to begin.</p><button class="button primary" data-action="browse-packages">Explore packages ↗</button></div>`;
+    $('#plan-warnings').innerHTML = summary.warnings
+      .map((warning) => `<p class="plan-warning">${escapeHTML(warning)}</p>`)
+      .join('');
     $('#total-label').textContent = 'Indicative total';
     $('#plan-total').textContent = money(summary.subtotal);
-    $('#plan-total-note').textContent = !summary.count ? 'Choose a package or individual components to begin.' : summary.needsQuote ? 'This total includes working prices that still require UWC confirmation.' : 'Packages, services and prices are proposed and subject to UWC confirmation.';
+    $('#plan-total-note').textContent = !summary.count
+      ? 'Choose a package or individual components to begin.'
+      : summary.needsQuote
+        ? 'This total includes working prices that still require UWC confirmation.'
+        : 'Packages, services and prices are proposed and subject to UWC confirmation.';
     $('#clear-plan').disabled = !summary.count;
-    $$('[data-action="open-details"]').forEach(button => { button.disabled = !summary.count; });
-    $('.privacy-note').textContent = storageAvailable ? 'Your plan is saved in this browser. Confirming a demo request sends entered details to the prototype database. No payment is taken.' : 'Your plan lasts only until this page is closed. Confirmed demo requests are stored in the prototype database; no payment is taken.';
+    $$('[data-action="open-details"]').forEach((button) => {
+      button.disabled = !summary.count;
+    });
+    $('.privacy-note').textContent = storageAvailable
+      ? 'Your plan is saved in this browser. Confirming a demo request sends entered details to the prototype database. No payment is taken.'
+      : 'Your plan lasts only until this page is closed. Confirmed demo requests are stored in the prototype database; no payment is taken.';
   }
+  // A changed plan invalidates the current review, saves IDs locally and refreshes all price views.
+  // Restore focus after rebuilding DOM elements so keyboard users do not lose their position.
   function update() {
     submittedBooking = null;
     submittedSummary = null;
     preferredAppointment = null;
     const focus = document.activeElement;
     const focusContainer = focus.closest('#package-panel, #test-grid, #plan-items, #test-detail');
-    const action = focus.dataset.test ? ['test',focus.dataset.test] : focus.dataset.remove ? ['remove',focus.dataset.remove] : focus.dataset.addPackage ? ['add-package',focus.dataset.addPackage] : null;
+    const action = focus.dataset.test
+      ? ['test', focus.dataset.test]
+      : focus.dataset.remove
+        ? ['remove', focus.dataset.remove]
+        : focus.dataset.addPackage
+          ? ['add-package', focus.dataset.addPackage]
+          : null;
     saveGroupState();
-    try { localStorage.setItem(storageKey, JSON.stringify(plan)); } catch (_) { storageAvailable = false; }
-    renderPackage();renderTests();renderPlan();
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(plan));
+    } catch (_) {
+      storageAvailable = false;
+    }
+    renderPackage();
+    renderTests();
+    renderPlan();
     if (detailId && $('#test-dialog').open) renderDetail(detailId);
     if (focusContainer && action) {
       const target = $(`[data-${action[0]}="${action[1]}"]`, focusContainer);
-      if (target && !target.disabled) target.focus({preventScroll:true});
-      else if (focusContainer.id === 'plan-items') $('#plan-title').closest('dialog').querySelector('[data-close]').focus({preventScroll:true});
-      else if (focusContainer.id === 'test-detail') $('#test-dialog [data-close]').focus({preventScroll:true});
+      if (target && !target.disabled) target.focus({ preventScroll: true });
+      else if (focusContainer.id === 'plan-items')
+        $('#plan-title')
+          .closest('dialog')
+          .querySelector('[data-close]')
+          .focus({ preventScroll: true });
+      else if (focusContainer.id === 'test-detail')
+        $('#test-dialog [data-close]').focus({ preventScroll: true });
     }
   }
+  // Display a short live message inside the current dialog, or on the page if no dialog is open.
   function showToast(message) {
     const toast = $('#toast');
     const dialogs = $$('dialog[open]');
@@ -188,124 +306,191 @@
     toast.textContent = message;
     toast.classList.add('visible');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { toast.classList.remove('visible'); }, 3300);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove('visible');
+    }, 3300);
   }
+  // Remember the opener, show the native dialog and prevent background-page scrolling.
   function openDialog(id) {
     const opener = document.activeElement;
-    const container = opener.closest('#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog, #appointment-dialog, #review-dialog, #booking-confirmation-dialog');
-    const attribute = ['data-detail','data-add-package','data-action','data-test','id'].find(name => opener.hasAttribute(name));
-    dialogOpeners.set(id,{element:opener,container,attribute,value:attribute ? opener.getAttribute(attribute) : ''});
+    const container = opener.closest(
+      '#package-panel, #test-grid, #test-detail, #plan-dialog, #customer-dialog, #appointment-dialog, #review-dialog, #booking-confirmation-dialog',
+    );
+    const attribute = ['data-detail', 'data-add-package', 'data-action', 'data-test', 'id'].find(
+      (name) => opener.hasAttribute(name),
+    );
+    dialogOpeners.set(id, {
+      element: opener,
+      container,
+      attribute,
+      value: attribute ? opener.getAttribute(attribute) : '',
+    });
     $('#' + id).showModal();
     document.body.classList.add('modal-open');
   }
+  // Store a callback; apply the destructive plan change only after the user confirms it.
   function confirmChange(message, callback, title = 'Update your plan?') {
     confirmation = callback;
     $('#confirm-title').textContent = title;
     $('#confirm-message').textContent = message;
     openDialog('confirm-dialog');
   }
+  // Allow one package at a time. Replacing it removes duplicate covered tests, not unrelated extras.
   function addPackage(id) {
-    const current = plan.find(item => item.kind === 'package');
-    if (current?.id === id) { openDialog('plan-dialog'); return; }
-    const selected = model.packages.find(pkg => pkg.id === id);
+    const current = plan.find((item) => item.kind === 'package');
+    if (current?.id === id) {
+      openDialog('plan-dialog');
+      return;
+    }
+    const selected = model.packages.find((pkg) => pkg.id === id);
     const perform = () => {
-      plan = model.addPackage(plan,id);update();
-      showToast(`${selected.short} package added. Matching individual components were replaced by the package offer.`);
+      plan = model.addPackage(plan, id);
+      update();
+      showToast(
+        `${selected.short} package added. Matching individual components were replaced by the package offer.`,
+      );
     };
     if (current) {
-      const currentPackage = model.packages.find(pkg => pkg.id === current.id);
-      confirmChange(`Replace your ${currentPackage.short} package with ${selected.short}? Individual services outside the new package will be kept.`, perform);
-    }
-    else perform();
+      const currentPackage = model.packages.find((pkg) => pkg.id === current.id);
+      confirmChange(
+        `Replace your ${currentPackage.short} package with ${selected.short}? Individual services outside the new package will be kept.`,
+        perform,
+      );
+    } else perform();
   }
+  // Toggle a standalone service; services already covered by a package cannot be charged twice.
   function toggleTest(id) {
     const status = getStatus(id);
     if (status === 'covered') return;
-    const test = model.tests.find(t => t.id === id);
-    if (status === 'selected') { plan = model.removeItem(plan, 'test:' + id);update();showToast('Removed ' + test.name + ' from your plan.'); }
-    else {
-      plan = model.addTest(plan,id);update();
+    const test = model.tests.find((t) => t.id === id);
+    if (status === 'selected') {
+      plan = model.removeItem(plan, 'test:' + id);
+      update();
+      showToast('Removed ' + test.name + ' from your plan.');
+    } else {
+      plan = model.addTest(plan, id);
+      update();
       showToast(test.name + ' added to your plan.');
     }
   }
+  // Fill the service-detail dialog with its description, price and working/optional-price notice.
   function renderDetail(id) {
-    const test = model.tests.find(t => t.id === id);
+    const test = model.tests.find((t) => t.id === id);
     const status = getStatus(test.id);
     const packageNumbers = model.packageNumbersForTest(test.id);
-    const packageCopy = 'Listed in Package' + (packageNumbers.length > 1 ? 's ' : ' ') + packageNumbers.join(', ') + '.';
+    const packageCopy =
+      'Listed in Package' +
+      (packageNumbers.length > 1 ? 's ' : ' ') +
+      packageNumbers.join(', ') +
+      '.';
     const reviewCopy = test.provisional
       ? 'This is a working price pending a specific quotation or final service definition.'
       : test.optional
         ? 'This is an optional pathway that can materially change the final quotation.'
         : 'Final service scope, suitability and preparation instructions must be confirmed by UWC.';
-    $('#test-detail').innerHTML = `<p class="eyebrow">${escapeHTML(test.category)}</p><h2 id="test-detail-title">${escapeHTML(test.name)}</h2><p class="detail-description">${escapeHTML(test.description)}</p><div class="detail-pricing"><span>Proposed à la carte price</span><strong>${testPriceLabel(test)}</strong></div><p class="detail-note">${escapeHTML(packageCopy + ' ' + reviewCopy)}</p><button class="button primary full" data-test="${test.id}" ${status === 'covered' ? 'disabled' : ''}>${status === 'covered' ? 'Included in your package ✓' : status === 'selected' ? 'Remove from my plan' : 'Add to my plan +'}</button>`;
+    $('#test-detail').innerHTML =
+      `<p class="eyebrow">${escapeHTML(test.category)}</p><h2 id="test-detail-title">${escapeHTML(test.name)}</h2><p class="detail-description">${escapeHTML(test.description)}</p><div class="detail-pricing"><span>Proposed à la carte price</span><strong>${testPriceLabel(test)}</strong></div><p class="detail-note">${escapeHTML(packageCopy + ' ' + reviewCopy)}</p><button class="button primary full" data-test="${test.id}" ${status === 'covered' ? 'disabled' : ''}>${status === 'covered' ? 'Included in your package ✓' : status === 'selected' ? 'Remove from my plan' : 'Add to my plan +'}</button>`;
   }
+  // Change the viewed package without changing the customer's plan; optionally focus its tab.
   function selectPackage(id, focus = false) {
-    saveGroupState();activePackage = id;renderTabs();renderPackage();renderPlan();
+    saveGroupState();
+    activePackage = id;
+    renderTabs();
+    renderPackage();
+    renderPlan();
     if (focus) $('#tab-' + id).focus();
   }
+  // Switch the two introduction slides and update the carousel's accessible current-slide marker.
   function setSlide(index) {
     activeSlide = (index + 2) % 2;
     const slides = [
       '<h1>A clearer picture.<br><em>A healthier you.</em></h1><p class="hero-description">Explore four proposed precision-screening packages, compare their listed components and build a personal selection.</p>',
-      '<h1>Your next chapter.<br><em>Start with insight.</em></h1><p class="hero-description">Choose a package or build your own selection. When your choices match a package, the prototype shows the supplied price difference.</p>'
+      '<h1>Your next chapter.<br><em>Start with insight.</em></h1><p class="hero-description">Choose a package or build your own selection. When your choices match a package, the prototype shows the supplied price difference.</p>',
     ];
     $('#hero-text').innerHTML = slides[activeSlide];
-    $$('.slide-dots button').forEach((button,index) => button.setAttribute('aria-current', String(index === activeSlide)));
+    $$('.slide-dots button').forEach((button, index) =>
+      button.setAttribute('aria-current', String(index === activeSlide)),
+    );
   }
+  // Offer a local PDF only after a saved demo request exists; include its code and preferred slot.
   function downloadPlan() {
     if (!submittedBooking) return;
     const summary = submittedSummary;
-    const blob = window.UWCPdf.createPlanPdf(summary, new Date().toLocaleDateString('en-MY'), appointmentSummaryText(), submittedBooking.booking_code);
+    const blob = window.UWCPdf.createPlanPdf(
+      summary,
+      new Date().toLocaleDateString('en-MY'),
+      appointmentSummaryText(),
+      submittedBooking.booking_code,
+    );
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
-    anchor.href = url;anchor.download = 'UWC-Screening-Plan.pdf';
-    document.body.append(anchor);anchor.click();anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url),1000);
+    anchor.href = url;
+    anchor.download = 'UWC-Screening-Plan.pdf';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     showToast('Your demo request summary has been downloaded.');
   }
+  // Prepare the print-only HTML summary; styles.css hides the interactive site during printing.
   function printPlan() {
     if (!submittedBooking) return;
     const summary = submittedSummary;
-    $('#print-summary').innerHTML = `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><p><strong>Demo request code:</strong> ${escapeHTML(submittedBooking.booking_code)}</p><p><strong>Preferred appointment:</strong> ${escapeHTML(appointmentSummaryText())} (not confirmed)</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map(item => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map(w => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>This demo request is saved in the prototype database, but is not a confirmed UWC appointment. No payment has been taken. Discuss screening suitability with a qualified healthcare professional.</p>`;
+    $('#print-summary').innerHTML =
+      `<h1>UMBI Wellness Centre</h1><h2>Screening plan · Prototype review</h2><p>${escapeHTML(new Date().toLocaleDateString('en-MY'))}</p><p><strong>Demo request code:</strong> ${escapeHTML(submittedBooking.booking_code)}</p><p><strong>Preferred appointment:</strong> ${escapeHTML(appointmentSummaryText())} (not confirmed)</p><table><thead><tr><th>Selected package / service</th><th>Proposed price</th></tr></thead><tbody>${summary.items.map((item) => `<tr><td>${escapeHTML(item.name)}<small>${escapeHTML(item.note || '')}</small></td><td>${money(item.price)}${item.provisional ? '<small>Working price*</small>' : ''}</td></tr>`).join('')}</tbody></table><h2>Indicative total: ${money(summary.subtotal)}</h2><ul>${summary.warnings.map((w) => `<li>${escapeHTML(w)}</li>`).join('')}</ul><p>Packages, services and prices are proposed figures subject to UWC confirmation. This is not a final quote.</p><p>This demo request is saved in the prototype database, but is not a confirmed UWC appointment. No payment has been taken. Discuss screening suitability with a qualified healthcare professional.</p>`;
     window.print();
   }
 
+  // Customer input references are shared by validation and draft-preserving modal navigation.
   const customerForm = $('#customer-form');
   const customerFields = {
     name: $('#customer-name'),
     phone: $('#customer-phone'),
     email: $('#customer-email'),
     notes: $('#customer-notes'),
-    consent: $('#customer-consent')
+    consent: $('#customer-consent'),
   };
+  // Read the shared tomorrow-to-three-months range used by the public, tracker and staff pages.
   function appointmentWindow() {
     return appointmentRules.window();
   }
+  // Reject dates outside the window, weekends and any future UWC-approved holiday exclusions.
   function validAppointmentDate(key) {
     return appointmentRules.validDate(key) && !appointmentHolidayDates.has(key);
   }
+  // Format a calendar date using UTC noon so the date does not shift with the visitor's timezone.
   function dateLabel(key) {
-    return new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'long', day:'numeric', month:'long', year:'numeric'}).format(new Date(`${key}T12:00:00Z`));
+    return new Intl.DateTimeFormat('en-MY', {
+      timeZone: 'UTC',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(`${key}T12:00:00Z`));
   }
+  // Turn the chosen date and 24-hour slot into the readable appointment summary shown to the user.
   function appointmentSummaryText() {
     if (!preferredAppointment) return '';
     const [hours, minutes] = preferredAppointment.time.split(':').map(Number);
     const time = `${hours % 12 || 12}:${String(minutes).padStart(2, '0')} ${hours < 12 ? 'a.m.' : 'p.m.'}`;
     return `${dateLabel(preferredAppointment.date)} at ${time}`;
   }
+  // Calendar arithmetic uses UTC noon to avoid daylight-saving changes in the browser's locale.
   function addDaysToKey(key, days) {
     const date = new Date(`${key}T12:00:00Z`);
     date.setUTCDate(date.getUTCDate() + days);
     return date.toISOString().slice(0, 10);
   }
+  // Return the Monday of the week containing the supplied YYYY-MM-DD date.
   function weekStartForKey(key) {
     const day = new Date(`${key}T12:00:00Z`).getUTCDay();
     return addDaysToKey(key, -((day + 6) % 7));
   }
+  // Convert year/month to a sortable integer, including when the booking range crosses a year.
   function monthNumberForKey(key) {
     return Number(key.slice(0, 4)) * 12 + Number(key.slice(5, 7)) - 1;
   }
+  // Find the first eligible weekday for the month dropdown, or null if that month has none.
   function firstAvailableDateInMonth(monthNumber) {
     const year = Math.floor(monthNumber / 12);
     const month = monthNumber % 12;
@@ -316,72 +501,127 @@
     }
     return null;
   }
+  // Render seven compact date buttons and bounded week/month navigation; unavailable days stay disabled.
   function renderAppointmentWeek() {
     const window = appointmentWindow();
     if (!validAppointmentDate(appointmentDraft.date)) appointmentDraft.date = null;
     const firstWeek = weekStartForKey(window.first);
     const lastWeek = weekStartForKey(window.last);
-    appointmentWeekStart = appointmentWeekStart && appointmentWeekStart >= firstWeek && appointmentWeekStart <= lastWeek ? appointmentWeekStart : firstWeek;
+    appointmentWeekStart =
+      appointmentWeekStart && appointmentWeekStart >= firstWeek && appointmentWeekStart <= lastWeek
+        ? appointmentWeekStart
+        : firstWeek;
     const monthSelect = $('#appointment-month-select');
     const firstMonth = monthNumberForKey(window.first);
     const lastMonth = monthNumberForKey(window.last);
-    const availableMonths = Array.from({length:lastMonth - firstMonth + 1}, (_, offset) => firstMonth + offset)
-      .filter(monthNumber => firstAvailableDateInMonth(monthNumber));
-    const options = availableMonths.map(monthNumber => {
-      const date = new Date(Date.UTC(Math.floor(monthNumber / 12), monthNumber % 12, 1, 12));
-      const label = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', month:'short', year:'numeric'}).format(date);
-      return `<option value="${monthNumber}">${label}</option>`;
-    }).join('');
+    const availableMonths = Array.from(
+      { length: lastMonth - firstMonth + 1 },
+      (_, offset) => firstMonth + offset,
+    ).filter((monthNumber) => firstAvailableDateInMonth(monthNumber));
+    const options = availableMonths
+      .map((monthNumber) => {
+        const date = new Date(Date.UTC(Math.floor(monthNumber / 12), monthNumber % 12, 1, 12));
+        const label = new Intl.DateTimeFormat('en-MY', {
+          timeZone: 'UTC',
+          month: 'short',
+          year: 'numeric',
+        }).format(date);
+        return `<option value="${monthNumber}">${label}</option>`;
+      })
+      .join('');
     if (monthSelect.innerHTML !== options) monthSelect.innerHTML = options;
     if (!availableMonths.includes(appointmentMonthFocus)) {
-      appointmentMonthFocus = availableMonths.reduce((closest, month) =>
-        Math.abs(month - appointmentMonthFocus) < Math.abs(closest - appointmentMonthFocus) ? month : closest,
-      availableMonths[0]);
+      appointmentMonthFocus = availableMonths.reduce(
+        (closest, month) =>
+          Math.abs(month - appointmentMonthFocus) < Math.abs(closest - appointmentMonthFocus)
+            ? month
+            : closest,
+        availableMonths[0],
+      );
     }
     monthSelect.value = String(appointmentMonthFocus);
     $('#appointment-prev-week').disabled = appointmentWeekStart === firstWeek;
     $('#appointment-next-week').disabled = appointmentWeekStart === lastWeek;
     const endOfWeek = addDaysToKey(appointmentWeekStart, 6);
-    const shortDate = key => new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', day:'numeric', month:'short'}).format(new Date(`${key}T12:00:00Z`));
-    $('#appointment-week-range').textContent = `${shortDate(appointmentWeekStart)} – ${shortDate(endOfWeek)}`;
-    $('#appointment-week').innerHTML = Array.from({length:7}, (_, index) => {
+    const shortDate = (key) =>
+      new Intl.DateTimeFormat('en-MY', { timeZone: 'UTC', day: 'numeric', month: 'short' }).format(
+        new Date(`${key}T12:00:00Z`),
+      );
+    $('#appointment-week-range').textContent =
+      `${shortDate(appointmentWeekStart)} – ${shortDate(endOfWeek)}`;
+    $('#appointment-week').innerHTML = Array.from({ length: 7 }, (_, index) => {
       const key = addDaysToKey(appointmentWeekStart, index);
       const date = new Date(`${key}T12:00:00Z`);
       const available = validAppointmentDate(key);
-      const weekday = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', weekday:'short'}).format(date);
-      const month = new Intl.DateTimeFormat('en-MY', {timeZone:'UTC', month:'short'}).format(date);
+      const weekday = new Intl.DateTimeFormat('en-MY', {
+        timeZone: 'UTC',
+        weekday: 'short',
+      }).format(date);
+      const month = new Intl.DateTimeFormat('en-MY', { timeZone: 'UTC', month: 'short' }).format(
+        date,
+      );
       return `<button type="button" class="appointment-week-day" data-appointment-date="${key}" aria-label="${dateLabel(key)}${available ? '' : ', unavailable'}" aria-pressed="${key === appointmentDraft.date}" ${available ? '' : 'disabled'}><span>${weekday}</span><strong>${date.getUTCDate()}</strong><small>${month}</small></button>`;
     }).join('');
-    $('#appointment-week').setAttribute('aria-label', `Preferred dates, ${shortDate(appointmentWeekStart)} to ${shortDate(endOfWeek)}`);
-    $('#appointment-window-hint').textContent = `Choose a weekday from tomorrow through ${dateLabel(window.last)}.`;
-    $('#appointment-selection-summary').textContent = appointmentDraft.date ? dateLabel(appointmentDraft.date) : 'No date selected yet';
+    $('#appointment-week').setAttribute(
+      'aria-label',
+      `Preferred dates, ${shortDate(appointmentWeekStart)} to ${shortDate(endOfWeek)}`,
+    );
+    $('#appointment-window-hint').textContent =
+      `Choose a weekday from tomorrow through ${dateLabel(window.last)}.`;
+    $('#appointment-selection-summary').textContent = appointmentDraft.date
+      ? dateLabel(appointmentDraft.date)
+      : 'No date selected yet';
   }
+  // Restore a valid draft into the date/time controls whenever the appointment dialog is reopened.
   function renderAppointment() {
     if (!validAppointmentDate(appointmentDraft.date)) appointmentDraft.date = null;
     const window = appointmentWindow();
     appointmentWeekStart = weekStartForKey(appointmentDraft.date || window.first);
     appointmentMonthFocus = monthNumberForKey(appointmentDraft.date || window.first);
     renderAppointmentWeek();
-    $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach(input => { input.checked = input.value === appointmentDraft.time; });
+    $$('input[name="preferredTime"]', $('#appointment-dialog')).forEach((input) => {
+      input.checked = input.value === appointmentDraft.time;
+    });
     $('#appointment-status').hidden = true;
   }
+  // Build the final review from validated details, the selected plan and the preferred appointment.
   function renderReview() {
     const summary = model.summarize(plan);
-    $('#review-items').innerHTML = summary.items.map(item => `<div class="review-item"><span>${escapeHTML(item.name)}</span><strong>${money(item.price)}${item.provisional ? '*' : ''}</strong></div>`).join('');
-    $('#review-total').innerHTML = `<span>Indicative total</span><strong>${money(summary.subtotal)}</strong>`;
-    $('#review-warnings').innerHTML = summary.warnings.map(warning => `<p class="plan-warning">${escapeHTML(warning)}</p>`).join('');
-    $('#review-customer').innerHTML = `<div><dt>Name</dt><dd>${escapeHTML(customerDetails.name)}</dd></div><div><dt>Contact</dt><dd>${escapeHTML(customerDetails.phone)} · ${escapeHTML(customerDetails.email)}</dd></div><div><dt>Preferred contact</dt><dd>${escapeHTML(customerDetails.contactMethod)}</dd></div><div><dt>First visit</dt><dd>${escapeHTML(customerDetails.firstTime)}</dd></div>${customerDetails.notes ? `<div><dt>Notes</dt><dd>${escapeHTML(customerDetails.notes)}</dd></div>` : ''}`;
-    $('#review-appointment').textContent = `${appointmentSummaryText()} · preferred only, not confirmed`;
+    $('#review-items').innerHTML = summary.items
+      .map(
+        (item) =>
+          `<div class="review-item"><span>${escapeHTML(item.name)}</span><strong>${money(item.price)}${item.provisional ? '*' : ''}</strong></div>`,
+      )
+      .join('');
+    $('#review-total').innerHTML =
+      `<span>Indicative total</span><strong>${money(summary.subtotal)}</strong>`;
+    $('#review-warnings').innerHTML = summary.warnings
+      .map((warning) => `<p class="plan-warning">${escapeHTML(warning)}</p>`)
+      .join('');
+    $('#review-customer').innerHTML =
+      `<div><dt>Name</dt><dd>${escapeHTML(customerDetails.name)}</dd></div><div><dt>Contact</dt><dd>${escapeHTML(customerDetails.phone)} · ${escapeHTML(customerDetails.email)}</dd></div><div><dt>Preferred contact</dt><dd>${escapeHTML(customerDetails.contactMethod)}</dd></div><div><dt>First visit</dt><dd>${escapeHTML(customerDetails.firstTime)}</dd></div>${customerDetails.notes ? `<div><dt>Notes</dt><dd>${escapeHTML(customerDetails.notes)}</dd></div>` : ''}`;
+    $('#review-appointment').textContent =
+      `${appointmentSummaryText()} · preferred only, not confirmed`;
     $('#review-status').hidden = true;
     $('#submit-demo-request').disabled = false;
   }
+  // Appointment events update the draft only; nothing is sent while selecting a date or time.
   const appointmentDialog = $('#appointment-dialog');
-  appointmentDialog.addEventListener('click', event => {
+  appointmentDialog.addEventListener('click', (event) => {
     const weekButton = event.target.closest('#appointment-prev-week, #appointment-next-week');
     if (weekButton && !weekButton.disabled) {
-      appointmentWeekStart = addDaysToKey(appointmentWeekStart, weekButton.id === 'appointment-next-week' ? 7 : -7);
+      appointmentWeekStart = addDaysToKey(
+        appointmentWeekStart,
+        weekButton.id === 'appointment-next-week' ? 7 : -7,
+      );
       const window = appointmentWindow();
-      appointmentMonthFocus = Math.max(monthNumberForKey(window.first), Math.min(monthNumberForKey(addDaysToKey(appointmentWeekStart, 3)), monthNumberForKey(window.last)));
+      appointmentMonthFocus = Math.max(
+        monthNumberForKey(window.first),
+        Math.min(
+          monthNumberForKey(addDaysToKey(appointmentWeekStart, 3)),
+          monthNumberForKey(window.last),
+        ),
+      );
       renderAppointmentWeek();
       return;
     }
@@ -390,12 +630,14 @@
     appointmentDraft.date = dayButton.dataset.appointmentDate;
     if (submittedBooking) return;
     preferredAppointment = null;
-    $$('.appointment-week-day', appointmentDialog).forEach(button => button.setAttribute('aria-pressed', String(button === dayButton)));
+    $$('.appointment-week-day', appointmentDialog).forEach((button) =>
+      button.setAttribute('aria-pressed', String(button === dayButton)),
+    );
     $('#appointment-selection-summary').textContent = dateLabel(appointmentDraft.date);
     $('#appointment-status').hidden = true;
     groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', '');
   });
-  appointmentDialog.addEventListener('change', event => {
+  appointmentDialog.addEventListener('change', (event) => {
     if (event.target.matches('#appointment-month-select')) {
       const monthNumber = Number(event.target.value);
       appointmentMonthFocus = monthNumber;
@@ -410,106 +652,167 @@
     $('#appointment-status').hidden = true;
     groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', '');
   });
+  // Validate both date and time before moving to review, without reserving a real slot.
   $('#save-appointment').addEventListener('click', () => {
     const selectedTime = appointmentDialog.querySelector('input[name="preferredTime"]:checked');
     const validDate = validAppointmentDate(appointmentDraft.date);
     const validTime = selectedTime && appointmentTimes.includes(selectedTime.value);
-    groupError('preferredDate', 'appointment-date-group', 'appointment-date-error', validDate ? '' : 'Choose a future weekday within the next three months.');
-    groupError('preferredTime', 'appointment-time-group', 'appointment-time-error', validTime ? '' : 'Choose a preferred morning time.');
+    groupError(
+      'preferredDate',
+      'appointment-date-group',
+      'appointment-date-error',
+      validDate ? '' : 'Choose a future weekday within the next three months.',
+    );
+    groupError(
+      'preferredTime',
+      'appointment-time-group',
+      'appointment-time-error',
+      validTime ? '' : 'Choose a preferred morning time.',
+    );
     if (!validDate || !validTime) {
-      (validDate ? appointmentDialog.querySelector('input[name="preferredTime"]') : $('#appointment-week .appointment-week-day:not(:disabled)'))?.focus();
+      (validDate
+        ? appointmentDialog.querySelector('input[name="preferredTime"]')
+        : $('#appointment-week .appointment-week-day:not(:disabled)')
+      )?.focus();
       return;
     }
     const summary = model.summarize(plan);
     if (!customerDetails || !summary.count) {
       const status = $('#appointment-status');
-      status.hidden = false; status.classList.add('is-error');
-      status.textContent = 'Save your customer details and choose a package or service before confirming.';
-      status.focus({preventScroll:true});
+      status.hidden = false;
+      status.classList.add('is-error');
+      status.textContent =
+        'Save your customer details and choose a package or service before confirming.';
+      status.focus({ preventScroll: true });
       return;
     }
-    preferredAppointment = {date:appointmentDraft.date,time:selectedTime.value};
+    preferredAppointment = { date: appointmentDraft.date, time: selectedTime.value };
     renderReview();
     appointmentDialog.close();
     openDialog('review-dialog');
-    $('#review-title').focus({preventScroll:true});
+    $('#review-title').focus({ preventScroll: true });
   });
+  // The only public booking write: submit a demo request to the server-side guest gateway.
+  // The server revalidates the request and generates the code; the browser cannot mark payment paid.
   $('#submit-demo-request').addEventListener('click', async () => {
     if (submittedBooking || requestSending) return;
     const summary = model.summarize(plan);
     const status = $('#review-status');
-    if (!customerDetails || !summary.count || !preferredAppointment || !validAppointmentDate(preferredAppointment.date) || !appointmentTimes.includes(preferredAppointment.time)) {
+    if (
+      !customerDetails ||
+      !summary.count ||
+      !preferredAppointment ||
+      !validAppointmentDate(preferredAppointment.date) ||
+      !appointmentTimes.includes(preferredAppointment.time)
+    ) {
       status.hidden = false;
       status.classList.add('is-error');
-      status.textContent = 'Your details or preferred appointment need updating. Please review them before submitting.';
-      status.focus({preventScroll:true});
+      status.textContent =
+        'Your details or preferred appointment need updating. Please review them before submitting.';
+      status.focus({ preventScroll: true });
       return;
     }
-    const packageItem = summary.items.find(item => item.kind === 'package');
+    const packageItem = summary.items.find((item) => item.kind === 'package');
     status.hidden = false;
     status.classList.remove('is-error');
     status.textContent = 'Sending your demo request…';
     requestSending = true;
     $('#review-dialog').setAttribute('aria-busy', 'true');
-    $$('#review-dialog button').forEach(control => { control.disabled = true; });
+    $$('#review-dialog button').forEach((control) => {
+      control.disabled = true;
+    });
     try {
       const config = window.UWC_DEMO_CONFIG;
       const response = await fetch(config.gatewayUrl, {
-        method: 'POST', cache: 'no-store', signal: AbortSignal.timeout(20000),
-        headers: {'Content-Type':'application/json', apikey:config.publishableKey},
-        body: JSON.stringify({action:'create_demo',data:{
-          package_id:packageItem?.id || 'custom',
-          items:summary.items.map(item => ({kind:item.kind,id:item.id,name:item.name,price:item.price})),
-          indicative_total:summary.subtotal,
-          name:customerDetails.name, email:customerDetails.email, phone:customerDetails.phone,
-          contact_method:customerDetails.contactMethod, first_visit:customerDetails.firstTime,
-          notes:customerDetails.notes, consent:customerDetails.consent,
-          scheduled_at:new Date(`${preferredAppointment.date}T${preferredAppointment.time}:00+08:00`).toISOString()
-        }})
+        method: 'POST',
+        cache: 'no-store',
+        signal: AbortSignal.timeout(20000),
+        headers: { 'Content-Type': 'application/json', apikey: config.publishableKey },
+        body: JSON.stringify({
+          action: 'create_demo',
+          data: {
+            package_id: packageItem?.id || 'custom',
+            items: summary.items.map((item) => ({
+              kind: item.kind,
+              id: item.id,
+              name: item.name,
+              price: item.price,
+            })),
+            indicative_total: summary.subtotal,
+            name: customerDetails.name,
+            email: customerDetails.email,
+            phone: customerDetails.phone,
+            contact_method: customerDetails.contactMethod,
+            first_visit: customerDetails.firstTime,
+            notes: customerDetails.notes,
+            consent: customerDetails.consent,
+            scheduled_at: new Date(
+              `${preferredAppointment.date}T${preferredAppointment.time}:00+08:00`,
+            ).toISOString(),
+          },
+        }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.booking?.booking_code) throw new Error(data.error || 'Could not save the demo request. Please try again.');
+      if (!response.ok || !data.booking?.booking_code)
+        throw new Error(data.error || 'Could not save the demo request. Please try again.');
       submittedBooking = data.booking;
       submittedSummary = summary;
-      appointmentDraft = {...preferredAppointment};
+      appointmentDraft = { ...preferredAppointment };
       $('#appointment-code').textContent = submittedBooking.booking_code;
-      $('#confirmation-appointment').textContent = `Preferred appointment: ${appointmentSummaryText()} (not confirmed)`;
+      $('#confirmation-appointment').textContent =
+        `Preferred appointment: ${appointmentSummaryText()} (not confirmed)`;
       $('#confirmation-total').textContent = `Indicative plan total: ${money(summary.subtotal)}`;
       $('#review-dialog').close();
       openDialog('booking-confirmation-dialog');
-      $('#copy-appointment-code').focus({preventScroll:true});
+      $('#copy-appointment-code').focus({ preventScroll: true });
     } catch (error) {
       status.classList.add('is-error');
-      status.textContent = error.name === 'TimeoutError' || error instanceof TypeError
-        ? 'Could not connect. Please try again.' : error.message || 'Could not save the demo request. Please try again.';
-      status.focus({preventScroll:true});
+      status.textContent =
+        error.name === 'TimeoutError' || error instanceof TypeError
+          ? 'Could not connect. Please try again.'
+          : error.message || 'Could not save the demo request. Please try again.';
+      status.focus({ preventScroll: true });
     } finally {
       requestSending = false;
       $('#review-dialog').removeAttribute('aria-busy');
-      $$('#review-dialog button').forEach(control => { control.disabled = false; });
+      $$('#review-dialog button').forEach((control) => {
+        control.disabled = false;
+      });
     }
   });
+  // Copy the server-issued code, with a manual-copy message when clipboard permission is unavailable.
   $('#copy-appointment-code').addEventListener('click', async () => {
     if (!submittedBooking) return;
-    try { await navigator.clipboard.writeText(submittedBooking.booking_code); showToast('Demo request code copied.'); }
-    catch { showToast('Please select and copy the code above.'); }
+    try {
+      await navigator.clipboard.writeText(submittedBooking.booking_code);
+      showToast('Demo request code copied.');
+    } catch {
+      showToast('Please select and copy the code above.');
+    }
   });
-  $('#another-request').addEventListener('click', () => confirmChange(
-    'Save your current booking code before continuing. The existing demo request stays recorded; your plan and contact details can be reused for a new preferred appointment.',
-    () => {
-      $('#booking-confirmation-dialog').close();
-      submittedBooking = null;
-      submittedSummary = null;
-      preferredAppointment = null;
-      appointmentDraft = {date:null,time:null};
-      renderPlan();
-      openDialog('plan-dialog');
-      showToast('Choose or edit your plan to start another demo request.');
-    },
-    'Create another request?'
-  ));
-  const cleanName = value => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
-  const cleanPhone = value => `${value.trimStart().startsWith('+') ? '+' : ''}${value.replace(/\D/g, '').slice(0, 15)}`;
+  // Start a new request in this page while leaving the previously saved database request unchanged.
+  $('#another-request').addEventListener('click', () =>
+    confirmChange(
+      'Save your current booking code before continuing. The existing demo request stays recorded; your plan and contact details can be reused for a new preferred appointment.',
+      () => {
+        $('#booking-confirmation-dialog').close();
+        submittedBooking = null;
+        submittedSummary = null;
+        preferredAppointment = null;
+        appointmentDraft = { date: null, time: null };
+        renderPlan();
+        openDialog('plan-dialog');
+        showToast('Choose or edit your plan to start another demo request.');
+      },
+      'Create another request?',
+    ),
+  );
+  // Names accept Unicode letters (including Arabic), combining marks, spaces, apostrophes and hyphens.
+  // Phone numbers are strings, not integers: preserve a leading + and any leading zero digits.
+  const cleanName = (value) => value.replace(/[^\p{L}\p{M} '’\-]/gu, '');
+  const cleanPhone = (value) =>
+    `${value.trimStart().startsWith('+') ? '+' : ''}${value.replace(/\D/g, '').slice(0, 15)}`;
+  // Remove unsupported typed/pasted characters without moving the caret to the end of the field.
   function restrictInput(control, cleaner) {
     const original = control.value;
     const cleaned = cleaner(original);
@@ -518,25 +821,32 @@
     const end = control.selectionEnd;
     control.value = cleaned;
     if (start !== null && end !== null) {
-      control.setSelectionRange(cleaner(original.slice(0, start)).length, cleaner(original.slice(0, end)).length);
+      control.setSelectionRange(
+        cleaner(original.slice(0, start)).length,
+        cleaner(original.slice(0, end)).length,
+      );
     }
   }
+  // Connect a visible field error with aria-invalid for assistive technologies.
   function fieldError(control, errorId, message) {
     const error = $('#' + errorId);
     error.textContent = message;
     if (message) control.setAttribute('aria-invalid', 'true');
     else control.removeAttribute('aria-invalid');
   }
+  // Show one error for a radio group and mark both the group and its inputs consistently.
   function groupError(name, groupId, errorId, message) {
     const group = $('#' + groupId);
     $('#' + errorId).textContent = message;
     if (message) group.setAttribute('aria-invalid', 'true');
     else group.removeAttribute('aria-invalid');
-    $$(`input[name="${name}"]`, group).forEach(input => {
+    $$(`input[name="${name}"]`, group).forEach((input) => {
       if (message) input.setAttribute('aria-invalid', 'true');
       else input.removeAttribute('aria-invalid');
     });
   }
+  // Validate required fields and consent; return a clean details object or focus the first error.
+  // Client checks improve usability, but server-side checks remain the security boundary.
   function validateCustomerDetails() {
     let firstInvalid = null;
     const name = customerFields.name.value.trim();
@@ -547,21 +857,59 @@
     const firstTime = customerForm.querySelector('input[name="firstTime"]:checked');
     const nameLetterCount = (name.match(/\p{L}/gu) || []).length;
     const errors = [
-      [customerFields.name, 'customer-name-error', !name ? 'Enter your full name using letters.' : nameLetterCount < 2 ? 'Enter at least two letters for your full name.' : !/^[\p{L}\p{M} '’\-]+$/u.test(name) ? 'Use letters, spaces, apostrophes or hyphens only.' : ''],
-      [customerFields.phone, 'customer-phone-error', !phone ? 'Enter a contact number.' : !/^\+?[0-9]{7,15}$/.test(phone) ? 'Enter 7–15 digits, with + only at the beginning if needed.' : ''],
-      [customerFields.email, 'customer-email-error', !email ? 'Enter your email address.' : customerFields.email.validity.typeMismatch || !customerFields.email.checkValidity() ? 'Enter a valid email address.' : '']
+      [
+        customerFields.name,
+        'customer-name-error',
+        !name
+          ? 'Enter your full name using letters.'
+          : nameLetterCount < 2
+            ? 'Enter at least two letters for your full name.'
+            : !/^[\p{L}\p{M} '’\-]+$/u.test(name)
+              ? 'Use letters, spaces, apostrophes or hyphens only.'
+              : '',
+      ],
+      [
+        customerFields.phone,
+        'customer-phone-error',
+        !phone
+          ? 'Enter a contact number.'
+          : !/^\+?[0-9]{7,15}$/.test(phone)
+            ? 'Enter 7–15 digits, with + only at the beginning if needed.'
+            : '',
+      ],
+      [
+        customerFields.email,
+        'customer-email-error',
+        !email
+          ? 'Enter your email address.'
+          : customerFields.email.validity.typeMismatch || !customerFields.email.checkValidity()
+            ? 'Enter a valid email address.'
+            : '',
+      ],
     ];
-    errors.forEach(([control, id, message]) => { fieldError(control, id, message); if (message && !firstInvalid) firstInvalid = control; });
+    errors.forEach(([control, id, message]) => {
+      fieldError(control, id, message);
+      if (message && !firstInvalid) firstInvalid = control;
+    });
     const contactMessage = contact ? '' : 'Choose how UWC should contact you.';
     groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', contactMessage);
-    if (contactMessage && !firstInvalid) firstInvalid = customerForm.querySelector('input[name="contactMethod"]');
+    if (contactMessage && !firstInvalid)
+      firstInvalid = customerForm.querySelector('input[name="contactMethod"]');
     const firstTimeMessage = firstTime ? '' : 'Choose Yes or No for your first visit.';
-    groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', firstTimeMessage);
-    if (firstTimeMessage && !firstInvalid) firstInvalid = customerForm.querySelector('input[name="firstTime"]');
+    groupError(
+      'firstTime',
+      'customer-first-time-group',
+      'customer-first-time-error',
+      firstTimeMessage,
+    );
+    if (firstTimeMessage && !firstInvalid)
+      firstInvalid = customerForm.querySelector('input[name="firstTime"]');
     const notesMessage = notes.length > 500 ? 'Keep booking notes within 500 characters.' : '';
     fieldError(customerFields.notes, 'customer-notes-error', notesMessage);
     if (notesMessage && !firstInvalid) firstInvalid = customerFields.notes;
-    const consentMessage = customerFields.consent.checked ? '' : 'Read and agree to the booking and privacy notice before continuing.';
+    const consentMessage = customerFields.consent.checked
+      ? ''
+      : 'Read and agree to the booking and privacy notice before continuing.';
     fieldError(customerFields.consent, 'customer-consent-error', consentMessage);
     if (consentMessage && !firstInvalid) firstInvalid = customerFields.consent;
     if (firstInvalid) {
@@ -572,9 +920,18 @@
       firstInvalid.focus();
       return null;
     }
-    return {name, phone, email, contactMethod:contact.value, firstTime:firstTime.value, notes, consent:true};
+    return {
+      name,
+      phone,
+      email,
+      contactMethod: contact.value,
+      firstTime: firstTime.value,
+      notes,
+      consent: true,
+    };
   }
-  customerForm.addEventListener('submit', event => {
+  // Save validated contact details in page memory, then continue to the appointment selector.
+  customerForm.addEventListener('submit', (event) => {
     event.preventDefault();
     const valid = validateCustomerDetails();
     if (!valid) return;
@@ -583,18 +940,20 @@
     status.hidden = false;
     status.classList.remove('is-error');
     status.textContent = 'Details saved in this page session. No request has been sent to UWC.';
-    $('#save-customer-details').innerHTML = 'Update details &amp; choose appointment <span aria-hidden="true">→</span>';
+    $('#save-customer-details').innerHTML =
+      'Update details &amp; choose appointment <span aria-hidden="true">→</span>';
     $('#customer-dialog').close();
     if (submittedBooking) {
       openDialog('booking-confirmation-dialog');
-      $('#copy-appointment-code').focus({preventScroll:true});
+      $('#copy-appointment-code').focus({ preventScroll: true });
       return;
     }
     renderAppointment();
     openDialog('appointment-dialog');
     $('#appointment-week .appointment-week-day:not(:disabled)')?.focus();
   });
-  customerForm.addEventListener('input', event => {
+  // Editing a field invalidates the reviewed draft and clears its old error without clearing inputs.
+  customerForm.addEventListener('input', (event) => {
     if (!event.target.matches('input, textarea')) return;
     if (event.target === customerFields.name) restrictInput(customerFields.name, cleanName);
     if (event.target === customerFields.phone) restrictInput(customerFields.phone, cleanPhone);
@@ -603,84 +962,205 @@
     preferredAppointment = null;
     customerDetails = null;
     $('#customer-form-status').hidden = true;
-    $('#save-customer-details').innerHTML = 'Save details &amp; choose appointment <span aria-hidden="true">→</span>';
-    if (event.target.id === 'customer-notes') $('#customer-notes-count').textContent = `${event.target.value.length} / 500`;
-    if (event.target.name === 'contactMethod') groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', '');
-    else if (event.target.name === 'firstTime') groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', '');
-    else if (customerFields[event.target.name]) fieldError(event.target, `customer-${event.target.name}-error`, '');
+    $('#save-customer-details').innerHTML =
+      'Save details &amp; choose appointment <span aria-hidden="true">→</span>';
+    if (event.target.id === 'customer-notes')
+      $('#customer-notes-count').textContent = `${event.target.value.length} / 500`;
+    if (event.target.name === 'contactMethod')
+      groupError('contactMethod', 'customer-contact-group', 'customer-contact-error', '');
+    else if (event.target.name === 'firstTime')
+      groupError('firstTime', 'customer-first-time-group', 'customer-first-time-error', '');
+    else if (customerFields[event.target.name])
+      fieldError(event.target, `customer-${event.target.name}-error`, '');
   });
-  customerForm.addEventListener('change', event => {
-    if (event.target.name === 'consent') fieldError(customerFields.consent, 'customer-consent-error', '');
+  customerForm.addEventListener('change', (event) => {
+    if (event.target.name === 'consent')
+      fieldError(customerFields.consent, 'customer-consent-error', '');
   });
   customerForm.reset();
 
-  document.addEventListener('click', event => {
+  // Event delegation keeps dynamically rendered buttons working after package/plan re-renders.
+  // data-* attributes in the HTML identify which existing action each button should perform.
+  document.addEventListener('click', (event) => {
     const button = event.target.closest('button');
     if (!button || button.disabled) return;
     if (button.dataset.close) $('#' + button.dataset.close).close();
-    else if (button.dataset.packageTab) selectPackage(button.dataset.packageTab,true);
+    else if (button.dataset.packageTab) selectPackage(button.dataset.packageTab, true);
     else if (button.dataset.addPackage) addPackage(button.dataset.addPackage);
     else if (button.dataset.switchPackage) addPackage(button.dataset.switchPackage);
     else if (button.dataset.test) toggleTest(button.dataset.test);
-    else if (button.dataset.detail) { detailId = button.dataset.detail;renderDetail(detailId);openDialog('test-dialog'); }
-    else if (button.dataset.remove) { plan = model.removeItem(plan,button.dataset.remove);update();showToast('Selection removed from your plan.'); }
-    else if (button.dataset.action === 'open-plan') {renderPlan();openDialog('plan-dialog');}
-    else if (button.dataset.action === 'open-details') {if ($('#plan-dialog').open) $('#plan-dialog').close();renderPlan();openDialog('customer-dialog');customerFields.name.focus();}
-    else if (button.dataset.action === 'details-to-plan') {$('#customer-dialog').close();renderPlan();openDialog('plan-dialog');}
-    else if (button.dataset.action === 'appointment-to-details') {appointmentDialog.close();openDialog('customer-dialog');customerFields.name.focus();}
-    else if (button.dataset.action === 'review-to-plan') {$('#review-dialog').close();renderPlan();openDialog('plan-dialog');}
-    else if (button.dataset.action === 'review-to-details') {$('#review-dialog').close();openDialog('customer-dialog');customerFields.name.focus();}
-    else if (button.dataset.action === 'review-to-appointment') {$('#review-dialog').close();renderAppointment();openDialog('appointment-dialog');$('#appointment-week .appointment-week-day[aria-pressed="true"]')?.focus();}
-    else if (button.dataset.action === 'browse-packages') {$('#plan-dialog').close();$('#packages').scrollIntoView();$('#tab-' + activePackage).focus({preventScroll:true});}
-    else if (button.dataset.slide !== undefined) setSlide(button.dataset.slide === 'previous' ? activeSlide - 1 : button.dataset.slide === 'next' ? activeSlide + 1 : Number(button.dataset.slide));
+    else if (button.dataset.detail) {
+      detailId = button.dataset.detail;
+      renderDetail(detailId);
+      openDialog('test-dialog');
+    } else if (button.dataset.remove) {
+      plan = model.removeItem(plan, button.dataset.remove);
+      update();
+      showToast('Selection removed from your plan.');
+    } else if (button.dataset.action === 'open-plan') {
+      renderPlan();
+      openDialog('plan-dialog');
+    } else if (button.dataset.action === 'open-details') {
+      if ($('#plan-dialog').open) $('#plan-dialog').close();
+      renderPlan();
+      openDialog('customer-dialog');
+      customerFields.name.focus();
+    } else if (button.dataset.action === 'details-to-plan') {
+      $('#customer-dialog').close();
+      renderPlan();
+      openDialog('plan-dialog');
+    } else if (button.dataset.action === 'appointment-to-details') {
+      appointmentDialog.close();
+      openDialog('customer-dialog');
+      customerFields.name.focus();
+    } else if (button.dataset.action === 'review-to-plan') {
+      $('#review-dialog').close();
+      renderPlan();
+      openDialog('plan-dialog');
+    } else if (button.dataset.action === 'review-to-details') {
+      $('#review-dialog').close();
+      openDialog('customer-dialog');
+      customerFields.name.focus();
+    } else if (button.dataset.action === 'review-to-appointment') {
+      $('#review-dialog').close();
+      renderAppointment();
+      openDialog('appointment-dialog');
+      $('#appointment-week .appointment-week-day[aria-pressed="true"]')?.focus();
+    } else if (button.dataset.action === 'browse-packages') {
+      $('#plan-dialog').close();
+      $('#packages').scrollIntoView();
+      $('#tab-' + activePackage).focus({ preventScroll: true });
+    } else if (button.dataset.slide !== undefined)
+      setSlide(
+        button.dataset.slide === 'previous'
+          ? activeSlide - 1
+          : button.dataset.slide === 'next'
+            ? activeSlide + 1
+            : Number(button.dataset.slide),
+      );
   });
-  $('#package-tabs').addEventListener('keydown', event => {
-    const index = model.packages.findIndex(pkg => pkg.id === activePackage);
+  // Arrow keys move between package tabs; Home/End go to the first/last tab.
+  $('#package-tabs').addEventListener('keydown', (event) => {
+    const index = model.packages.findIndex((pkg) => pkg.id === activePackage);
     const count = model.packages.length;
-    const next = {ArrowRight:(index+1)%count,ArrowLeft:(index+count-1)%count,Home:0,End:count-1}[event.key];
+    const next = {
+      ArrowRight: (index + 1) % count,
+      ArrowLeft: (index + count - 1) % count,
+      Home: 0,
+      End: count - 1,
+    }[event.key];
     if (next === undefined) return;
-    event.preventDefault();selectPackage(model.packages[next].id,true);
+    event.preventDefault();
+    selectPackage(model.packages[next].id, true);
   });
-  $$('dialog').forEach(dialog => {
-    dialog.addEventListener('keydown', event => {
+  // Keep keyboard focus inside a dialog and return it to the opener when the dialog closes.
+  // Outside clicks do not dismiss forms or erase drafts; only non-form dialogs allow backdrop close.
+  $$('dialog').forEach((dialog) => {
+    dialog.addEventListener('keydown', (event) => {
       if (event.key !== 'Tab') return;
-      const controls = $$('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]', dialog)
-        .filter(control => control.getClientRects().length);
-      const first = controls[0], last = controls[controls.length - 1];
-      if (!first) { event.preventDefault(); return; }
-      if ((event.shiftKey && document.activeElement === first) ||
-          (!event.shiftKey && document.activeElement === last)) {
-        event.preventDefault(); (event.shiftKey ? last : first).focus();
+      const controls = $$(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex="0"]',
+        dialog,
+      ).filter((control) => control.getClientRects().length);
+      const first = controls[0],
+        last = controls[controls.length - 1];
+      if (!first) {
+        event.preventDefault();
+        return;
+      }
+      if (
+        (event.shiftKey && document.activeElement === first) ||
+        (!event.shiftKey && document.activeElement === last)
+      ) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
       }
     });
-    dialog.addEventListener('cancel', event => {
+    dialog.addEventListener('cancel', (event) => {
       if (dialog.id === 'review-dialog' && requestSending) event.preventDefault();
     });
     dialog.addEventListener('close', () => {
       if (dialog.contains($('#toast'))) document.body.append($('#toast'));
-      document.body.classList.toggle('modal-open',!!$('dialog[open]'));
+      document.body.classList.toggle('modal-open', !!$('dialog[open]'));
       if (dialog.id === 'test-dialog') detailId = null;
       const opener = dialogOpeners.get(dialog.id);
       if (opener) {
-        const target = opener.element.isConnected ? opener.element : opener.attribute ? $(`[${opener.attribute}="${opener.value}"]`,opener.container?.isConnected ? opener.container : document) : null;
-        if (target && !target.disabled) target.focus({preventScroll:true});
-        else $('dialog[open] [data-close]')?.focus({preventScroll:true});
+        const target = opener.element.isConnected
+          ? opener.element
+          : opener.attribute
+            ? $(
+                `[${opener.attribute}="${opener.value}"]`,
+                opener.container?.isConnected ? opener.container : document,
+              )
+            : null;
+        if (target && !target.disabled) target.focus({ preventScroll: true });
+        else $('dialog[open] [data-close]')?.focus({ preventScroll: true });
       }
     });
-    dialog.addEventListener('click', event => {
-      if (['customer-dialog','appointment-dialog','review-dialog','booking-confirmation-dialog'].includes(dialog.id) || event.target !== dialog) return;
+    dialog.addEventListener('click', (event) => {
+      if (
+        [
+          'customer-dialog',
+          'appointment-dialog',
+          'review-dialog',
+          'booking-confirmation-dialog',
+        ].includes(dialog.id) ||
+        event.target !== dialog
+      )
+        return;
       const rect = dialog.getBoundingClientRect();
-      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+      if (
+        event.clientX < rect.left ||
+        event.clientX > rect.right ||
+        event.clientY < rect.top ||
+        event.clientY > rect.bottom
+      )
+        dialog.close();
     });
   });
-  $('#confirm-action').addEventListener('click', () => { const action = confirmation;confirmation = null;$('#confirm-dialog').close();if (action) action(); });
-  $('#clear-plan').addEventListener('click', () => confirmChange('Remove every package and test from this browser’s screening plan? You can build a new plan at any time.', () => {plan = model.createPlan();update();showToast('Your plan has been cleared.');}));
+  // Wire confirmation, plan reset, download/print and catalogue filter controls.
+  $('#confirm-action').addEventListener('click', () => {
+    const action = confirmation;
+    confirmation = null;
+    $('#confirm-dialog').close();
+    if (action) action();
+  });
+  $('#clear-plan').addEventListener('click', () =>
+    confirmChange(
+      'Remove every package and test from this browser’s screening plan? You can build a new plan at any time.',
+      () => {
+        plan = model.createPlan();
+        update();
+        showToast('Your plan has been cleared.');
+      },
+    ),
+  );
   $('#download-plan').addEventListener('click', downloadPlan);
   $('#print-plan').addEventListener('click', printPlan);
   $('#test-search').addEventListener('input', renderTests);
   $('#test-category').addEventListener('change', renderTests);
-  $('#reset-filters').addEventListener('click', () => {$('#test-search').value = '';$('#test-category').value = 'all';renderTests();$('#test-search').focus();});
-  $('#show-all-tests').addEventListener('click', () => {showingAll = true;renderTests();const firstNew = $$('#test-grid [data-detail]')[6];if (firstNew) firstNew.focus({preventScroll:true});});
-  $('#test-category').insertAdjacentHTML('beforeend', [...new Set(model.tests.map(test => test.category))].map(category => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`).join(''));
-  renderTabs();renderPackage();renderTests();renderPlan();loadPrototypeStatus();
-}());
+  $('#reset-filters').addEventListener('click', () => {
+    $('#test-search').value = '';
+    $('#test-category').value = 'all';
+    renderTests();
+    $('#test-search').focus();
+  });
+  $('#show-all-tests').addEventListener('click', () => {
+    showingAll = true;
+    renderTests();
+    const firstNew = $$('#test-grid [data-detail]')[6];
+    if (firstNew) firstNew.focus({ preventScroll: true });
+  });
+  // Derive category options from the catalogue, then render the initial page once.
+  $('#test-category').insertAdjacentHTML(
+    'beforeend',
+    [...new Set(model.tests.map((test) => test.category))]
+      .map((category) => `<option value="${escapeHTML(category)}">${escapeHTML(category)}</option>`)
+      .join(''),
+  );
+  renderTabs();
+  renderPackage();
+  renderTests();
+  renderPlan();
+  loadPrototypeStatus();
+})();

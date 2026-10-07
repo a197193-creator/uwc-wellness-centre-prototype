@@ -1,0 +1,11 @@
+# Match the formatter on every checkout; keep text endings stable on Windows too.
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.php text eol=lf
+*.ps1 text eol=lf
+*.toml text eol=lf
